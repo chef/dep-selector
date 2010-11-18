@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'gecoder'
+
 OR_TERM = "OR"
 AND_TERM = "AND"
 EQL_TERM = "="
@@ -23,9 +26,12 @@ class CBVersion
     @deps = deps
   end
 
-  def generate_clause
+  def generate_clause(cb_to_model_var)
     components = deps.inject([[cb_name, version]]){|acc, dep| acc << [dep.cb_name, dep.version] ; acc }
-    "ASSERT ( (" + components.map{|comp| "(#{comp.join(EQL_TERM)})"}.join(" #{AND_TERM} ") + ") #{OR_TERM} (#{cb_name}#{NE_TERM}#{version}) );"
+    conjuction = components.inject(cb_to_model_var[cb_name].must == version) do |acc, comp|
+      acc & (cb_to_model_var[comp.first].must == comp.last)
+    end
+    conjuction | (cb_to_model_var[cb_name].must_not == version)
   end
 end
 
@@ -54,11 +60,18 @@ c1 = db.insert("c", 1)
 a1 = db.insert("a", 1, [Dep.new(b2)])
 a2 = db.insert("a", 2, [Dep.new(b1),Dep.new(c1)])
 
-db.list_keys.each do |cb_name|
-  version_nums = []
-  db.daterz[cb_name].each do |cb_version|
-    version_nums << cb_version.version
-    puts cb_version.generate_clause
-  end
-  puts "ASSERT ( " + version_nums.map{|v| "(#{cb_name}#{EQL_TERM}#{v})" }.join(" #{OR_TERM} ") + " );"
+model = Gecode::Model.new
+cb_to_model_var = db.list_keys.inject({}) do |acc, cb_name|
+  acc[cb_name] = model.int_var(db.daterz[cb_name].map{|cb_version| cb_version.version})
+  model.branch_on acc[cb_name]#, :value => :max
+  acc
 end
+
+db.list_keys.each do |cb_name|
+  db.daterz[cb_name].each do |cb_version|
+    cb_version.generate_clause(cb_to_model_var)
+  end
+end
+
+soln = model.solve!
+cb_to_model_var.each_pair{|cb_name, var| puts "#{cb_name}: #{var.value}"}
