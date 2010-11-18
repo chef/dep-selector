@@ -1,0 +1,29 @@
+{
+  "long_description": "",
+  "attributes": {
+  },
+  "conflicting": {
+  },
+  "dependencies": {
+  },
+  "providing": {
+  },
+  "maintainer": "Opscode, Inc.",
+  "replacing": {
+  },
+  "platforms": {
+  },
+  "license": "Apache 2.0",
+  "version": "2.0.0",
+  "maintainer_email": "cookbooks@opscode.com",
+  "recipes": {
+  },
+  "groupings": {
+  },
+  "recommendations": {
+  },
+  "name": "B",
+  "description": "Test cookbook B",
+  "suggestions": {
+  }
+}
