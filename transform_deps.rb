@@ -1,5 +1,10 @@
 #!/usr/bin/env ruby
 
+OR_TERM = "OR"
+AND_TERM = "AND"
+EQL_TERM = "="
+NE_TERM = "/="
+
 class Dep
   attr_accessor :cb_name, :version
   
@@ -20,7 +25,7 @@ class CBVersion
 
   def generate_clause
     components = deps.inject([[cb_name, version]]){|acc, dep| acc << [dep.cb_name, dep.version] ; acc }
-    "ASSERT ( (" + components.map{|comp| "(#{comp.join('=')})"}.join(" AND ") + ") OR (#{cb_name}/=#{version}) );"
+    "ASSERT ( (" + components.map{|comp| "(#{comp.join(EQL_TERM)})"}.join(" #{AND_TERM} ") + ") #{OR_TERM} (#{cb_name}#{NE_TERM}#{version}) );"
   end
 end
 
@@ -55,5 +60,5 @@ db.list_keys.each do |cb_name|
     version_nums << cb_version.version
     puts cb_version.generate_clause
   end
-  puts "ASSERT ( " + version_nums.map{|v| "(#{cb_name}=#{v})" }.join(" OR ") + " );"
+  puts "ASSERT ( " + version_nums.map{|v| "(#{cb_name}#{EQL_TERM}#{v})" }.join(" #{OR_TERM} ") + " );"
 end
