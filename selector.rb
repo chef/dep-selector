@@ -1,5 +1,7 @@
 require 'rubygems'
 require 'gecoder'
+require 'chef/version_class'
+require 'pp'
 
 class Package
   @packages = {}
@@ -100,7 +102,14 @@ end
 
 
 # gets cookbook versions and stuffs into our model
-cookbook_versions = Chef::CookbookVersion.cdb_list_cookbook_version_dependencies
+#cookbook_versions = Chef::CookbookVersion.cdb_list_cookbook_version_dependencies
+cookbook_versions =
+  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 2.0.0"}},
+   {"key"=>["A", "2.0.0"], "value"=>{"B"=>"= 1.0.0", "C"=>"= 1.0.0"}},
+   {"key"=>["B", "1.0.0"], "value"=>{}},
+   {"key"=>["B", "2.0.0"], "value"=>{}},
+   {"key"=>["C", "1.0.0"], "value"=>{}}]
+
 cookbook_versions.each do |cb_version|
 #  pp :cb_version => cb_version
   pv = Package.find(cb_version["key"].first).add_version(cb_version["key"].last)
