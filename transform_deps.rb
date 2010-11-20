@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'gecoder'
+require 'pp'
 
 OR_TERM = "OR"
 AND_TERM = "AND"
@@ -27,9 +28,11 @@ class CBVersion
   end
 
   def generate_clause(cb_to_model_var)
-    components = deps.inject([[cb_name, version]]){|acc, dep| acc << [dep.cb_name, dep.version] ; acc }
-    conjuction = components.inject(cb_to_model_var[cb_name].must == version) do |acc, comp|
-      acc & (cb_to_model_var[comp.first].must == comp.last)
+    guard = (cb_to_model_var[cb_name].must == version)
+    conjuction = deps.inject(guard) do |acc, dep|
+      dep_range = Range.new(dep.version, dep.version)
+      pp :dep_range => dep_range, :pkg_name => cb_name, :version => version
+      acc & (cb_to_model_var[dep.cb_name].must_be.in(dep_range))
     end
     conjuction | (cb_to_model_var[cb_name].must_not == version)
   end
@@ -59,11 +62,16 @@ b2 = db.insert("b", 2)
 c1 = db.insert("c", 1)
 a1 = db.insert("a", 1, [Dep.new(b2)])
 a2 = db.insert("a", 2, [Dep.new(b1),Dep.new(c1)])
+#foo1 = db.insert("foo", 1, [Dep.new(b1)])
+#foo2 = db.insert("foo", 2, [Dep.new(b2)])
 
 model = Gecode::Model.new
 cb_to_model_var = db.list_keys.inject({}) do |acc, cb_name|
-  acc[cb_name] = model.int_var(db.daterz[cb_name].map{|cb_version| cb_version.version})
-  model.branch_on acc[cb_name]#, :value => :max
+  versions = db.daterz[cb_name].map{|cb_version| cb_version.version}.sort
+  range = Range.new(versions.first, versions.last)
+  pp :ver_range => range
+  acc[cb_name] = model.int_var(range)
+  model.branch_on acc[cb_name] if cb_name == "a"#, :value => :max
   acc
 end
 
