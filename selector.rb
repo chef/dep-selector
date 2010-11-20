@@ -3,31 +3,40 @@ require 'gecoder'
 require 'chef/version_class'
 require 'pp'
 
-class Package
-  @packages = {}
-  
-  class << self
-    attr_accessor :packages
 
-    def find(name)
-      @packages = {} unless packages
-      packages.has_key?(name) ? packages[name] : (packages[name]=Package.new(name))
-    end
+# DependencyGraphs contain Packages, which in turn contain
+# PackageVersions
+class DependencyGraph
+  include Gecode::Mixin
 
-    def each
-      packages.each do |name, pkg|
-        yield pkg
-      end
+  attr_reader :packages
+
+  def initialize
+    @packages = {}
+  end
+
+  def package(name)
+    packages.has_key?(name) ? packages[name] : (packages[name]=Package.new(self, name))
+  end
+
+  def each_package
+    packages.each do |name, pkg|
+      yield pkg
     end
   end
+
+  def generate_gecode_constraints
+    each_package{ |pkg| pkg.generate_gecode_constraints }
+  end
+end
+
+class Package
+  attr_reader :dependency_graph, :name, :versions
   
-  attr_accessor :name, :versions
-  
-  def initialize(name)
+  def initialize(dependency_graph, name)
+    @dependency_graph = dependency_graph
     @name = name
     @versions = []
-
-    self.class.packages[name] = self
   end
   
   def add_version(version)
@@ -39,13 +48,13 @@ class Package
     @densely_packed_versions ||= DenselyPackedTripleSet.new(versions.map{|pkg_version| pkg_version.version})
   end
 
-  def gecode_model_var(model)
-    @gecode_model_var ||= model.int_var(densely_packed_versions.range)
+  # Note: only invoke this method after all PackageVersions have been added
+  def gecode_model_var
+    @gecode_model_var ||= dependency_graph.int_var(densely_packed_versions.range)
   end
   
-  def generate_gecode_constraints(model)
-    versions.each{|version| version.generate_gecode_constraints(model) }
-    gecode_model_var(model)
+  def generate_gecode_constraints
+    versions.each{|version| version.generate_gecode_constraints }
   end
 end
 
@@ -76,26 +85,29 @@ class PackageVersion
     @dependencies = []
   end
 
-  def add_dependency(package, constraint)
-    dependencies << [package, constraint]
-#    pp :dependencies => dependencies, :pkg_name => package_name, :version => version
-  end
-  
-  def generate_gecode_constraints(model)
-    pkg_mv = package.gecode_model_var(model)
+  def generate_gecode_constraints
+    pkg_mv = package.gecode_model_var
     pkg_densely_packed_version = package.densely_packed_versions["= #{version}"].first
+
     guard = (pkg_mv.must == pkg_densely_packed_version)
-#    pp :densely_packed_version_first => pkg_densely_packed_version, :pkg => package_name, :version => version, :guard => true
-    conjunction = dependencies.inject(guard) do |acc, dep_pair|
-      dep_pkg = dep_pair.first
-      dep_pkg_mv = dep_pkg.gecode_model_var(model)
-      dep_densely_packed_versions = dep_pkg.densely_packed_versions[dep_pair.last]
-#      pp :dep_pkg_name => dep_pkg.name, :dep_range => dep_densely_packed_versions, :pkg_name => package_name, :version => version
-      acc & dep_pkg_mv.must_be.in(dep_densely_packed_versions)
-    end
+    conjunction = dependencies.inject(guard){ |acc, dep| acc & dep.generate_gecode_constraint }
     conjunction | (pkg_mv.must_not == pkg_densely_packed_version)
   end
 end
+
+class Dependency
+  attr_reader :package, :constraint
+
+  def initialize(package, constraint)
+    @package = package
+    @constraint = constraint
+  end
+
+  def generate_gecode_constraint
+    package.gecode_model_var.must_be.in(package.densely_packed_versions[constraint])
+  end
+end
+
 
 
 #################################
@@ -110,21 +122,18 @@ cookbook_versions =
    {"key"=>["B", "2.0.0"], "value"=>{}},
    {"key"=>["C", "1.0.0"], "value"=>{}}]
 
+dep_graph = DependencyGraph.new
+
 cookbook_versions.each do |cb_version|
 #  pp :cb_version => cb_version
-  pv = Package.find(cb_version["key"].first).add_version(cb_version["key"].last)
+  pv = dep_graph.package(cb_version["key"].first).add_version(cb_version["key"].last)
   cb_version['value'].each_pair do |dep_name, constraint|
-    pkg = Package.find(dep_name)
-    pv.add_dependency(pkg, constraint)
+    pv.dependencies << Dependency.new(dep_graph.package(dep_name), constraint)
   end
 end
 
-model = Gecode::Model.new
-
 # add cookbook dependency graphs to gecode model
-Package.each do |pkg|
-  pkg.generate_gecode_constraints(model)
-end
+dep_graph.generate_gecode_constraints
 
 
 # A=2.0.0, B=1.0.0, C=X
@@ -142,24 +151,25 @@ run_list = [["A", nil], ["B", "= 1.0.0"]]
 # add run list-generated constraints, which are the only variables
 # that we explicitly branch on.
 run_list.each do |run_list_item|
-  pkg = Package.find(run_list_item.first)
+  pkg = dep_graph.package(run_list_item.first)
   constraint = run_list_item.last
   
-  pkg_mv = pkg.gecode_model_var(model)
+  pkg_mv = pkg.gecode_model_var
   if constraint
     pkg_mv.must_be.in(pkg.densely_packed_versions[constraint])
   end
-  model.branch_on(pkg_mv)
+  dep_graph.branch_on(pkg_mv)
 end
 
 puts "packages and valid versions:"
-Package.each do |pkg|
-  pp :pkg => pkg.name, :value => pkg.gecode_model_var(model)
+dep_graph.each_package do |pkg|
+  pp :pkg => pkg.name, :value => pkg.gecode_model_var
 end
 
-soln = model.solve!
+soln = dep_graph.solve!
 
 puts "variable assignments:"
-Package.each do |pkg|
-  puts "#{pkg.name}: #{pkg.gecode_model_var(model).value rescue "unassigned"}"
+dep_graph.each_package do |pkg|
+#  puts "#{pkg.name}: #{pkg.gecode_model_var.value}"
+  pp :pkg => pkg.name, :value => pkg.gecode_model_var
 end
