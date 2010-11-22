@@ -1,5 +1,8 @@
 require 'dep_selector/package'
 
+require 'rubygems'
+require 'gecoder'
+
 module DepSelector
   # DependencyGraphs contain Packages, which in turn contain
   # PackageVersions
