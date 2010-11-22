@@ -28,6 +28,15 @@ class DependencyGraph
   def generate_gecode_constraints
     each_package{ |pkg| pkg.generate_gecode_constraints }
   end
+
+  def gecode_model_vars
+    packages.inject({}){|acc, elt| acc[elt.first] = elt.last.gecode_model_var ; acc }
+  end
+
+  # TODO [cw,2010/11/21]: See TODO in ObjectiveFunction
+  def gecode_model_var_values
+    packages.inject({}){|acc, elt| acc[elt.first] = (elt.last.gecode_model_var.value rescue nil) ; acc }
+  end
 end
 
 class Package
@@ -59,6 +68,8 @@ class Package
 end
 
 class DenselyPackedTripleSet
+  attr_reader :sorted_triples
+
   def initialize(triples)
     @sorted_triples = triples.map{|triple| Chef::Version.new(triple) }.sort
     @triple_to_index = {}
@@ -71,8 +82,12 @@ class DenselyPackedTripleSet
 
   # TODO: make this method respect more than just the = operator
   def [](constraint)
-    raise "Can't match constraint: #{constraint}" unless constraint =~ /= ([\d.]+)/
-    Range.new(@triple_to_index[$1], @triple_to_index[$1])
+    if constraint.nil?
+      range
+    else
+      raise "Can't match constraint: #{constraint}" unless constraint =~ /= ([\d.]+)/
+        Range.new(@triple_to_index[$1], @triple_to_index[$1])
+    end
   end
 end
 
@@ -137,7 +152,7 @@ dep_graph.generate_gecode_constraints
 
 
 # A=2.0.0, B=1.0.0, C=X
-run_list = [["A", nil], ["B", "= 1.0.0"]]
+#run_list = [["A", nil], ["B", "= 1.0.0"]]
 
 # A=1.0.0, B=2.0.0, C=X
 #run_list = [["A", nil], ["B", "= 2.0.0"]]
@@ -147,6 +162,22 @@ run_list = [["A", nil], ["B", "= 1.0.0"]]
 
 # no soln
 #run_list = [["A", "= 1.0.0"], ["B", "= 1.0.0"]]
+
+# depends on what the objective function is
+run_list = [["A", nil]]
+
+#current_versions = {"A" => "1.0.0", "B" => "2.0.0"}
+current_versions = {"A" => "2.0.0", "B" => "1.0.0"}
+
+current_versions_densely_packed = current_versions.inject({}) do |acc, elt|
+  acc[elt.first] = dep_graph.package(elt.first).densely_packed_versions["= #{elt.last}"].first
+  acc
+end
+
+# we use the explicitly specified dependencies as a strong preference
+# in our objective function
+explicit_densely_packed_dependencies = run_list.inject({}){|acc, rli| acc[rli.first] = dep_graph.package(rli.first).densely_packed_versions[rli.last] ; acc }
+
 
 # add run list-generated constraints, which are the only variables
 # that we explicitly branch on.
@@ -162,14 +193,75 @@ run_list.each do |run_list_item|
 end
 
 puts "packages and valid versions:"
-dep_graph.each_package do |pkg|
-  pp :pkg => pkg.name, :value => pkg.gecode_model_var
+pp dep_graph.gecode_model_vars
+
+class ObjectiveFunction
+  attr_reader :best_solution, :best_solution_value
+  
+  def initialize(&evaluation_block)
+    @evaluate_solution = evaluation_block
+    @best_solution_value = -1.0/0 # negative infinity
+  end
+
+  def consider(soln)
+    puts "considering solution:"
+    pp soln.gecode_model_vars
+    
+    if (new_soln_value = @evaluate_solution.call(soln)) > best_solution_value
+      puts "better soln found: #{new_soln_value} > #{best_solution_value}"
+      # TODO [cw,2010/11/21]: this is a janky way to extract the
+      # bindings of a solution, because Gecode::Mixin doesn't seem to
+      # have a way to store a particular solution in the middle of
+      # solving. Is there a better way to do this?
+      @best_solution = soln.gecode_model_var_values
+      @best_solution_value = new_soln_value
+    end
+    
+    puts "\n\n"
+  end
 end
 
-soln = dep_graph.solve!
+objective_function = ObjectiveFunction.new do |soln|
+  # Note: We probably have to filter out the unnecessary dependencies
+  # that are nonetheless bound here so that we're not unjustly
+  # punishing the solution under consideration for appearing to change
+  # packages that will actually just get removed.
+  edit_distance = current_versions_densely_packed.inject(0) do |acc, curr_version|
+    # TODO [cw,2010/11/21]: This edit distance only increases when a
+    # package that is currently deployed is changed, not when a new
+    # dependency is added. I think there is an argument to be made
+    # that also including new packages is worthy of an edit distance
+    # bump, since the interpretation can be that any difference in
+    # code that is run (not just changing existing code) could be
+    # considered "infrastructure instability". This needs to be
+    # considered.
+    pkg_name, curr_version_densely_packed = curr_version
+    if soln.packages.has_key?(pkg_name)
+      pkg = soln.package(pkg_name)
+      putative_version = pkg.gecode_model_var.value
+      puts "#{pkg_name} going from #{curr_version_densely_packed} to #{putative_version}"
+      acc -= 1 unless putative_version == curr_version_densely_packed
+    end
+    acc
+  end
+end
+
+puts "Current versions:"
+pp current_versions
+
+# example of a simple objective function that is not powerful enough to express ours
+#dep_graph.objective_function = dep_graph.package("A").gecode_model_var
+#dep_graph.maximize! :objective_function
+
+puts "\n\n"
+dep_graph.each_solution do |soln|
+  objective_function.consider(soln)
+end
 
 puts "variable assignments:"
-dep_graph.each_package do |pkg|
-#  puts "#{pkg.name}: #{pkg.gecode_model_var.value}"
-  pp :pkg => pkg.name, :value => pkg.gecode_model_var
+pp objective_function.best_solution
+objective_function.best_solution.keys.sort.each do |pkg_name|
+  densely_packed_version = objective_function.best_solution[pkg_name]
+  puts "#{pkg_name}: #{densely_packed_version} -> #{dep_graph.package(pkg_name).densely_packed_versions.sorted_triples[densely_packed_version]}"
 end
+
