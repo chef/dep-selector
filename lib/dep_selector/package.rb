@@ -16,6 +16,10 @@ module DepSelector
       pv
     end
 
+    def get_version_from_densely_packed_version(dpv)
+      densely_packed_versions.sorted_triples[dpv]
+    end
+
     def densely_packed_versions
       @densely_packed_versions ||= DenselyPackedTripleSet.new(versions.map{|pkg_version| pkg_version.version})
     end
