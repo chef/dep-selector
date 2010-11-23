@@ -187,4 +187,16 @@ describe DepSelector::DependencyGraph do
     verify_result(dep_graph, objective_function, {'A'=>'1.0.0', 'B'=>'2.0.0', 'C'=>'1.0.0'} )
   end
 
+  it "#clone should perform a deep copy" do
+    dg1 = DepSelector::DependencyGraph.new
+    dg2 = dg1.clone
+    dg2.package("should only exist in dg2")
+    dg1.packages.should be_empty
+
+    dg1.package("foo")
+    dg2 = dg1.clone
+    dg2.packages.should have_key("foo")
+    dg2.package("foo").add_version("1.0.0")
+    dg1.package("foo").versions.should be_empty
+  end
 end
