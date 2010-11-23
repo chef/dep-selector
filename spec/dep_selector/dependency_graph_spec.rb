@@ -4,6 +4,7 @@ require 'rubygems'
 require 'dep_selector/dependency_graph'
 require 'dep_selector/dependency'
 require 'dep_selector/objective_function'
+require 'dep_selector/version_constraint'
 require 'pp'
 
 simple_cookbook_version_constraint =
@@ -38,14 +39,19 @@ end
 
 def init_objective_function(dep_graph, run_list, current_versions)
   current_versions_densely_packed = current_versions.inject({}) do |acc, elt|
-    acc[elt.first] = dep_graph.package(elt.first).densely_packed_versions["= #{elt.last}"].first
+    dpv = dep_graph.package(elt.first).densely_packed_versions
+    version_spec = DepSelector::VersionConstraint.new("= #{elt.last}")
+    pp :dpv=>dpv, :elt_first=>elt.first, :version_spec=>version_spec
+    acc[elt.first] = dep_graph.package(elt.first).densely_packed_versions[version_spec].first
     acc
   end
   
 
 # in our objective function
   explicit_densely_packed_dependencies = run_list.inject({}) do |acc, rli| 
-    acc[rli.first] = dep_graph.package(rli.first).densely_packed_versions[rli.last] ; acc 
+     version_spec = DepSelector::VersionConstraint.new(rli.last)
+    acc[rli.first] = dep_graph.package(rli.first).densely_packed_versions[version_spec] ;
+    acc 
   end
 
   objective_function = DepSelector::ObjectiveFunction.new do |soln|

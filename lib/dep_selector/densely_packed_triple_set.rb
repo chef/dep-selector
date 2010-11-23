@@ -6,6 +6,7 @@ module DepSelector
 
     def initialize(triples)
       # TODO [cw/mark,2010/11/22]: JANKY!
+      # Accept strings in form x, x.y, or x.y.z or things that map to such strings...
       @sorted_triples = triples.map{|triple| Chef::Version.new(triple) }.sort.map{|t| t.to_s}
       @triple_to_index = {}
       @sorted_triples.each_with_index{|triple, idx| @triple_to_index[triple.to_s] = idx}
