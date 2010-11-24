@@ -18,5 +18,10 @@ module DepSelector
       conjunction = dependencies.inject(guard){ |acc, dep| acc & dep.generate_gecode_constraint }
       conjunction | (pkg_mv.must_not == pkg_densely_packed_version)
     end
+
+    def to_hash
+      { :package_name => package.name, :version => version }
+    end
+
   end
 end

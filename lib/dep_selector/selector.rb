@@ -71,11 +71,13 @@ module DepSelector
       if block_given?
         objective_function = ObjectiveFunction.new(&block)
         workspace.each_solution do |soln|
-          objective_function.consider(soln)
+          objective_function.consider(soln.assignments_as_string_hash)
         end
         objective_function.best_solution.keys.sort.map do |pkg_name|
-          densely_packed_version = objective_function.best_solution[pkg_name]
-          dep_graph.package(pkg_name).version_from_densely_packed_version(densely_packed_version)
+#          densely_packed_version = objective_function.best_solution[pkg_name]
+#          dep_graph.package(pkg_name).version_from_densely_packed_version(densely_packed_version)
+          version = objective_function.best_solution[pkg_name]
+          dep_graph.package(pkg_name).versions.find{|pkg_version| pkg_version.version == version}
         end
       else
         workspace.solve!
