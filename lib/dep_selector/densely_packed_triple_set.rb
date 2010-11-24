@@ -17,6 +17,7 @@ module DepSelector
     end
 
     def index(triple)
+      raise Exceptions::TripleNotDenselyPacked.new(triple) unless @triple_to_index.has_key?(triple)
       @triple_to_index[triple]
     end
 

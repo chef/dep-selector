@@ -69,6 +69,10 @@ describe DepSelector::DenselyPackedTripleSet do
     range = dpt_set[constraint]
     range.first.should == 2
     range.last.should == 3
+
+  it "errors if the densely packed version is requested for an invalid triple" do
+    dpt_set = DepSelector::DenselyPackedTripleSet.new ["1.0.0"]
+    lambda{ dpt_set.index("2.0.0") }.should raise_error(DepSelector::Exceptions::TripleNotDenselyPacked)
   end
 
 end
