@@ -7,7 +7,11 @@ def setup_constraint(dep_graph, cset)
       pv.dependencies << DepSelector::Dependency.new(dep_graph.package(dep_name), constraint)
     end
   end
-  dep_graph.generate_gecode_constraints
+  # commenting out, because Selector relies on DependencyGraph's clone
+  # method, which dies if the constraints are already generated when
+  # it's asked to solve. This is a temporary condition until the
+  # Selector interface is solidified and the tests migrated.
+#  dep_graph.generate_gecode_constraints
 end
 
 def add_run_list(dep_graph, run_list)
