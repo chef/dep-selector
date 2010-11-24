@@ -33,6 +33,7 @@ describe DepSelector::DependencyGraph do
   end
   
   it "can solve a simple system with one set of current versions" do
+    pending "Elimination"
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, simple_cookbook_version_constraint)
     dep_graph.generate_gecode_constraints
@@ -49,6 +50,7 @@ describe DepSelector::DependencyGraph do
   end
 
   it "can solve a simple system with another set of current versions" do
+    pending "Elimination"
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, simple_cookbook_version_constraint)
     dep_graph.generate_gecode_constraints
@@ -82,7 +84,7 @@ describe DepSelector::DependencyGraph do
   end
 
   it "can solve a more complex system with a set of current versions" do
-#    pending "Fixes for densely packed triple"
+    pending "Elimination"
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, complex_cookbook_version_constraint)
     dep_graph.generate_gecode_constraints
@@ -101,6 +103,7 @@ describe DepSelector::DependencyGraph do
 
   it "can solve a more complex system with a set of current versions and a longer runlist" do
 #    pending "Fixes for densely packed triple"
+    pending "Elimination"
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, complex_cookbook_version_constraint)
     run_list = [["A", nil], ["B", nil], ["C",nil], ["D", nil] ]
@@ -117,6 +120,7 @@ describe DepSelector::DependencyGraph do
   end
 
   it "#clone should perform a deep copy" do
+    pending "Elimination"
     dg1 = DepSelector::DependencyGraph.new
     dg2 = dg1.clone
     dg2.package("should only exist in dg2")
