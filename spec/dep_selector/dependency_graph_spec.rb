@@ -87,7 +87,7 @@ describe DepSelector::DependencyGraph do
   end
 
   it "can solve a more complex system with a set of current versions" do
-    pending "Fixes for densely packed triple"
+#    pending "Fixes for densely packed triple"
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, complex_cookbook_version_constraint)
     dep_graph.generate_gecode_constraints
@@ -100,7 +100,25 @@ describe DepSelector::DependencyGraph do
     end
     pp objective_function.best_solution
     dump_result(dep_graph, objective_function)
-    verify_result(dep_graph, objective_function, {'A'=>'1.0.0', 'B'=>'2.0.0', 'C'=>'1.0.0'} )
+    # TODO 2010-11-23 (mark) should check that unneeded deps are not defined
+    verify_result(dep_graph, objective_function, {'A'=>'1.0.0', 'B'=>'2.0.0'} )
+  end
+
+  it "can solve a more complex system with a set of current versions and a longer runlist" do
+#    pending "Fixes for densely packed triple"
+    dep_graph = DepSelector::DependencyGraph.new
+    setup_constraint(dep_graph, complex_cookbook_version_constraint)
+    run_list = [["A", nil], ["B", nil], ["C",nil], ["D", nil] ]
+    add_run_list(dep_graph, run_list)
+    current_versions = {"A" => "1.0.0", "B" => "2.0.0"}
+    objective_function = init_objective_function(dep_graph, run_list, current_versions)
+    dep_graph.each_solution do |soln|
+      objective_function.consider(soln)
+    end
+    pp objective_function.best_solution
+    dump_result(dep_graph, objective_function)
+    # TODO 2010-11-23 (mark) should check that unneeded deps are not defined
+    verify_result(dep_graph, objective_function, {'A'=>'1.0.0', 'B'=>'2.0.0', 'C'=>'4.0.0', 'D'=>'4.0.0'} )
   end
 
   it "#clone should perform a deep copy" do

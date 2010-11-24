@@ -74,14 +74,22 @@ def dump_result(dep_graph, objective_function)
   puts "Results"
   objective_function.best_solution.keys.sort.each do |pkg_name|
     densely_packed_version = objective_function.best_solution[pkg_name]
-    puts "#{pkg_name}: #{densely_packed_version} -> #{dep_graph.package(pkg_name).version_from_densely_packed_version(densely_packed_version)}"
+    if !(densely_packed_version.nil?)
+      puts "#{pkg_name}: #{densely_packed_version} -> #{dep_graph.package(pkg_name).version_from_densely_packed_version(densely_packed_version)}"
+    end
   end
 end
 
 def verify_result(dep_graph, objective_function, expected_values)
   expected_values.each_pair do |pkg_name, version|
     densely_packed_version = objective_function.best_solution[pkg_name]
-    computed_version = dep_graph.package(pkg_name).version_from_densely_packed_version(densely_packed_version).to_s
-    computed_version.should == version
+    pp :densely_packed_version => densely_packed_version
+    densely_packed_version.should_not be_nil
+    if !(densely_packed_version.nil?) 
+      computed_version = dep_graph.package(pkg_name).version_from_densely_packed_version(densely_packed_version).to_s
+      computed_version.should == version
+    else
+
+    end
   end
 end
