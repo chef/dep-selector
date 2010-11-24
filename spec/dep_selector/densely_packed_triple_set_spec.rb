@@ -9,7 +9,7 @@ def dump_result(dep_graph, objective_function)
   puts "Results"
   objective_function.best_solution.keys.sort.each do |pkg_name|
     densely_packed_version = objective_function.best_solution[pkg_name]
-    puts "#{pkg_name}: #{densely_packed_version} -> #{dep_graph.package(pkg_name).get_version_from_densely_packed_version(densely_packed_version)}"
+    puts "#{pkg_name}: #{densely_packed_version} -> #{dep_graph.package(pkg_name).version_from_densely_packed_version(densely_packed_version)}"
   end
 end
 
@@ -29,7 +29,4 @@ describe DepSelector::DenselyPackedTripleSet do
     range.first.should == 1
     range.last.should == 3
   end
-
-
-
 end
