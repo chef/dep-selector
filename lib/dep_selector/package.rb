@@ -1,5 +1,5 @@
 require 'dep_selector/package_version'
-require 'dep_selector/densely_packed_triple_set'
+require 'dep_selector/densely_packed_set'
 
 module DepSelector
   class Package
