@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'dep_selector'
 
 def setup_constraint(dep_graph, cset)
