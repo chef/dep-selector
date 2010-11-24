@@ -46,11 +46,12 @@ def init_objective_function(dep_graph, run_list, current_versions)
   end
 
   objective_function = DepSelector::ObjectiveFunction.new do |soln|
-    # Note: We probably have to filter out the unnecessary dependencies
-    # that are nonetheless bound here so that we're not unjustly
-    # punishing the solution under consideration for appearing to change
-    # packages that will actually just get removed.
-    edit_distance = current_versions_densely_packed.inject(0) do |acc, curr_version|
+    # Note: We probably have to filter out the unnecessary
+    # dependencies that are nonetheless bound here so that we're not
+    # unjustly punishing the solution under consideration for
+    # appearing to change packages that will actually just get
+    # removed.
+    edit_distance = current_versions.inject(0) do |acc, curr_version|
       # TODO [cw,2010/11/21]: This edit distance only increases when a
       # package that is currently deployed is changed, not when a new
       # dependency is added. I think there is an argument to be made
@@ -59,12 +60,11 @@ def init_objective_function(dep_graph, run_list, current_versions)
       # code that is run (not just changing existing code) could be
       # considered "infrastructure instability". This needs to be
       # considered.
-      pkg_name, curr_version_densely_packed = curr_version
-      if soln.packages.has_key?(pkg_name)
-        pkg = soln.package(pkg_name)
-        putative_version = pkg.gecode_model_var.value
-        puts "#{pkg_name} going from #{curr_version_densely_packed} to #{putative_version}"
-        acc -= 1 unless putative_version == curr_version_densely_packed
+      pkg_name, curr_version = curr_version
+      if soln.has_key?(pkg_name)
+        putative_version = soln[pkg_name]
+        puts "#{pkg_name} going from #{curr_version} to #{putative_version}"
+        acc -= 1 unless putative_version == curr_version
       end
       acc
     end
