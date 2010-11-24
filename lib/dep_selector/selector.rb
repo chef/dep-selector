@@ -80,13 +80,17 @@ module DepSelector
       else
         workspace.solve!
         workspace.packages.keys.sort.map do |pkg_name|
-          densely_packed_version = workspace.package(pkg_name).gecode_model_var.value
-          unless densely_packed_version
-            dep_graph.package(pkg_name).version_from_densely_packed_version(densely_packed_version)
+          densely_packed_version = workspace.package(pkg_name).gecode_model_var.value rescue nil
+          if densely_packed_version
+            # we want the dep_graph's version of the Package not the workspace's
+            dep_graph_pkg = dep_graph.package(pkg_name)
+            # TODO [cw,2010/11/23]: this feels clumsy...
+            version = dep_graph_pkg.version_from_densely_packed_version(densely_packed_version)
+            dep_graph_pkg.versions.find{|pkg_version| pkg_version.version == version}
           else
             nil
           end
-        end
+        end.compact
       end
     end
 
