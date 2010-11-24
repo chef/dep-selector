@@ -16,12 +16,15 @@ module DepSelector
       pv
     end
 
-    def get_version_from_densely_packed_version(dpv)
-      densely_packed_versions.sorted_triples[dpv]
-    end
-
+    # Note: only invoke this method after all PackageVersions have been added
     def densely_packed_versions
       @densely_packed_versions ||= DenselyPackedTripleSet.new(versions.map{|pkg_version| pkg_version.version})
+    end
+
+    # Note: Since this invokes densely_packed_versions, only invoke
+    # this method after all PackageVersions have been added
+    def version_from_densely_packed_version(dpv)
+      densely_packed_versions.sorted_triples[dpv]
     end
 
     # Note: only invoke this method after all PackageVersions have been added
