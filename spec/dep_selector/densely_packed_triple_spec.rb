@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..','spec_helper'))
 
 require 'rubygems'
-require 'dep_selector/densely_packed_triple_set'
+require 'dep_selector/densely_packed_set'
 require 'dep_selector/version_constraint'
 require 'pp'
 
