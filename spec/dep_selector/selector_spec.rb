@@ -32,7 +32,6 @@ moderate_cookbook_version_constraint =
    {"key"=>["D", "3.0.0"], "value"=>{}},
    {"key"=>["D", "4.0.0"], "value"=>{}} 
 ]
- 
 
 def create_objective_function(dep_graph, current_versions)
   lambda do |soln|
@@ -82,7 +81,6 @@ describe DepSelector::Selector do
       soln[1].to_hash.should == { :package_name => "B", :version => "1.0.0"}
     end
 
-
     it "a simple set of constraints and does not include unnecessary assignments" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, simple_cookbook_version_constraint)
@@ -99,8 +97,6 @@ describe DepSelector::Selector do
       soln[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
       soln[1].to_hash.should == { :package_name => "B", :version => "2.0.0"}
     end
-
-
 
     it "and indicates which solution constraint makes the system unsatisfiable if there is no solution" do
       dep_graph = DepSelector::DependencyGraph.new
