@@ -84,7 +84,7 @@ describe DepSelector::DependencyGraph do
   end
 
   it "can solve a more complex system with a set of current versions" do
-    pending "Fixes for densely packed triple"
+#    pending "Fixes for densely packed triple"
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, complex_cookbook_version_constraint)
     run_list = [["A", nil]]
