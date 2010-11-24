@@ -1,3 +1,4 @@
+require 'dep_selector/selector'
 require 'dep_selector/dependency_graph'
 require 'dep_selector/package'
 require 'dep_selector/package_version'

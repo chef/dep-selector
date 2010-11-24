@@ -40,6 +40,7 @@ describe DepSelector::DependencyGraph do
   it "can solve a simple system with one set of current versions" do
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, simple_cookbook_version_constraint)
+    dep_graph.generate_gecode_constraints
     run_list = [["A", nil]]
     add_run_list(dep_graph, run_list)
     current_versions = {"A" => "2.0.0", "B" => "1.0.0"}
@@ -55,6 +56,7 @@ describe DepSelector::DependencyGraph do
   it "can solve a simple system with another set of current versions" do
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, simple_cookbook_version_constraint)
+    dep_graph.generate_gecode_constraints
     run_list = [["A", nil]]
     add_run_list(dep_graph, run_list)
     current_versions = {"A" => "1.0.0", "B" => "2.0.0"}
@@ -71,6 +73,7 @@ describe DepSelector::DependencyGraph do
     pending "Impossible constraint work done"
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, simple_cookbook_version_constraint)
+    dep_graph.generate_gecode_constraints
     run_list = [["A", "1.0.0"], ["B", "1.0.0"]]
     add_run_list(dep_graph, run_list)
     current_versions = {"A" => "1.0.0", "B" => "2.0.0"}
@@ -87,6 +90,7 @@ describe DepSelector::DependencyGraph do
     pending "Fixes for densely packed triple"
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, complex_cookbook_version_constraint)
+    dep_graph.generate_gecode_constraints
     run_list = [["A", nil]]
     add_run_list(dep_graph, run_list)
     current_versions = {"A" => "1.0.0", "B" => "2.0.0"}
