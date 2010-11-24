@@ -9,7 +9,6 @@ module DepSelector
 
     def consider(soln)
       puts "considering solution:"
-      pp soln.gecode_model_vars
 
       if (new_soln_value = @evaluate_solution.call(soln)) > best_solution_value
         puts "better soln found: #{new_soln_value} > #{best_solution_value}"
@@ -17,7 +16,7 @@ module DepSelector
         # bindings of a solution, because Gecode::Mixin doesn't seem
         # to have a way to store a particular solution in the middle
         # of solving. Is there a better way to do this?
-        @best_solution = soln.gecode_model_var_values
+        @best_solution = soln
         @best_solution_value = new_soln_value
       end
 
