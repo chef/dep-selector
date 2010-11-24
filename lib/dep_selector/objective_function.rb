@@ -1,10 +1,13 @@
 module DepSelector
   class ObjectiveFunction
     attr_reader :best_solution, :best_solution_value
-  
-    def initialize(&evaluation_block)
+    
+    # -1.0/0 negative infinity
+    MinusInfinity = -1.0/0
+
+    def initialize(bottom = MinusInfinity, &evaluation_block)
       @evaluate_solution = evaluation_block
-      @best_solution_value = -1.0/0 # negative infinity
+      @best_solution_value = bottom
     end
 
     def consider(soln)

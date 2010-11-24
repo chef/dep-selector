@@ -24,7 +24,7 @@ module DepSelector
     # must take an argument that represents a solution and must
     # produce an object comparable with Float, where greater than
     # represents a better solution for the domain.
-    def find_solution(solution_constraints, &block)
+    def find_solution(solution_constraints, bottom=ObjectiveFunction::MinusInfinity,  &block)
       begin
         # first, try to solve the whole set of constraints
         solve(solution_constraints, &block)
@@ -47,7 +47,7 @@ module DepSelector
 
     # Clones the dependency graph, applies the solution_constraints,
     # and attempts to find a solution.
-    def solve(solution_constraints, &block)
+    def solve(solution_constraints, bottom=ObjectiveFunction::MinusInfinity, &block)
       workspace = dep_graph.clone
 
       # generate constraints imposed by the dependency graph
@@ -69,7 +69,7 @@ module DepSelector
       # if a block was specified, use that as the objective function;
       # otherwise, just find any solution
       if block_given?
-        objective_function = ObjectiveFunction.new(&block)
+        objective_function = ObjectiveFunction.new(bottom, &block)
         workspace.each_solution do |soln|
           objective_function.consider(soln.assignments_as_string_hash)
         end
