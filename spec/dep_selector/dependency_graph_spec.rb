@@ -14,6 +14,27 @@ simple_cookbook_version_constraint =
    {"key"=>["B", "2.0.0"], "value"=>{}},
    {"key"=>["C", "1.0.0"], "value"=>{}}]
 
+
+complex_cookbook_version_constraint =
+  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 2.0.0"}},
+   {"key"=>["A", "2.0.0"], "value"=>{"B"=>"= 1.0.0", "C"=>"= 1.0.0"}},
+   {"key"=>["B", "1.0.0"], "value"=>{}},
+   {"key"=>["B", "2.0.0"], "value"=>{}},
+   {"key"=>["C", "1.0.0"], "value"=>{"D"=>">= 1.0.0"}},
+   {"key"=>["C", "2.0.0"], "value"=>{"D"=>">= 2.0.0"}},
+   {"key"=>["C", "3.0.0"], "value"=>{"D"=>">= 3.0.0"}},
+   {"key"=>["C", "4.0.0"], "value"=>{"D"=>">= 4.0.0"}},
+   {"key"=>["D", "1.0.0"], "value"=>{}},
+   {"key"=>["D", "2.0.0"], "value"=>{}},
+   {"key"=>["D", "3.0.0"], "value"=>{}},
+   {"key"=>["D", "4.0.0"], "value"=>{}},
+]
+
+
+
+
+
+
 def setup_constraint(dep_graph, cset)
   cset.each do |cb_version|
     pv = dep_graph.package(cb_version["key"].first).add_version(cb_version["key"].last)
@@ -41,7 +62,7 @@ def init_objective_function(dep_graph, run_list, current_versions)
   current_versions_densely_packed = current_versions.inject({}) do |acc, elt|
     dpv = dep_graph.package(elt.first).densely_packed_versions
     version_spec = DepSelector::VersionConstraint.new("= #{elt.last}")
-    pp :dpv=>dpv, :elt_first=>elt.first, :version_spec=>version_spec
+#    pp :dpv=>dpv, :elt_first=>elt.first, :version_spec=>version_spec
     acc[elt.first] = dep_graph.package(elt.first).densely_packed_versions[version_spec].first
     acc
   end
@@ -81,6 +102,7 @@ def init_objective_function(dep_graph, run_list, current_versions)
 end
 
 def dump_result(dep_graph, objective_function)
+  puts "Results"
   objective_function.best_solution.keys.sort.each do |pkg_name|
     densely_packed_version = objective_function.best_solution[pkg_name]
     puts "#{pkg_name}: #{densely_packed_version} -> #{dep_graph.package(pkg_name).get_version_from_densely_packed_version(densely_packed_version)}"
@@ -133,5 +155,36 @@ describe DepSelector::DependencyGraph do
     verify_result(dep_graph, objective_function, {'A'=>'1.0.0', 'B'=>'2.0.0', 'C'=>'1.0.0'} )
   end
 
+  it "can handle failing to solve a simple system with impossible constraints" do
+    pending "Impossible constraint work done"
+    dep_graph = DepSelector::DependencyGraph.new
+    setup_constraint(dep_graph, simple_cookbook_version_constraint)
+    run_list = [["A", "1.0.0"], ["B", "1.0.0"]]
+    add_run_list(dep_graph, run_list)
+    current_versions = {"A" => "1.0.0", "B" => "2.0.0"}
+    objective_function = init_objective_function(dep_graph, run_list, current_versions)
+    dep_graph.each_solution do |soln|
+      objective_function.consider(soln)
+    end
+    pp objective_function.best_solution
+    dump_result(dep_graph, objective_function)
+    verify_result(dep_graph, objective_function, {'A'=>'1.0.0', 'B'=>'2.0.0', 'C'=>'1.0.0'} )
+  end
+
+  it "can solve a more complex system with a set of current versions" do
+    pending "Fixes for densely packed triple"
+    dep_graph = DepSelector::DependencyGraph.new
+    setup_constraint(dep_graph, complex_cookbook_version_constraint)
+    run_list = [["A", nil]]
+    add_run_list(dep_graph, run_list)
+    current_versions = {"A" => "1.0.0", "B" => "2.0.0"}
+    objective_function = init_objective_function(dep_graph, run_list, current_versions)
+    dep_graph.each_solution do |soln|
+      objective_function.consider(soln)
+    end
+    pp objective_function.best_solution
+    dump_result(dep_graph, objective_function)
+    verify_result(dep_graph, objective_function, {'A'=>'1.0.0', 'B'=>'2.0.0', 'C'=>'1.0.0'} )
+  end
 
 end
