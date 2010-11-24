@@ -35,17 +35,16 @@ module DepSelector
 
     # TODO [cw,2010/11/21]: See TODO in ObjectiveFunction
     def gecode_model_var_values
-      packages.inject({}){|acc, elt| acc[elt.first] = (elt.last.gecode_model_var.value rescue nil) ; acc }
+      packages.inject({}){|acc, elt| acc[elt.first] = elt.last.gecode_model_var.max ; acc }
     end
 
     def assignments_as_string_hash
       packages.inject({}) do |acc, elt|
-        densely_packed_version = elt.last.gecode_model_var.value rescue nil
+        densely_packed_version = elt.last.gecode_model_var.max
         acc[elt.first] = package(elt.first).version_from_densely_packed_version(densely_packed_version)
         acc
       end
     end
-
 
     # TODO [cw,2010/11/23]: this is a simple but inefficient impl. Do
     # it for realz.
