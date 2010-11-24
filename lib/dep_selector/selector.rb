@@ -1,4 +1,5 @@
 require 'dep_selector/dependency_graph'
+require 'dep_selector/exceptions'
 
 # A Selector contains the a DependencyGraph, which is populated with
 # the dependency relationships, and an array of solution
@@ -57,7 +58,7 @@ module DepSelector
         pkg_name = package_constraint[:name]
         constraint = package_constraint[:version_constraint]
         pkg = workspace.package(pkg_name)
-          
+
         pkg_mv = pkg.gecode_model_var
         if constraint
           pkg_mv.must_be.in(pkg.densely_packed_versions[constraint])

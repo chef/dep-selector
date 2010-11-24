@@ -1,6 +1,5 @@
 require 'dep_selector/package'
 
-require 'rubygems'
 require 'gecoder'
 
 # DependencyGraphs contain Packages, which in turn contain

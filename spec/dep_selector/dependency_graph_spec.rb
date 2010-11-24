@@ -1,10 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..','spec_helper'))
 
-require 'rubygems'
-require 'dep_selector/dependency_graph'
-require 'dep_selector/dependency'
-require 'dep_selector/objective_function'
-require 'dep_selector/version_constraint'
 require 'pp'
 
 simple_cookbook_version_constraint =

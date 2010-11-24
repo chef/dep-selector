@@ -1,3 +1,4 @@
+require 'dep_selector/exceptions'
 require 'chef/version_class'
 
 module DepSelector
