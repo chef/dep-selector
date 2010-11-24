@@ -1,7 +1,7 @@
 require 'chef/version_class'
 
 module DepSelector
-  class DenselyPackedTripleSet
+  class DenselyPackedSet
     attr_reader :sorted_triples
 
     def initialize(triples)

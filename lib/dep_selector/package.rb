@@ -18,7 +18,7 @@ module DepSelector
 
     # Note: only invoke this method after all PackageVersions have been added
     def densely_packed_versions
-      @densely_packed_versions ||= DenselyPackedTripleSet.new(versions.map{|pkg_version| pkg_version.version})
+      @densely_packed_versions ||= DenselyPackedSet.new(versions.map{|pkg_version| pkg_version.version})
     end
 
     # Note: Since this invokes densely_packed_versions, only invoke
