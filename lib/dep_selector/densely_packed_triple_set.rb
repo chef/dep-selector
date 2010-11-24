@@ -26,8 +26,10 @@ module DepSelector
       started = false
       done = false
       sorted_triples.each_with_index do |triple, idx|
-        raise "Currently only handle continuous" if (range.any? && range.last+1 != idx)
-        range << idx if constraint.include?(triple)
+        if constraint.include?(triple)
+          raise "Currently only handle continuous gap between #{range.last} and #{idx} \n\tfor #{constraint.to_s} over #{@sorted_triples.join(', ')}" if (range.any? && range.last+1 != idx)
+          range << idx
+        end
       end
       Range.new(range.first, range.last)
     end
