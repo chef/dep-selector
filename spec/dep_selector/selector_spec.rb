@@ -84,7 +84,10 @@ end
 def create_latest_version_objective_function(dep_graph, current_versions)
   latest_versions = {}
   dep_graph.each_package do |pkg|
-    latest_versions[pkg.name] = pkg.densely_packed_versions.range.last
+    latest_version_id =  pkg.densely_packed_versions.range.last
+    pp :name=>pkg.name, :latest_version_id=>latest_version_id
+    pp :latest_version_string=>pkg.densely_packed_versions.sorted_triples[latest_version_id]
+    latest_versions[pkg.name] = pkg.densely_packed_versions.sorted_triples[latest_version_id]
   end
 
   lambda do |soln|
