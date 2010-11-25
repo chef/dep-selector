@@ -33,29 +33,66 @@ moderate_cookbook_version_constraint =
    {"key"=>["D", "4.0.0"], "value"=>{}} 
 ]
 
+def compute_edit_distance(soln, current_versions)
+  current_versions.inject(0) do |acc, curr_version|
+    # TODO [cw,2010/11/21]: This edit distance only increases when a
+    # package that is currently deployed is changed, not when a new
+    # dependency is added. I think there is an argument to be made
+    # that also including new packages is worthy of an edit distance
+    # bump, since the interpretation can be that any difference in
+    # code that is run (not just changing existing code) could be
+    # considered "infrastructure instability". This needs to be
+    # considered.
+    pkg_name, curr_version = curr_version
+    if soln.has_key?(pkg_name)
+      putative_version = soln[pkg_name]
+      puts "#{pkg_name} going from #{curr_version} to #{putative_version}"
+      acc -= 1 unless putative_version == curr_version
+      end
+    acc
+  end
+end
+
+class Array
+  def > (b)
+    (self <=> b) > 0
+  end
+end
+
 def create_objective_function(dep_graph, current_versions)
   lambda do |soln|
     # Note: We probably have to filter out the unnecessary dependencies
     # that are nonetheless bound here so that we're not unjustly
     # punishing the solution under consideration for appearing to change
     # packages that will actually just get removed.
-    edit_distance = current_versions.inject(0) do |acc, curr_version|
-      # TODO [cw,2010/11/21]: This edit distance only increases when a
-      # package that is currently deployed is changed, not when a new
-      # dependency is added. I think there is an argument to be made
-      # that also including new packages is worthy of an edit distance
-      # bump, since the interpretation can be that any difference in
-      # code that is run (not just changing existing code) could be
-      # considered "infrastructure instability". This needs to be
-      # considered.
-      pkg_name, curr_version = curr_version
-      if soln.has_key?(pkg_name)
-        putative_version = soln[pkg_name]
-        puts "#{pkg_name} going from #{curr_version} to #{putative_version}"
-        acc -= 1 unless putative_version == curr_version
-      end
-      acc
+    edit_distance = compute_edit_distance(soln, current_versions)
+  end
+end
+
+def compute_latest_version_count(soln, latest_versions)
+  latest_versions.inject(0) do |acc, version|
+    pkg_name, latest_version = version
+    if soln.has_key?(pkg_name) 
+      trial_version = soln[pkg_name]
+      puts "#{pkg_name} going from #{latest_version} to #{trial_version}"
+      acc -= 1 unless trial_version == latest_version
     end
+    acc
+  end
+end
+
+def create_latest_version_objective_function(dep_graph, current_versions)
+  latest_versions = {}
+  dep_graph.each_package do |pkg|
+    latest_versions[pkg.name] = pkg.densely_packed_versions.range.last
+  end
+
+  lambda do |soln|
+    latest_weight = compute_latest_version_count(soln, latest_versions)
+    churn_weight = compute_edit_distance(soln, current_versions)
+    x = [latest_weight, churn_weight]    
+    pp :obj_fun => x
+    x
   end
 end
 
@@ -179,8 +216,10 @@ describe DepSelector::Selector do
          {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
         ]
       current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
-      solution = selector.find_solution(solution_constraints) do |soln|
-        create_objective_function(dep_graph, current_versions).call(soln)
+      bottom = [-1.0/0, -1.0/0] 
+      pp :current_versions=>current_versions, :bottom=>bottom
+      solution = selector.find_solution(solution_constraints,bottom) do |soln|
+        create_latest_version_objective_function(dep_graph, current_versions).call(soln)
       end
       # TODO [cw,2010/11/24]: uncomment this assertion when
       # unnecessary assignments are removed
@@ -199,5 +238,7 @@ describe DepSelector::Selector do
     # TODO: more complex tests
 
   end
+
+  
 
 end

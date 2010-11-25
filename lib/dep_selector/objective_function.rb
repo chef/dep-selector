@@ -6,6 +6,7 @@ module DepSelector
     MinusInfinity = -1.0/0
 
     def initialize(bottom = MinusInfinity, &evaluation_block)
+      pp :ObjectiveFunctionInit=>bottom
       @evaluate_solution = evaluation_block
       @best_solution_value = bottom
     end

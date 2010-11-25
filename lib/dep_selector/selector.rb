@@ -24,10 +24,12 @@ module DepSelector
     # must take an argument that represents a solution and must
     # produce an object comparable with Float, where greater than
     # represents a better solution for the domain.
-    def find_solution(solution_constraints, bottom=ObjectiveFunction::MinusInfinity,  &block)
+    def find_solution(solution_constraints, bottom = ObjectiveFunction::MinusInfinity,  &block)
+      pp :find_solution_bottom => bottom
+
       begin
         # first, try to solve the whole set of constraints
-        solve(solution_constraints, &block)
+        solve(solution_constraints, bottom, &block)
       rescue Gecode::NoSolutionError
         # since we're here, solving the whole system failed, so add
         # the solution_constraints one-by-one and try to solve in
@@ -35,7 +37,7 @@ module DepSelector
         # to give helpful debugging info
         solution_constraints.each_index do |idx|
           begin
-            solve(solution_constraints[0..idx], &block)
+            solve(solution_constraints[0..idx], bottom, &block)
           rescue Gecode::NoSolutionError
             raise Exceptions::NoSolutionExists.new(solution_constraints[idx])
           end
@@ -47,8 +49,10 @@ module DepSelector
 
     # Clones the dependency graph, applies the solution_constraints,
     # and attempts to find a solution.
-    def solve(solution_constraints, bottom=ObjectiveFunction::MinusInfinity, &block)
+    def solve(solution_constraints, bottom = ObjectiveFunction::MinusInfinity, &block)
       workspace = dep_graph.clone
+
+      pp :solve_bottom=>bottom
 
       # generate constraints imposed by the dependency graph
       workspace.generate_gecode_constraints
