@@ -18,6 +18,14 @@ simple_cookbook_version_constraint_2 =
    {"key"=>["C", "3.0.0"], "value"=>{}}
   ]
 
+simple_cookbook_version_constraint_3 =
+  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>">= 2.0.0"}},
+   {"key"=>["A", "2.0.0"], "value"=>{"B"=>"= 1.0.0"}},
+   {"key"=>["B", "1.0.0"], "value"=>{}},
+   {"key"=>["B", "2.0.0"], "value"=>{}},
+   {"key"=>["B", "3.0.0"], "value"=>{}},
+  ]
+
 moderate_cookbook_version_constraint =
   [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 2.0.0", "C"=>">= 2.0.0"}},
    {"key"=>["A", "2.0.0"], "value"=>{"B"=>"= 1.0.0", "C"=>"= 1.0.0"}},
@@ -221,7 +229,26 @@ describe DepSelector::Selector do
 
     end
 
-    it "can solve a moderately complex system with a set of current versions" do
+    it "a simple set of constraints with ranges, selects the latest transitive dependencies, and does not include unnecessary assignments" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, simple_cookbook_version_constraint_3)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints = 
+        [
+         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new("= 1.0.0")},
+        ]
+      objective_function = create_latest_version_objective_function(dep_graph)
+      bottom = DepSelector::ObjectiveFunction::MinusInfinity
+      solution = selector.find_solution(solution_constraints,bottom) do |soln|
+        objective_function.call(soln)
+      end
+
+      # verify solution
+      solution[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
+      solution[1].to_hash.should == { :package_name => "B", :version => "3.0.0"}
+    end
+
+    it "a moderately complex system with a set of current versions" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, moderate_cookbook_version_constraint)
       selector = DepSelector::Selector.new(dep_graph)
