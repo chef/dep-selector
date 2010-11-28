@@ -4,7 +4,8 @@ require 'dep_selector'
 def setup_constraint(dep_graph, cset)
   cset.each do |cb_version|
     pv = dep_graph.package(cb_version["key"].first).add_version(cb_version["key"].last)
-    cb_version['value'].each_pair do |dep_name, constraint|
+    cb_version['value'].each_pair do |dep_name, constraint_str|
+      constraint = DepSelector::VersionConstraint.new(constraint_str)
       pv.dependencies << DepSelector::Dependency.new(dep_graph.package(dep_name), constraint)
     end
   end
