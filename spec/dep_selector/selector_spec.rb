@@ -41,12 +41,13 @@ def compute_edit_distance(soln, current_versions)
     # that also including new packages is worthy of an edit distance
     # bump, since the interpretation can be that any difference in
     # code that is run (not just changing existing code) could be
-    # considered "infrastructure instability". This needs to be
-    # considered.
+    # considered "infrastructure instability". And by that same
+    # reasoning, perhaps removal of packages should increase the edit
+    # distance, as well. This needs to be considered.
     pkg_name, curr_version = curr_version
     if soln.has_key?(pkg_name)
       putative_version = soln[pkg_name]
-      puts "#{pkg_name} going from #{curr_version} to #{putative_version}"
+      puts "Package #{pkg_name}: current = #{curr_version}, soln assignmen = #{putative_version}#{putative_version == curr_version ? "" : " (changing)"}"
       acc -= 1 unless putative_version == curr_version
       end
     acc
@@ -59,40 +60,46 @@ class Array
   end
 end
 
-def create_objective_function(dep_graph, current_versions)
-  lambda do |soln|
-    # Note: We probably have to filter out the unnecessary dependencies
-    # that are nonetheless bound here so that we're not unjustly
-    # punishing the solution under consideration for appearing to change
-    # packages that will actually just get removed.
-    edit_distance = compute_edit_distance(soln, current_versions)
-  end
-end
-
 def compute_latest_version_count(soln, latest_versions)
   latest_versions.inject(0) do |acc, version|
     pkg_name, latest_version = version
     if soln.has_key?(pkg_name) 
       trial_version = soln[pkg_name]
-      puts "#{pkg_name} going from #{latest_version} to #{trial_version}"
+      puts "Package #{pkg_name}: latest = #{latest_version}, soln assignment = #{trial_version}#{trial_version == latest_version ? "" : " (NOT latest)"}"
       acc -= 1 unless trial_version == latest_version
     end
     acc
   end
 end
 
-def create_latest_version_objective_function(dep_graph, current_versions)
+def create_latest_version_objective_function(dep_graph)
+  # determine latest versions from dep_graph
   latest_versions = {}
   dep_graph.each_package do |pkg|
     latest_version_id =  pkg.densely_packed_versions.range.last
-    pp :name=>pkg.name, :latest_version_id=>latest_version_id
-    pp :latest_version_string=>pkg.densely_packed_versions.sorted_triples[latest_version_id]
+#    pp :name=>pkg.name, :latest_version_id=>latest_version_id, :latest_version_string=>pkg.densely_packed_versions.sorted_triples[latest_version_id]
     latest_versions[pkg.name] = pkg.densely_packed_versions.sorted_triples[latest_version_id]
   end
-
+  
   lambda do |soln|
-    latest_weight = compute_latest_version_count(soln, latest_versions)
-    churn_weight = compute_edit_distance(soln, current_versions)
+    compute_latest_version_count(soln, latest_versions)
+  end
+end
+
+def create_minimum_churn_objective_function(dep_graph, current_versions)
+  lambda do |soln|
+    compute_edit_distance(soln, current_versions)
+  end
+end
+
+# This method composes the latest_version and minimum_churn objective
+# functions.
+def create_latest_version_minimum_churn_objective_function(dep_graph, current_versions)
+  latest_version_objective_function = create_latest_version_objective_function(dep_graph)
+  minimum_churn_objective_function = create_minimum_churn_objective_function(dep_graph, current_versions)
+  lambda do |soln|
+    latest_weight = latest_version_objective_function.call(soln)
+    churn_weight = minimum_churn_objective_function.call(soln)
     x = [latest_weight, churn_weight]    
     pp :obj_fun => x
     x
@@ -193,7 +200,7 @@ describe DepSelector::Selector do
       # optimize for one configuration
       current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
       soln = selector.find_solution(solution_constraints) do |soln|
-        create_objective_function(dep_graph, current_versions).call(soln)
+        create_minimum_churn_objective_function(dep_graph, current_versions).call(soln)
       end
       # TODO [cw,2010/11/24]: uncomment this assertion when
       # unnecessary assignments are removed
@@ -204,7 +211,7 @@ describe DepSelector::Selector do
       # now optimize for another
       current_versions = { "A" => "2.0.0", "B" => "1.0.0"}
       soln = selector.find_solution(solution_constraints) do |soln|
-        create_objective_function(dep_graph, current_versions).call(soln)
+        create_minimum_churn_objective_function(dep_graph, current_versions).call(soln)
       end
       # TODO [cw,2010/11/24]: uncomment this assertion when
       # unnecessary assignments are removed
@@ -223,10 +230,11 @@ describe DepSelector::Selector do
          {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
         ]
       current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
-      bottom = [-1.0/0, -1.0/0] 
+      bottom = [DepSelector::ObjectiveFunction::MinusInfinity, DepSelector::ObjectiveFunction::MinusInfinity] 
       pp :current_versions=>current_versions, :bottom=>bottom
+      objective_function = create_latest_version_minimum_churn_objective_function(dep_graph, current_versions)
       solution = selector.find_solution(solution_constraints,bottom) do |soln|
-        create_latest_version_objective_function(dep_graph, current_versions).call(soln)
+        objective_function.call(soln)
       end
       # TODO [cw,2010/11/24]: uncomment this assertion when
       # unnecessary assignments are removed
