@@ -1,5 +1,6 @@
 #
 # Author:: Seth Falcon (<seth@opscode.com>)
+# Author:: Christopher Walters (<cw@opscode.com>)
 # Copyright:: Copyright (c) 2010 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
@@ -169,5 +170,25 @@ describe DepSelector::Version do
       end
     end
   end
+
+  it "should implement the ability to be hashed correctly" do
+    v1_1 = DepSelector::Version.new("1.0.0")
+    v1_2 = DepSelector::Version.new("1.0.0")
+
+    # the objects' references are not equal
+    v1_1.should_not equal(v1_2)
+
+    # the contract with hash is that v1_1.eql?(v1_2) implies that
+    # v1_1.hash == v1_2.hash
+    v1_1.should eql(v1_2)
+    v1_1.hash.should == v1_2.hash
+
+    # putting it all together, inserting by v1_1 and accessing by v1_2
+    # should succeed
+    hash = {}
+    hash[v1_1] = v1_1
+    hash[v1_2].should equal(v1_1)
+  end
+
 end
 

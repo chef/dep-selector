@@ -1,5 +1,6 @@
 #
 # Author:: Seth Falcon (<seth@opscode.com>)
+# Author:: Christopher Walters (<cw@opscode.com>)
 # Copyright:: Copyright 2010 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
@@ -41,6 +42,17 @@ module DepSelector
         return ans if ans != 0
       end
       0
+    end
+
+    def hash
+      # Didn't put any thought or research into this, probably can be
+      # done better
+      to_s.hash
+    end
+
+    # For hash
+    def eql?(other)
+      other.is_a?(Version) && self == other
     end
 
     private
