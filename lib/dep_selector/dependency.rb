@@ -9,8 +9,9 @@ module DepSelector
       @constraint = constraint
     end
 
-    def to_s
-      "(#{package.name} #{constraint.to_s})"
+    def to_s(incl_densely_packed_versions = false)
+      range = package.densely_packed_versions[constraint]
+      "(#{package.name} #{constraint.to_s}#{incl_densely_packed_versions ? " (#{range})" : ''})"
     end
 
     def generate_gecode_constraint

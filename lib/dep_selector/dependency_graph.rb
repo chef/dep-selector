@@ -33,8 +33,8 @@ module DepSelector
       packages.inject({}){|acc, elt| acc[elt.first] = elt.last.gecode_model_var ; acc }
     end
 
-    def to_s
-      packages.keys.sort.map{|name| packages[name].to_s}.join("\n")
+    def to_s(incl_densely_packed_versions = false)
+      packages.keys.sort.map{|name| packages[name].to_s(incl_densely_packed_versions)}.join("\n")
     end
 
     # TODO [cw,2010/11/23]: this is a simple but inefficient impl. Do

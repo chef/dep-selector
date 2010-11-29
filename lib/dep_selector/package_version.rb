@@ -19,8 +19,14 @@ module DepSelector
       conjunction | (pkg_mv.must_not == pkg_densely_packed_version)
     end
 
-    def to_s
-      "#{version} -> [#{dependencies.map{|d|d.to_s}.join(', ')}]"
+    def to_s(incl_densely_packed_versions = false)
+      components = []
+      components << "#{version}"
+      if incl_densely_packed_versions
+        components << " (#{package.densely_packed_versions.index(version)})"
+      end
+      components << " -> [#{dependencies.map{|d|d.to_s(incl_densely_packed_versions)}.join(', ')}]"
+      components.join
     end
 
     def to_hash

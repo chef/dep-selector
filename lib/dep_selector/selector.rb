@@ -93,6 +93,7 @@ module DepSelector
     end
 
     def trim_solution(package_constraints, soln)
+      pp :pre_trimmed_soln => soln.gecode_model_vars
       trimmed_soln = {}
       package_constraints.each do |package_constraint|
         package = soln.package(package_constraint[:name])
@@ -109,11 +110,12 @@ module DepSelector
       # add the package's assignment to the trimmed solution
       pkg_mv = package.gecode_model_var
       densely_packed_version = pkg_mv.max
-      version_str = package.version_str_from_densely_packed_version(densely_packed_version)
-      trimmed_soln[package.name] = version_str
+      version = package.version_from_densely_packed_version(densely_packed_version)
+      trimmed_soln[package.name] = version
 
       # expand the package's dependencies
-      pkg_version = package.version_by_str(version_str)
+      pp :package_name => package.name, :version => version
+      pkg_version = package.find_package_version(version)
       pkg_version.dependencies.each do |pkg_dep|
         expand_package(trimmed_soln, pkg_dep.package, soln)
       end
