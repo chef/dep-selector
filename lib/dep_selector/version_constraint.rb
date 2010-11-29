@@ -16,6 +16,7 @@
 # limitations under the License.
 #
 
+require 'dep_selector/version'
 require 'dep_selector/exceptions'
 
 module DepSelector
@@ -35,15 +36,15 @@ module DepSelector
         parse(constraint_spec)
       else
         msg = "VersionConstraint should be created from a String. You gave: #{constraint_spec.inspect}"
-        raise Chef::Exceptions::InvalidVersionConstraint, msg
+        raise Exceptions::InvalidVersionConstraint, msg
       end
     end
 
     def include?(v)
-      version = if v.respond_to? :version # a CookbookVersion-like object
-                  Chef::Version.new(v.version.to_s)
+      version = if v.respond_to? :version
+                  Version.new(v.version.to_s)
                 else
-                  Chef::Version.new(v.to_s)
+                  Version.new(v.to_s)
                 end
      do_op(version)
     end
@@ -86,7 +87,7 @@ module DepSelector
       else
         msg = "only one version constraint operation is supported, but you gave #{constraint_spec.size} "
         msg << "['#{constraint_spec.join(', ')}']"
-        raise Chef::Exceptions::InvalidVersionConstraint, msg
+        raise Exceptions::InvalidVersionConstraint, msg
       end
     end
 
@@ -94,17 +95,17 @@ module DepSelector
       @missing_patch_level = false
       if str.index(" ").nil? && str =~ /^[0-9]/
         # try for lone version, implied '='
-        @version = Chef::Version.new(str)
+        @version = Version.new(str)
         @op = "="
       elsif PATTERN.match str
         @op = $1
         raw_version = $2
-        @version = Chef::Version.new(raw_version)
+        @version = Version.new(raw_version)
         if raw_version.split('.').count == 2
           @missing_patch_level = true
         end
       else
-        raise Chef::Exceptions::InvalidVersionConstraint, "'#{str}'"
+        raise Exceptions::InvalidVersionConstraint, "'#{str}'"
       end
     end
 
