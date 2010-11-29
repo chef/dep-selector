@@ -19,11 +19,9 @@ simple_cookbook_version_constraint_2 =
   ]
 
 simple_cookbook_version_constraint_3 =
-  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>">= 2.0.0"}},
-   {"key"=>["A", "2.0.0"], "value"=>{"B"=>"= 1.0.0"}},
+  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>">= 1.0.0"}},
    {"key"=>["B", "1.0.0"], "value"=>{}},
    {"key"=>["B", "2.0.0"], "value"=>{}},
-   {"key"=>["B", "3.0.0"], "value"=>{}},
   ]
 
 moderate_cookbook_version_constraint =
@@ -119,7 +117,7 @@ describe DepSelector::Selector do
 
   describe "solves without an objective function" do
 
-    it "a simple set of constraints and does not include unnecessary assignments" do
+    it "a simple set of constraints and includes transitive dependencies" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, simple_cookbook_version_constraint)
       selector = DepSelector::Selector.new(dep_graph)
@@ -129,11 +127,29 @@ describe DepSelector::Selector do
          {:name => "B", :version_constraint => DepSelector::VersionConstraint.new("= 1.0.0")}
         ]
       soln = selector.find_solution(solution_constraints)
-      # TODO [cw,2010/11/24]: uncomment this assertion when
-      # unnecessary assignments are removed
-#      soln.length.should == 2
-      soln[0].to_hash.should == { :package_name => "A", :version => "2.0.0"}
-      soln[1].to_hash.should == { :package_name => "B", :version => "1.0.0"}
+
+      soln.should == {
+        "A" => "2.0.0",
+        "B" => "1.0.0",
+        "C" => "1.0.0"
+      }
+    end
+
+    it "a simple set of constraints and doesn't include unnecessary dependencies" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, simple_cookbook_version_constraint)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        [
+         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
+         {:name => "B", :version_constraint => DepSelector::VersionConstraint.new("= 2.0.0")}
+        ]
+      soln = selector.find_solution(solution_constraints)
+
+      soln.should == {
+        "A" => "1.0.0",
+        "B" => "2.0.0"
+      }
     end
 
     it "a simple set of constraints and does not include unnecessary assignments" do
@@ -146,11 +162,11 @@ describe DepSelector::Selector do
          {:name => "B", :version_constraint => DepSelector::VersionConstraint.new("= 2.0.0")}
         ]
       soln = selector.find_solution(solution_constraints)
-      # TODO [cw,2010/11/24]: uncomment this assertion when
-      # unnecessary assignments are removed
-#      soln.length.should == 2
-      soln[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
-      soln[1].to_hash.should == { :package_name => "B", :version => "2.0.0"}
+
+      soln.should == {
+        "A" => "1.0.0",
+        "B" => "2.0.0"
+      }
     end
 
     it "and indicates which solution constraint makes the system unsatisfiable if there is no solution" do
@@ -180,11 +196,12 @@ describe DepSelector::Selector do
         ]
       soln = selector.find_solution(solution_constraints)
 
-      soln.length.should == 4
-      soln[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
-      soln[1].to_hash.should == { :package_name => "B", :version => "2.0.0"}
-      soln[2].to_hash.should == { :package_name => "C", :version => "4.0.0"}
-      soln[3].to_hash.should == { :package_name => "D", :version => "4.0.0"}
+      soln.should == {
+        "A" => "1.0.0",
+        "B" => "2.0.0",
+        "C" => "4.0.0",
+        "D" => "4.0.0"
+      }
     end
 
     it "can solve a moderately complex system with a larger set of current versions" do
@@ -198,15 +215,13 @@ describe DepSelector::Selector do
         ]
       soln = selector.find_solution(solution_constraints)
 
-      soln.length.should == 4
-      soln[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
-      soln[1].to_hash.should == { :package_name => "B", :version => "2.0.0"}
-      soln[2].to_hash.should == { :package_name => "C", :version => "4.0.0"}
-      soln[3].to_hash.should == { :package_name => "D", :version => "4.0.0"}
-
+      soln.should == {
+        "A" => "1.0.0",
+        "B" => "2.0.0",
+        "C" => "4.0.0",
+        "D" => "4.0.0"
+      }
     end
-
-    # TODO: more complex tests
 
   end
 
@@ -223,26 +238,30 @@ describe DepSelector::Selector do
 
       # optimize for one configuration
       current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
+      objective_function = create_minimum_churn_objective_function(dep_graph, current_versions)
+
       soln = selector.find_solution(solution_constraints) do |soln|
-        create_minimum_churn_objective_function(dep_graph, current_versions).call(soln)
+        objective_function.call(soln)
       end
-      # TODO [cw,2010/11/24]: uncomment this assertion when
-      # unnecessary assignments are removed
-#      soln.length.should == 2
-      soln[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
-      soln[1].to_hash.should == { :package_name => "B", :version => "2.0.0"}
+
+      soln.should == {
+        "A" => "1.0.0",
+        "B" => "2.0.0"
+      }
 
       # now optimize for another
-      current_versions = { "A" => "2.0.0", "B" => "1.0.0"}
-      soln = selector.find_solution(solution_constraints) do |soln|
-        create_minimum_churn_objective_function(dep_graph, current_versions).call(soln)
-      end
-      # TODO [cw,2010/11/24]: uncomment this assertion when
-      # unnecessary assignments are removed
-#      soln.length.should == 2
-      soln[0].to_hash.should == { :package_name => "A", :version => "2.0.0"}
-      soln[1].to_hash.should == { :package_name => "B", :version => "1.0.0"}
+      current_versions = { "A" => "2.0.0", "B" => "1.0.0" }
+      objective_function = create_minimum_churn_objective_function(dep_graph, current_versions)
 
+      soln = selector.find_solution(solution_constraints) do |soln|
+        objective_function.call(soln)
+      end
+
+      soln.should == {
+        "A" => "2.0.0",
+        "B" => "1.0.0",
+        "C" => "1.0.0"
+      }
     end
 
     it "a simple set of constraints with ranges, selects the latest transitive dependencies, and does not include unnecessary assignments" do
@@ -251,17 +270,17 @@ describe DepSelector::Selector do
       selector = DepSelector::Selector.new(dep_graph)
       solution_constraints = 
         [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new("= 1.0.0")},
+         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
         ]
       objective_function = create_latest_version_objective_function(dep_graph)
-      bottom = DepSelector::ObjectiveFunction::MinusInfinity
-      solution = selector.find_solution(solution_constraints,bottom) do |soln|
+      soln = selector.find_solution(solution_constraints) do |soln|
         objective_function.call(soln)
       end
 
-      # verify solution
-      solution[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
-      solution[1].to_hash.should == { :package_name => "B", :version => "3.0.0"}
+      soln.should == {
+        "A" => "1.0.0",
+        "B" => "2.0.0"
+      }
     end
 
     it "a moderately complex system with a set of current versions" do
@@ -276,26 +295,22 @@ describe DepSelector::Selector do
       bottom = [DepSelector::ObjectiveFunction::MinusInfinity, DepSelector::ObjectiveFunction::MinusInfinity] 
       pp :current_versions=>current_versions, :bottom=>bottom
       objective_function = create_latest_version_minimum_churn_objective_function(dep_graph, current_versions)
-      solution = selector.find_solution(solution_constraints,bottom) do |soln|
+      soln = selector.find_solution(solution_constraints,bottom) do |soln|
         objective_function.call(soln)
       end
-      # TODO [cw,2010/11/24]: uncomment this assertion when
-      # unnecessary assignments are removed
-      solution.length.should == 4
-      solution[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
-      solution[1].to_hash.should == { :package_name => "B", :version => "2.0.0"}
-      solution[2].to_hash.should == { :package_name => "C", :version => "4.0.0"}
-      solution[3].to_hash.should == { :package_name => "D", :version => "4.0.0"}
+
+      soln.should == {
+        "A" => "1.0.0",
+        "B" => "2.0.0",
+        "C" => "4.0.0",
+        "D" => "4.0.0"
+      }
     end
 
     it "and indicates which solution constraint makes the system unsatisfiable if there is no solution" do
       pending "TODO"
     end
 
-    # TODO: more complex tests
-
   end
-
-  
 
 end

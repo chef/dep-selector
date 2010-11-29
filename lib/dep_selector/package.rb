@@ -23,8 +23,12 @@ module DepSelector
 
     # Note: Since this invokes densely_packed_versions, only invoke
     # this method after all PackageVersions have been added
-    def version_from_densely_packed_version(dpv)
+    def version_str_from_densely_packed_version(dpv)
       densely_packed_versions.sorted_triples[dpv]
+    end
+
+    def version_by_str(version_str)
+      versions.find{|pkg_version| pkg_version.version == version_str}
     end
 
     # Note: only invoke this method after all PackageVersions have been added

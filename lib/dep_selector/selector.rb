@@ -25,8 +25,6 @@ module DepSelector
     # produce an object comparable with Float, where greater than
     # represents a better solution for the domain.
     def find_solution(solution_constraints, bottom = ObjectiveFunction::MinusInfinity,  &block)
-      pp :find_solution_bottom => bottom
-
       begin
         # first, try to solve the whole set of constraints
         solve(solution_constraints, bottom, &block)
@@ -35,10 +33,21 @@ module DepSelector
         # the solution_constraints one-by-one and try to solve in
         # order to find the constraint that breaks the system in order
         # to give helpful debugging info
+        #
+        # TODO [cw,2010/11/28]: for an efficiency gain, instead of
+        # continually re-building the problem and looking for a
+        # solution, turn solution_constraints into a Generator and
+        # iteratively add and solve in order to re-use
+        # propagations. This will require separating setting up the
+        # constraints from searching for the solution.
         solution_constraints.each_index do |idx|
           begin
             solve(solution_constraints[0..idx], bottom, &block)
           rescue Gecode::NoSolutionError
+            # TODO [cw,2010/11/24]: We can use the gecoder model vars'
+            # degrees to determine which vars are most constrained and
+            # then trace through the dependency graph to indicate what
+            # solution constraints are inducing them.
             raise Exceptions::NoSolutionExists.new(solution_constraints[idx])
           end
         end
@@ -51,8 +60,6 @@ module DepSelector
     # and attempts to find a solution.
     def solve(solution_constraints, bottom = ObjectiveFunction::MinusInfinity, &block)
       workspace = dep_graph.clone
-
-      pp :solve_bottom=>bottom
 
       # generate constraints imposed by the dependency graph
       workspace.generate_gecode_constraints
@@ -75,28 +82,40 @@ module DepSelector
       if block_given?
         objective_function = ObjectiveFunction.new(bottom, &block)
         workspace.each_solution do |soln|
-          objective_function.consider(soln.assignments_as_string_hash)
+          trimmed_soln = trim_solution(solution_constraints, soln)
+          objective_function.consider(trimmed_soln)
         end
-        objective_function.best_solution.keys.sort.map do |pkg_name|
-#          densely_packed_version = objective_function.best_solution[pkg_name]
-#          dep_graph.package(pkg_name).version_from_densely_packed_version(densely_packed_version)
-          version = objective_function.best_solution[pkg_name]
-          dep_graph.package(pkg_name).versions.find{|pkg_version| pkg_version.version == version}
-        end
+        objective_function.best_solution
       else
-        workspace.solve!
-        workspace.packages.keys.sort.map do |pkg_name|
-          densely_packed_version = workspace.package(pkg_name).gecode_model_var.value rescue nil
-          if densely_packed_version
-            # we want the dep_graph's version of the Package not the workspace's
-            dep_graph_pkg = dep_graph.package(pkg_name)
-            # TODO [cw,2010/11/23]: this feels clumsy...
-            version = dep_graph_pkg.version_from_densely_packed_version(densely_packed_version)
-            dep_graph_pkg.versions.find{|pkg_version| pkg_version.version == version}
-          else
-            nil
-          end
-        end.compact
+        soln = workspace.solve!
+        trim_solution(solution_constraints, soln)
+      end
+    end
+
+    def trim_solution(package_constraints, soln)
+      trimmed_soln = {}
+      package_constraints.each do |package_constraint|
+        package = soln.package(package_constraint[:name])
+        expand_package(trimmed_soln, package, soln)
+      end
+
+      trimmed_soln
+    end
+
+    def expand_package(trimmed_soln, package, soln)
+      # don't expand packages that we've already expanded
+      return if trimmed_soln.has_key?(package.name)
+
+      # add the package's assignment to the trimmed solution
+      pkg_mv = package.gecode_model_var
+      densely_packed_version = pkg_mv.max
+      version_str = package.version_str_from_densely_packed_version(densely_packed_version)
+      trimmed_soln[package.name] = version_str
+
+      # expand the package's dependencies
+      pkg_version = package.version_by_str(version_str)
+      pkg_version.dependencies.each do |pkg_dep|
+        expand_package(trimmed_soln, pkg_dep.package, soln)
       end
     end
 
