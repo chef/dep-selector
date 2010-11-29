@@ -19,6 +19,10 @@ module DepSelector
       conjunction | (pkg_mv.must_not == pkg_densely_packed_version)
     end
 
+    def to_s
+      "#{version} -> [#{dependencies.map{|d|d.to_s}.join(', ')}]"
+    end
+
     def to_hash
       { :package_name => package.name, :version => version }
     end

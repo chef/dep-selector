@@ -31,6 +31,10 @@ module DepSelector
       versions.find{|pkg_version| pkg_version.version == version_str}
     end
 
+    def to_s
+      "Package #{name}\n  #{versions.map{|v|v.to_s}.join("\n  ")}"
+    end
+
     # Note: only invoke this method after all PackageVersions have been added
     def gecode_model_var
       @gecode_model_var ||= dependency_graph.int_var(densely_packed_versions.range)

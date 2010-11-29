@@ -9,6 +9,10 @@ module DepSelector
       @constraint = constraint
     end
 
+    def to_s
+      "(#{package.name} #{constraint.to_s})"
+    end
+
     def generate_gecode_constraint
       package.gecode_model_var.must_be.in(package.densely_packed_versions[constraint])
     end
