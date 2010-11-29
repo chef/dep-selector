@@ -1,16 +1,13 @@
 require 'dep_selector/exceptions'
-require 'chef/version_class'
 
 module DepSelector
   class DenselyPackedSet
     attr_reader :sorted_triples
 
     def initialize(triples)
-      # TODO [cw/mark,2010/11/22]: JANKY!
-      # Accept strings in form x, x.y, or x.y.z or things that map to such strings...
-      @sorted_triples = triples.map{|triple| Chef::Version.new(triple) }.sort.map{|t| t.to_s}
+      @sorted_triples = triples.sort
       @triple_to_index = {}
-      @sorted_triples.each_with_index{|triple, idx| @triple_to_index[triple.to_s] = idx}
+      @sorted_triples.each_with_index{|triple, idx| @triple_to_index[triple] = idx}
     end
 
     def range
@@ -18,7 +15,10 @@ module DepSelector
     end
 
     def index(triple)
-      raise Exceptions::TripleNotDenselyPacked.new(triple) unless @triple_to_index.has_key?(triple)
+      unless @triple_to_index.has_key?(triple)
+        msg = "#{triple} is not a valid version for this package"
+        raise Exceptions::InvalidVersion.new(msg)
+      end
       @triple_to_index[triple]
     end
 
@@ -33,7 +33,8 @@ module DepSelector
           range << idx
         end
       end
-      Range.new(range.first, range.last)
+
+      range.empty? ? Range.new(1,0) : Range.new(range.first, range.last)
     end
   end
 end
