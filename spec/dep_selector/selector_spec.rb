@@ -180,9 +180,30 @@ describe DepSelector::Selector do
         ]
       soln = selector.find_solution(solution_constraints)
 
-      soln.length.should == 2
+      soln.length.should == 4
       soln[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
       soln[1].to_hash.should == { :package_name => "B", :version => "2.0.0"}
+      soln[2].to_hash.should == { :package_name => "C", :version => "4.0.0"}
+      soln[3].to_hash.should == { :package_name => "D", :version => "4.0.0"}
+    end
+
+    it "can solve a moderately complex system with a larger set of current versions" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, moderate_cookbook_version_constraint)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints = 
+        [
+         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
+         {:name => "C", :version_constraint => DepSelector::VersionConstraint.new},
+        ]
+      soln = selector.find_solution(solution_constraints)
+
+      soln.length.should == 4
+      soln[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
+      soln[1].to_hash.should == { :package_name => "B", :version => "2.0.0"}
+      soln[2].to_hash.should == { :package_name => "C", :version => "4.0.0"}
+      soln[3].to_hash.should == { :package_name => "D", :version => "4.0.0"}
+
     end
 
     # TODO: more complex tests
@@ -260,8 +281,7 @@ describe DepSelector::Selector do
       end
       # TODO [cw,2010/11/24]: uncomment this assertion when
       # unnecessary assignments are removed
-#      solution.length.should == 2
-
+      solution.length.should == 4
       solution[0].to_hash.should == { :package_name => "A", :version => "1.0.0"}
       solution[1].to_hash.should == { :package_name => "B", :version => "2.0.0"}
       solution[2].to_hash.should == { :package_name => "C", :version => "4.0.0"}
