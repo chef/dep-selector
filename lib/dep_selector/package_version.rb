@@ -12,7 +12,7 @@ module DepSelector
 
     def generate_gecode_constraints
       pkg_mv = package.gecode_model_var
-      pkg_densely_packed_version = package.densely_packed_versions["= #{version}"].first
+      pkg_densely_packed_version = package.densely_packed_versions.index(version)
 
       guard = (pkg_mv.must == pkg_densely_packed_version)
       conjunction = dependencies.inject(guard){ |acc, dep| acc & dep.generate_gecode_constraint }
