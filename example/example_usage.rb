@@ -2,6 +2,16 @@ require 'rubygems'
 require 'pp'
 require 'dep_selector'
 
+# This example corresponds to the following dependency graph:
+#   A has versions: 1, 2
+#   B has versions: 1, 2, 3
+#   C has versions: 1
+#   D has versions: 1
+#   A1 -> B=1         (v1 of package A depends on v1 of package B)
+#   A2 -> B>=2, C=1   (v2 of package A depends on B at v2 or greater and v1 of C)
+#   B3 -> D=1         (v3 of package B depends on v1 of package D)
+
+
 # create dependency graph
 dep_graph = DepSelector::DependencyGraph.new
 
@@ -20,6 +30,10 @@ b3 = b.add_version(DepSelector::Version.new('3.0.0'))
 c = dep_graph.package('C')
 c1 = c.add_version(DepSelector::Version.new('1.0.0'))
 
+# package D only has version 1
+d = dep_graph.package('D')
+d1 = d.add_version(DepSelector::Version.new('1.0.0'))
+
 # package A version 1 has a dependency on package B at exactly 1.0.0
 # Note: Though we reference the variable b in the Dependency, packages
 # do not have to be created before being referenced.
@@ -32,6 +46,9 @@ a1.dependencies << DepSelector::Dependency.new(b, DepSelector::VersionConstraint
 # package A version 2 has dependencies on package B >= 2.0.0 and C at exactly 1.0.0
 a2.dependencies << DepSelector::Dependency.new(b, DepSelector::VersionConstraint.new('>= 2.0.0'))
 a2.dependencies << DepSelector::Dependency.new(c, DepSelector::VersionConstraint.new('= 1.0.0'))
+
+# package B version 3 has a dependency on package D at exactly 1.0.0
+b3.dependencies << DepSelector::Dependency.new(d, DepSelector::VersionConstraint.new('= 1.0.0'))
 
 # create a Selector from the dependency graph
 selector = DepSelector::Selector.new(dep_graph)

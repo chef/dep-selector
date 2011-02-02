@@ -10,6 +10,15 @@ From example/example_usage.rb:
 
     require 'pp'
     require 'dep_selector'
+
+    # This example corresponds to the following dependency graph:
+    #   A has versions: 1, 2
+    #   B has versions: 1, 2, 3
+    #   C has versions: 1
+    #   D has versions: 1
+    #   A1 -> B=1         (v1 of package A depends on v1 of package B)
+    #   A2 -> B>=2, C=1   (v2 of package A depends on B at v2 or greater and v1 of C)
+    #   B3 -> D=1         (v3 of package B depends on v1 of package D)
     
     # create dependency graph
     dep_graph = DepSelector::DependencyGraph.new
@@ -29,6 +38,10 @@ From example/example_usage.rb:
     c = dep_graph.package('C')
     c1 = c.add_version(DepSelector::Version.new('1.0.0'))
     
+    # package D only has version 1
+    d = dep_graph.package('D')
+    d1 = d.add_version(DepSelector::Version.new('1.0.0'))
+
     # package A version 1 has a dependency on package B at exactly 1.0.0
     # Note: Though we reference the variable b in the Dependency, packages
     # do not have to be created before being referenced.
@@ -41,11 +54,15 @@ From example/example_usage.rb:
     # package A version 2 has dependencies on package B >= 2.0.0 and C at exactly 1.0.0
     a2.dependencies << DepSelector::Dependency.new(b, DepSelector::VersionConstraint.new('>= 2.0.0'))
     a2.dependencies << DepSelector::Dependency.new(c, DepSelector::VersionConstraint.new('= 1.0.0'))
-    
+
+    # package B version 3 has a dependency on package D at exactly 1.0.0
+    b3.dependencies << DepSelector::Dependency.new(d, DepSelector::VersionConstraint.new('= 1.0.0'))
+
     # create a Selector from the dependency graph
     selector = DepSelector::Selector.new(dep_graph)
     
     # define the solution constraints and find a solution
+
     # simple solution
     solution_constraints_1 = [
                               { :name => 'A' },
@@ -57,7 +74,7 @@ yields
 
     {"A"=>1.0.0, "B"=>1.0.0}
 
-Re-defining solution_constraints as:
+Or solving the for the following solution constraints:
 
     # more complex solution, which uses a range constraint (>=) and
     # demonstrates the assignment of induced transitive dependencies
@@ -69,7 +86,7 @@ Re-defining solution_constraints as:
     
 yields
 
-    {"A"=>2.0.0, "B"=>3.0.0, "C"=>1.0.0}
+    {"A"=>2.0.0, "B"=>3.0.0, "C"=>1.0.0, "D"=>1.0.0}
 
 And finally, an unsatisfiable set of constraints:
 
@@ -113,8 +130,10 @@ dependency graph represented as:
   A has versions: 1, 2
   B has versions: 1, 2, 3
   C has versions: 1
+  D has versions: 1
   A1 -> B=1
   A2 -> B>=2, C=1
+  B3 -> D=1
 
 Given a series of constraints, we can then select exact versions of
 packages that satisfy the dependency graph and the constraints.
@@ -134,11 +153,12 @@ because the constraint on B trivially constrains A to 1.
 With the constraints [(A), (C=1)], we could choose any one of:
   {A=>1, B=>1, C=>1}
   {A=>2, B=>2, C=>1}
-  {A=>2, B=>3, C=>1}
+  {A=>2, B=>3, C=>1, D=>1}
 
 Note that B is not explicitly constrained or required to be bound but
-is selected anyway. This is due to the selection of package A, which
-induces the dependency on B.
+is selected anyway--it is an induced dependency of every version of
+A. Likewise, D does not show up in the solution constraints, but it is
+an induced, transitive dependency of A2 given B3.
 
 In the absence of an objective function (see next section), any one of
 these solutions will be returned.
@@ -191,15 +211,18 @@ Back to our original example:
     A has versions: 1, 2
     B has versions: 1, 2, 3
     C has versions: 1
+    D has versions: 1
     A1 -> B=1
     A2 -> B>=2, C=1
+    B3 -> D1
   Solution constraints:
     [(A), (B=1)]
 
 This effectively gets transformed into the following boolean expressions:
   Dependency graph:
     ( (A=1 ^ B=1) V ~(A=1) ) ^
-    ( (A=2 ^ B>=2 ^ C=1) V ~(A=2) )
+    ( (A=2 ^ B>=2 ^ C=1) V ~(A=2) ) ^
+    ( (B=3 ^ D=1) V ~(B=3) )
   Solution constraints:
     ( A=1 V A=2 ) ^
     ( B=1 )
