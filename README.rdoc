@@ -1,0 +1,205 @@
+= Background
+
+The gem takes as input a representation of packages and their
+dependencies and finds a binding of packages to versions that
+satisfies desired constraints.
+
+= Off to the Races
+
+From example/example_usage.rb:
+
+    require 'pp'
+    require 'dep_selector'
+    
+    # create dependency graph
+    dep_graph = DepSelector::DependencyGraph.new
+    
+    # package A has versions 1 and 2
+    a = dep_graph.package('A')
+    a1 = a.add_version(DepSelector::Version.new('1.0.0'))
+    a2 = a.add_version(DepSelector::Version.new('2.0.0'))
+    
+    # package B has versions 1, 2, and 3
+    b = dep_graph.package('B')
+    b1 = b.add_version(DepSelector::Version.new('1.0.0'))
+    b2 = b.add_version(DepSelector::Version.new('2.0.0'))
+    b3 = b.add_version(DepSelector::Version.new('3.0.0'))
+    
+    # package C only has version 1
+    c = dep_graph.package('C')
+    c1 = c.add_version(DepSelector::Version.new('1.0.0'))
+    
+    # package A version 1 has a dependency on package B at exactly 1.0.0
+    # Note: Though we reference the variable b in the Dependency, packages
+    # do not have to be created before being referenced.
+    # DependencyGraph#package looks up the package based on the name or
+    # auto-vivifies it if it doesn't yet exist, so referring to the
+    # variable b or calling dep_graph.package('B') before or after b is
+    # assigned are all equivalent.
+    a1.dependencies << DepSelector::Dependency.new(b, DepSelector::VersionConstraint.new('= 1.0.0'))
+    
+    # package A version 2 has dependencies on package B >= 2.0.0 and C at exactly 1.0.0
+    a2.dependencies << DepSelector::Dependency.new(b, DepSelector::VersionConstraint.new('>= 2.0.0'))
+    a2.dependencies << DepSelector::Dependency.new(c, DepSelector::VersionConstraint.new('= 1.0.0'))
+    
+    # create a Selector from the dependency graph
+    selector = DepSelector::Selector.new(dep_graph)
+    
+    # define the solution constraints and find a solution
+    # simple solution
+    solution_constraints_1 = [
+                              { :name => 'A' },
+                              { :name => 'B', :version_constraint => DepSelector::VersionConstraint.new('= 1.0.0') }
+                             ]
+    pp selector.find_solution(solution_constraints_1)
+    
+yields
+
+    {"A"=>1.0.0, "B"=>1.0.0}
+
+Re-defining solution_constraints as:
+
+    # more complex solution, which uses a range constraint (>=) and
+    # demonstrates the assignment of induced transitive dependencies
+    solution_constraints_2 = [
+                              { :name => 'A' },
+                              { :name => 'B', :version_constraint => DepSelector::VersionConstraint.new('>= 2.1.0') }
+                             ]
+    pp selector.find_solution(solution_constraints_2)
+    
+yields
+
+    {"A"=>2.0.0, "B"=>3.0.0, "C"=>1.0.0}
+
+And finally, an unsatisfiable set of constraints:
+
+    # demonstrates an unsatisfiable set of constraints
+    solution_constraints_3 = [
+                              { :name => 'A', :version_constraint => DepSelector::VersionConstraint.new('= 1.0.0') },
+                              { :name => 'B', :version_constraint => DepSelector::VersionConstraint.new('= 2.0.0') }
+                             ]
+    pp selector.find_solution(solution_constraints_3)
+
+yields
+
+TODO: once feedback is implemented, print this.
+
+== The Model
+Our model involves the following constructs:
+
+* DependencyGraph, which is populated with Packages
+* Package, which has a name that is unique within a DependencyGraph and contains a set of PackageVersions
+* PackageVersion, which has a Version that is unique within its Package and contains a set of Dependencies
+* Version, which is any object that implements Comparable and abides the hashing contract
+  * The implementation included with the library, DepSelector::Version, implements versions the form X.Y.Z, where X, Y, and Z are integers and compared numerically instead of lexicographically
+* Dependency, which has a Package and a VersionConstraint
+* VersionConstraint, which is any object that responds to include?(version) with whether the specified Version matches the VersionConstraint
+  * The implementation included with the library, DepSelector::VersionConstraint, implements:
+    * =: strict equality, e.g., VersionConstraint.new("= 1.0.0") will only match 1.0.0
+    * >: greater than, e.g., VersionConstraint.new("> 1.3.10") will match 1.3.11, 1.4.0, etc. but not 1.3.9 or 1.3.10
+    * <: less than, e.g., VersionConstraint.new("< 1.3.10") will match 1.3.9, 1.2.0, etc. but not 1.3.10 or 1.3.11
+    * <= or >=: same as the two above but unioned with equality
+    * ~>: pessimistic version constraint (described at http://docs.rubygems.org/read/chapter/16#page74)
+* Selector, which contains a DependencyGraph and exposes a method, find_solution, which takes an array of solution constraints (Package-VersionConstraint pairs) and determines a valid assignment of Packages to Versions
+
+== Example
+
+Suppose that there are three packages, A, B, and C, and that the
+notation XY denotes version Y of package X (so A1 means version 1 of
+package A) and that "A1 -> B=1" means that A1 depends exactly on B1
+and that "A2 -> B>=2" means that A2 depends on B>=2. Consider the
+dependency graph represented as:
+
+  A has versions: 1, 2
+  B has versions: 1, 2, 3
+  C has versions: 1
+  A1 -> B=1
+  A2 -> B>=2, C=1
+
+Given a series of constraints, we can then select exact versions of
+packages that satisfy the dependency graph and the constraints.
+
+=== Simple example
+For example: [(A), (B=1)]
+
+We are searching for a solution where we must have some version A
+selected and that B must be set to version 1.
+
+The only solution is:
+  {A=>1, B=>1}
+because the constraint on B trivially constrains A to 1.
+
+=== Example with multiple solutions, including induced dependencies
+
+With the constraints [(A), (C=1)], we could choose any one of:
+  {A=>1, B=>1, C=>1}
+  {A=>2, B=>2, C=>1}
+  {A=>2, B=>3, C=>1}
+
+Note that B is not explicitly constrained or required to be bound but
+is selected anyway. This is due to the selection of package A, which
+induces the dependency on B.
+
+In the absence of an objective function (see next section), any one of
+these solutions will be returned.
+
+== Objective functions
+
+Objective functions do not modify what solutions are satisfiable; they
+merely rank solutions, which necessarily satisfy the constraints, so
+that the solution with the highest value for an objective function is
+selected.
+
+TODO: example
+
+== What if a solution does not exist?
+
+When generating a solution, we first try to solve the entire system of
+constraints, but it may be the case that there is no assignment of
+packages to versions that satisfies all the constraints. In this case,
+we fall back to starting at the dependency graph and adding the
+solution constraints one at a time until the constraint that makes a
+solution impossible is determined and returned along with the most
+constrained variable in order to hint at where the user can look to
+resolve the incompatibility.
+
+For example, given the example dependency graph, if we tried to solve
+for [(A=1), (B=2)], as in solution_constraints_3, it's not until we
+add the B=2 constraint that the system becomes unsatisfiable, so we
+indicate that the unsatisfiability is introduced at that constraint
+and that B is the most constrained variable (this is a simple system
+of constraints, but if the most constrained variable were a transitive
+dependency of the explicitly-defined solution constraints, it would be
+much less obvious to the user where to look without providing the most
+constrained variable).
+
+TODO: example
+
+= The nitty-gritty
+
+Choosing satisfying versions of packages with backtracking and
+accounting for the addition and removal of induced transitive
+dependencies is hard, so we decided to go shopping... for a CSP
+solver. We re-formulated the dependency graph and the solution
+constraints and off-loaded the hard work to Gecode, a fast,
+license-friendly solver written in C++.
+
+== Example
+
+Back to our original example:
+  Dependency graph:
+    A has versions: 1, 2
+    B has versions: 1, 2, 3
+    C has versions: 1
+    A1 -> B=1
+    A2 -> B>=2, C=1
+  Solution constraints:
+    [(A), (B=1)]
+
+This effectively gets transformed into the following boolean expressions:
+  Dependency graph:
+    ( (A=1 ^ B=1) V ~(A=1) ) ^
+    ( (A=2 ^ B>=2 ^ C=1) V ~(A=2) )
+  Solution constraints:
+    ( A=1 V A=2 ) ^
+    ( B=1 )
