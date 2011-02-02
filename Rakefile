@@ -3,7 +3,7 @@ require 'rake/gempackagetask'
 require 'rubygems/specification'
 require 'date'
 
-GEM = "dep-selector"
+GEM = "dep_selector"
 GEM_VERSION = "0.0.1"
 SUMMARY = "Given packages, versions, and a dependency graph, find a valid assignment of package versions"
 
