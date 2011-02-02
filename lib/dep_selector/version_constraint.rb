@@ -49,6 +49,16 @@ module DepSelector
      do_op(version)
     end
 
+    def inspect
+      "(#{@op} #{@version})"
+    end
+
+    def to_s
+      "#{@op} #{@version}"
+    end
+
+    private
+
     def do_op(other_version)
       if STANDARD_OPS.include? @op
         other_version.send(@op.to_sym, @version)
@@ -67,17 +77,6 @@ module DepSelector
         raise "bad op #{@op}"
       end
     end
-
-    def inspect
-      "(#{@op} #{@version})"
-    end
-
-    def to_s
-      "#{@op} #{@version}"
-    end
-
-
-    private
 
     def parse_from_array(constraint_spec)
       if constraint_spec.empty?
