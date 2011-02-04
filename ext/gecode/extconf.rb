@@ -3,6 +3,7 @@
 # ./configure --with-architectures=i386,x86_64
 # to work properly here.
 require 'mkmf'
+
 have_library('gecodesearch')
 have_library('gecodeint')
 have_library('gecodekernel')
