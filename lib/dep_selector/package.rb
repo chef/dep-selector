@@ -31,6 +31,22 @@ module DepSelector
       versions.find{|pkg_version| pkg_version.version == version}
     end
 
+    # Given a version, this method returns the corresonding
+    # PackageVersion. Given a version constraint, this method returns
+    # an array of matching PackageVersions.
+    #--
+    # TODO [cw,2011/2/4]: rationalize this with DenselyPackedSet#[]
+    def [](version_or_constraint)
+      # version constraints must abide the include? contract
+      if version_or_constraint.respond_to?(:include?)
+        versions.select do |ver|
+          version_or_constraint.include?(ver)
+        end
+      else
+        find_package_version(version_or_constraint)
+      end
+    end
+
     def to_s(incl_densely_packed_versions = false)
       components = []
       components << "Package #{name}"
