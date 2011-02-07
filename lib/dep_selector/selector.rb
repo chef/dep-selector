@@ -1,5 +1,6 @@
 require 'dep_selector/dependency_graph'
 require 'dep_selector/exceptions'
+require 'dep_selector/error_reporter'
 
 # A Selector contains the a DependencyGraph, which is populated with
 # the dependency relationships, and an array of solution
@@ -8,10 +9,13 @@ require 'dep_selector/exceptions'
 # constraint that makes a solution impossible.
 module DepSelector
   class Selector
-    attr_accessor :dep_graph
+    attr_accessor :dep_graph, :error_reporter
 
-    def initialize(dep_graph)
+    DEFAULT_ERROR_REPORTER = ErrorReporter.new
+
+    def initialize(dep_graph, error_reporter = DEFAULT_ERROR_REPORTER)
       @dep_graph = dep_graph
+      @error_reporter = error_reporter
     end
 
     # Based on solution_constraints, this method tries to find an
@@ -44,11 +48,9 @@ module DepSelector
           begin
             solve(solution_constraints[0..idx], bottom, &block)
           rescue Gecode::NoSolutionError
-            # TODO [cw,2010/11/24]: We can use the gecoder model vars'
-            # degrees to determine which vars are most constrained and
-            # then trace through the dependency graph to indicate what
-            # solution constraints are inducing them.
-            raise Exceptions::NoSolutionExists.new(solution_constraints[idx])
+            most_constrained_package = dep_graph.package('X') # TODO: FOR TESTING ONLY!
+            feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx, most_constrained_package)
+            raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx])
           end
         end
       end
