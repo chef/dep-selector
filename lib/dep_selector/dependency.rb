@@ -1,12 +1,12 @@
-require 'gecoder'
+require 'dep_selector/version_constraint'
 
 module DepSelector
   class Dependency
     attr_reader :package, :constraint
 
-    def initialize(package, constraint)
+    def initialize(package, constraint=nil)
       @package = package
-      @constraint = constraint
+      @constraint = constraint || VersionConstraint.new
     end
 
     def to_s(incl_densely_packed_versions = false)

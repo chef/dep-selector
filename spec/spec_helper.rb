@@ -16,16 +16,11 @@ def setup_constraint(dep_graph, cset)
   end
 end
 
-def add_run_list(dep_graph, run_list)
-  run_list.each do |run_list_item|
-    pkg = dep_graph.package(run_list_item.first)
-    constraint = run_list_item.last
-    
-    pkg_mv = pkg.gecode_model_var
-    if constraint
-      pkg_mv.must_be.in(pkg.densely_packed_versions[constraint])
-    end
-    dep_graph.branch_on(pkg_mv)
+def setup_soln_constraints(dep_graph, soln_constraints)
+  soln_constraints.map do |elt|
+    pkg = dep_graph.package(elt.shift)
+    constraint = DepSelector::VersionConstraint.new(elt.shift)
+    DepSelector::SolutionConstraint.new(pkg, constraint)
   end
 end
 
