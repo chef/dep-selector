@@ -26,7 +26,8 @@ module DepSelector
     OPS = %w(< > = <= >= ~>)
     PATTERN = /^(#{OPS.join('|')}) (.+)$/
 
-    def initialize(constraint_spec=DEFAULT_CONSTRAINT)
+    def initialize(constraint_spec=nil)
+      constraint_spec ||= DEFAULT_CONSTRAINT
       case constraint_spec
       when nil
         parse(DEFAULT_CONSTRAINT)

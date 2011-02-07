@@ -140,10 +140,11 @@ describe DepSelector::Selector do
       setup_constraint(dep_graph, simple_cookbook_version_constraint)
       selector = DepSelector::Selector.new(dep_graph)
       solution_constraints =
-        [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
-         {:name => "B", :version_constraint => DepSelector::VersionConstraint.new("= 1.0.0")}
-        ]
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                                ["B", "= 1.0.0"]
+                               ])
       soln = selector.find_solution(solution_constraints)
 
       verify_solution(soln,
@@ -158,10 +159,11 @@ describe DepSelector::Selector do
       setup_constraint(dep_graph, simple_cookbook_version_constraint)
       selector = DepSelector::Selector.new(dep_graph)
       solution_constraints =
-        [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
-         {:name => "B", :version_constraint => DepSelector::VersionConstraint.new("= 2.0.0")}
-        ]
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                                ["B", "= 2.0.0"]
+                               ])
       soln = selector.find_solution(solution_constraints)
 
       verify_solution(soln,
@@ -175,10 +177,11 @@ describe DepSelector::Selector do
       setup_constraint(dep_graph, simple_cookbook_version_constraint)
       selector = DepSelector::Selector.new(dep_graph)
       solution_constraints =
-        [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
-         {:name => "B", :version_constraint => DepSelector::VersionConstraint.new("= 2.0.0")}
-        ]
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                                ["B", "= 2.0.0"]
+                               ])
       soln = selector.find_solution(solution_constraints)
 
       verify_solution(soln,
@@ -192,10 +195,11 @@ describe DepSelector::Selector do
       setup_constraint(dep_graph, simple_cookbook_version_constraint_2)
       selector = DepSelector::Selector.new(dep_graph)
       unsatisfiable_solution_constraints =
-        [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
-         {:name => "C", :version_constraint => DepSelector::VersionConstraint.new("= 3.0.0")}
-        ]
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                                ["C", "= 3.0.0"]
+                               ])
       begin
         selector.find_solution(unsatisfiable_solution_constraints)
         fail "Should have failed to find a solution"
@@ -208,11 +212,12 @@ describe DepSelector::Selector do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, moderate_cookbook_version_constraint)
       selector = DepSelector::Selector.new(dep_graph)
-      solution_constraints = 
-        [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
-         {:name => "C", :version_constraint => DepSelector::VersionConstraint.new("= 4.0")},
-        ]
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                                ["C", "= 4.0"],
+                                ])
       soln = selector.find_solution(solution_constraints)
 
       verify_solution(soln,
@@ -232,9 +237,10 @@ describe DepSelector::Selector do
       setup_constraint(dep_graph, simple_cookbook_version_constraint)
       selector = DepSelector::Selector.new(dep_graph)
       solution_constraints =
-        [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new}
-        ]
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"]
+                               ])
 
       # optimize for one configuration
       current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
@@ -267,10 +273,11 @@ describe DepSelector::Selector do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, simple_cookbook_version_constraint_3)
       selector = DepSelector::Selector.new(dep_graph)
-      solution_constraints = 
-        [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
-        ]
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"]
+                               ])
       objective_function = create_latest_version_objective_function(dep_graph)
       soln = selector.find_solution(solution_constraints) do |soln|
         objective_function.call(soln)
@@ -285,10 +292,11 @@ describe DepSelector::Selector do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, moderate_cookbook_version_constraint)
       selector = DepSelector::Selector.new(dep_graph)
-      solution_constraints = 
-        [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new},
-        ]
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                               ])
       current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
       bottom = [DepSelector::ObjectiveFunction::MinusInfinity, DepSelector::ObjectiveFunction::MinusInfinity] 
       pp :current_versions=>current_versions, :bottom=>bottom
@@ -308,13 +316,16 @@ describe DepSelector::Selector do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, moderate_cookbook_version_constraint_2)
       selector = DepSelector::Selector.new(dep_graph)
-      solution_constraints = 
-        [
-         {:name => "A", :version_constraint => DepSelector::VersionConstraint.new("~> 1.0")},
-         # why does constraining to C=3 not make this work? (and of
-         # course, why doesn't the objective function just work?)
-#         {:name => "C", :version_constraint => DepSelector::VersionConstraint.new("= 3.0.0")},
-        ]
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A", "~> 1.0"],
+                                # why does constraining to C=3 not make
+                                # this work? (and of course, why
+                                # doesn't the objective function just
+                                # work?)
+#                                ["C", "= 3.0.0"]
+                               ])
       objective_function = create_latest_version_objective_function(dep_graph)
       soln = selector.find_solution(solution_constraints) do |soln|
         objective_function.call(soln)
@@ -326,6 +337,11 @@ describe DepSelector::Selector do
                         "D" => "2.1.0",
                         "E" => "1.0.0" })
     end
+
+    # TODO [cw,2011/2/4]: Add a test for a set of solution constraints
+    # that contains multiple restrictions on the same package. Do the
+    # same for a PackageVersion that has several Dependencies on the
+    # same package, some satisfiable, some not.
 
     it "and indicates which solution constraint makes the system unsatisfiable if there is no solution" do
       pending "TODO"

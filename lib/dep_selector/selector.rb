@@ -65,10 +65,10 @@ module DepSelector
       workspace.generate_gecode_constraints
 
       # generate constraints imposed by solution_constraints
-      solution_constraints.each do |package_constraint|
-        pkg_name = package_constraint[:name]
-        constraint = package_constraint[:version_constraint]
-        pkg = workspace.package(pkg_name)
+      solution_constraints.each do |soln_constraint|
+        # look up the package in the cloned dep_graph that corresponds to soln_constraint
+        pkg = workspace.package(soln_constraint.package.name)
+        constraint = soln_constraint.constraint
 
         pkg_mv = pkg.gecode_model_var
         if constraint
@@ -92,11 +92,11 @@ module DepSelector
       end
     end
 
-    def trim_solution(package_constraints, soln)
+    def trim_solution(soln_constraints, soln)
       pp :pre_trimmed_soln => soln.gecode_model_vars
       trimmed_soln = {}
-      package_constraints.each do |package_constraint|
-        package = soln.package(package_constraint[:name])
+      soln_constraints.each do |soln_constraint|
+        package = soln.package(soln_constraint.package.name)
         expand_package(trimmed_soln, package, soln)
       end
 
