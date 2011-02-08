@@ -14,6 +14,15 @@ module DepSelector
       "(#{package.name} #{constraint.to_s}#{incl_densely_packed_versions ? " (#{range})" : ''})"
     end
 
+    def ==(o)
+      o.respond_to?(:package) && package == o.package &&
+        o.respond_to?(:constraint) && constraint == o.constraint
+    end
+
+    def eql?(o)
+      self.class == o.class && self == o
+    end
+
     def generate_gecode_constraint
       package.gecode_model_var.must_be.in(package.densely_packed_versions[constraint])
     end

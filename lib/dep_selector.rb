@@ -8,3 +8,7 @@ require 'dep_selector/objective_function'
 require 'dep_selector/version'
 require 'dep_selector/version_constraint'
 require 'dep_selector/exceptions'
+
+# error reporting
+require 'dep_selector/error_reporter'
+require 'dep_selector/error_reporter/simple_tree_traverser'

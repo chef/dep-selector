@@ -65,5 +65,13 @@ module DepSelector
     def generate_gecode_constraints
       versions.each{|version| version.generate_gecode_constraints }
     end
+
+    def eql?(o)
+      # TODO [cw,2011/2/7]: this is really shallow. should implement
+      # == for DependencyGraph
+      self.class == o.class && name == o.name
+    end
+    alias :== :eql?
+
   end
 end
