@@ -25,6 +25,7 @@ end
 # swig -c++ -ruby dep_selector_swig.i
 # :3: Error: Unable to find 'ruby.swg'
 # 
+desc "Make wrapper from swig code"
 file "dep_selector_swig_wrap.cxx" => [ 'dep_selector_swig.i' ] do |t|
   puts "SWIG : #{t.prerequisites[0]}"
   cmd = "swig -c++ -ruby #{t.prerequisites[0]}"
