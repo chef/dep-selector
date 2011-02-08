@@ -3,6 +3,8 @@ require 'rake/gempackagetask'
 require 'rubygems/specification'
 require 'date'
 
+require (File.join(File.dirname(__FILE__), 'ext', 'gecode', 'rakefile.rb')) 
+
 GEM = "dep_selector"
 GEM_VERSION = "0.0.1"
 SUMMARY = "Given packages, versions, and a dependency graph, find a valid assignment of package versions"
@@ -21,6 +23,7 @@ spec = Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.autorequire = GEM
   s.files = Dir.glob("lib/**/*")
+  s.extensions << 'ext/gecode/extconf.rb'
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
@@ -51,20 +54,4 @@ rescue LoadError
   end
 end
 
-namespace :extensions do
-  namespace :gecode do
-    desc "Make gecode wrapper"
-    task :make do
-      sh "cd ext/gecode && make"
-    end
-    desc "Cleanup gecode wrapper"
-    task :clean do
-      sh "cd ext/gecode && make clean"
-    end
-    desc "MKMF gecode wrapper"
-    task :mkmf do
-      sh "cd ext/gecode && ruby extconf.rb"
-    end
-    task :make_clean => [:clean, :mkmf, :make]      
-  end
-end
+
