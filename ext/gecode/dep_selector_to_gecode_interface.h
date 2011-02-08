@@ -27,6 +27,8 @@ extern "C" {
   bool Solve(VersionProblem *problem);
   int GetPackageVersion(VersionProblem *problem, Package *pkg);
 
+  void VersionProblemDump(VersionProblem * problem);
+
 #ifdef __cplusplus
 }
 #endif __cplusplus

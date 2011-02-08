@@ -86,10 +86,10 @@ extout =
 extout_prefix = 
 target_prefix = 
 LOCAL_LIBS = 
-LIBS = $(LIBRUBYARG_SHARED) -lgecodesupport -lgecodekernel -lgecodeint -lgecodesearch  -lpthread -ldl  
-SRCS = code_test.c code_test2.cpp dep_selector_to_gecode.cpp queens.cpp
-OBJS = code_test.o code_test2.o dep_selector_to_gecode.o queens.o
-TARGET = code_test
+LIBS = $(LIBRUBYARG_SHARED) -lgecodesupport -lgecodekernel -lgecodeint -lgecodesearch  -lpthread -ldl   -lstdc++
+SRCS = dep_selector_to_gecode_interface.cpp
+OBJS = dep_selector_to_gecode_interface.o
+TARGET = dep_selector_to_gecode_interface
 DLLIB = $(TARGET).bundle
 EXTSTATIC = 
 STATIC_LIB = 
@@ -124,7 +124,13 @@ install-rb: pre-install-rb install-rb-default
 install-rb-default: pre-install-rb-default
 pre-install-rb: Makefile
 pre-install-rb-default: Makefile
+pre-install-rb-default: $(RUBYLIBDIR)
+install-rb-default: $(RUBYLIBDIR)/dep_selector_to_gecode.rb
+$(RUBYLIBDIR)/dep_selector_to_gecode.rb: $(srcdir)/lib/dep_selector_to_gecode.rb $(RUBYLIBDIR)
+	$(INSTALL_DATA) $(srcdir)/lib/dep_selector_to_gecode.rb $(@D)
 $(RUBYARCHDIR):
+	$(MAKEDIRS) $@
+$(RUBYLIBDIR):
 	$(MAKEDIRS) $@
 
 site-install: site-install-so site-install-rb

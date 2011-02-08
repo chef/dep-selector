@@ -50,3 +50,21 @@ rescue LoadError
     abort "Rspec is not available. (sudo) gem install rspec to run unit tests"
   end
 end
+
+namespace :extensions do
+  namespace :gecode do
+    desc "Make gecode wrapper"
+    task :make do
+      sh "cd ext/gecode && make"
+    end
+    desc "Cleanup gecode wrapper"
+    task :clean do
+      sh "cd ext/gecode && make clean"
+    end
+    desc "MKMF gecode wrapper"
+    task :mkmf do
+      sh "cd ext/gecode && ruby extconf.rb"
+    end
+    task :make_clean => [:clean, :mkmf, :make]      
+  end
+end

@@ -11,9 +11,11 @@
 
 using namespace Gecode;
 
+
+
 std::ostream & operator <<(std::ostream &os, const Package & obj) 
 {
-  os << "Initial range: " <<  obj.minVersion << " - " << obj.maxVersion << " (" << obj.currentVersion, ") ";
+  os << "Initial range: " <<  obj.minVersion << " - " << obj.maxVersion << " (" << obj.currentVersion << ") ";
   os << "Sltn: " << obj.var.min() << " - " << obj.var.max() << "afc: " << obj.var.afc();
 
   return os;
@@ -48,7 +50,7 @@ VersionProblem::~VersionProblem() {
 Package * 
 VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion) 
 {
-  Package * package = new Package(minVersion,maxVersion,currentVersion);
+  //  Package * package = new Package(this, minVersion,maxVersion,currentVersion);
   
 
 }
@@ -80,8 +82,9 @@ Space* VersionProblem::copy(bool share)
 // Utility
 void VersionProblem::Print(std::ostream & out) 
 {
+  out << "Version problem dump: " << packages.size() << std::endl;
   std::vector<Package *>::iterator it;
   for (it = packages.begin(); it < packages.end(); it++) {
-    out << "\t" << *it;
+    out << "\t" << *it << std::endl;
   }
 }

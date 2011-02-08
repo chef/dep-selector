@@ -5,15 +5,20 @@
 #include <iostream>	       
 #include <vector>
 
+#include <gecode/driver.hh>
+#include <gecode/int.hh>
+#include <gecode/minimodel.hh>
+
 using namespace Gecode;
 
 class Package
 {
  public:
- Package(int _minVersion, int _maxVersion, int _currentVersion) 
-   : minVersion(_minVersion), maxVersion(_maxVersion), currentVersion(_currentVersion)
+ Package(Space & _space, int _minVersion, int _maxVersion, int _currentVersion) 
+   : minVersion(_minVersion), maxVersion(_maxVersion), currentVersion(_currentVersion), 
+    var(_space, _minVersion, _maxVersion)
   {
-    
+
   }
 
   friend std::ostream & operator<< (std::ostream &os, const Package & obj);
