@@ -19,6 +19,13 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe DepSelector::VersionConstraint do
+
+  describe "==" do
+    it "should be true if the constraints are equal" do
+      DepSelector::VersionConstraint.new("= 1.0.0").should == DepSelector::VersionConstraint.new("= 1.0.0")
+    end
+  end
+
   describe "validation" do
     bad_version = ["> >", ">= 1.2.z", "> 1.2.3 < 5.0", "> 1.2.3, < 5.0"]
     bad_op = ["<3.0.1", ">$ 1.2.3", "! 3.4"]

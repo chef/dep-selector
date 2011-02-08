@@ -26,6 +26,8 @@ module DepSelector
     OPS = %w(< > = <= >= ~>)
     PATTERN = /^(#{OPS.join('|')}) (.+)$/
 
+    attr_reader :op, :version
+
     def initialize(constraint_spec=nil)
       constraint_spec ||= DEFAULT_CONSTRAINT
       case constraint_spec
@@ -57,6 +59,11 @@ module DepSelector
     def to_s
       "#{@op} #{@version}"
     end
+
+    def eql?(o)
+      o.class == self.class && @op == o.op && @version == o.version
+    end
+    alias_method :==, :eql?
 
     private
 
