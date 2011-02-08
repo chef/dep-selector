@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
   VersionProblem * VersionProblemCreate();
-  VersionProblem * VersionProblemClone();
+  void VersionProblemDestroy();
   // Return ID #
   Package * AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
   // Add constraint for package pkg @ version, 
