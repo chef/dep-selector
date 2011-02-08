@@ -11,4 +11,4 @@ have_library('gecodeint')
 have_library('gecodekernel')
 have_library('gecodesupport')
 
-create_makefile('dep_selector_to_gecode_interface')
+create_makefile('dep_gecode')

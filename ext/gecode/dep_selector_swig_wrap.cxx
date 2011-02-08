@@ -1551,10 +1551,10 @@ static swig_module_info swig_module = {swig_types, 3, 0, 0, 0, 0};
 
 /* -------- TYPES TABLE (END) -------- */
 
-#define SWIG_init    Init_dep_selector_to_gecode_interface
-#define SWIG_name    "Dep_selector_to_gecode_interface"
+#define SWIG_init    Init_dep_gecode
+#define SWIG_name    "Dep_gecode"
 
-static VALUE mDep_selector_to_gecode_interface;
+static VALUE mDep_gecode;
 
 #define SWIGVERSION 0x010331 
 #define SWIG_VERSION SWIGVERSION
@@ -2125,11 +2125,11 @@ SWIG_PropagateClientData(void) {
 #ifdef __cplusplus
 extern "C"
 #endif
-SWIGEXPORT void Init_dep_selector_to_gecode_interface(void) {
+SWIGEXPORT void Init_dep_gecode(void) {
   size_t i;
   
   SWIG_InitRuntime();
-  mDep_selector_to_gecode_interface = rb_define_module("Dep_selector_to_gecode_interface");
+  mDep_gecode = rb_define_module("Dep_gecode");
   
   SWIG_InitializeModule(0);
   for (i = 0; i < swig_module.size; i++) {
@@ -2137,12 +2137,12 @@ SWIGEXPORT void Init_dep_selector_to_gecode_interface(void) {
   }
   
   SWIG_RubyInitializeTrackings();
-  rb_define_module_function(mDep_selector_to_gecode_interface, "VersionProblemCreate", VALUEFUNC(_wrap_VersionProblemCreate), -1);
-  rb_define_module_function(mDep_selector_to_gecode_interface, "VersionProblemDestroy", VALUEFUNC(_wrap_VersionProblemDestroy), -1);
-  rb_define_module_function(mDep_selector_to_gecode_interface, "AddPackage", VALUEFUNC(_wrap_AddPackage), -1);
-  rb_define_module_function(mDep_selector_to_gecode_interface, "AddVersionConstraint", VALUEFUNC(_wrap_AddVersionConstraint), -1);
-  rb_define_module_function(mDep_selector_to_gecode_interface, "Solve", VALUEFUNC(_wrap_Solve), -1);
-  rb_define_module_function(mDep_selector_to_gecode_interface, "GetPackageVersion", VALUEFUNC(_wrap_GetPackageVersion), -1);
-  rb_define_module_function(mDep_selector_to_gecode_interface, "VersionProblemDump", VALUEFUNC(_wrap_VersionProblemDump), -1);
+  rb_define_module_function(mDep_gecode, "VersionProblemCreate", VALUEFUNC(_wrap_VersionProblemCreate), -1);
+  rb_define_module_function(mDep_gecode, "VersionProblemDestroy", VALUEFUNC(_wrap_VersionProblemDestroy), -1);
+  rb_define_module_function(mDep_gecode, "AddPackage", VALUEFUNC(_wrap_AddPackage), -1);
+  rb_define_module_function(mDep_gecode, "AddVersionConstraint", VALUEFUNC(_wrap_AddVersionConstraint), -1);
+  rb_define_module_function(mDep_gecode, "Solve", VALUEFUNC(_wrap_Solve), -1);
+  rb_define_module_function(mDep_gecode, "GetPackageVersion", VALUEFUNC(_wrap_GetPackageVersion), -1);
+  rb_define_module_function(mDep_gecode, "VersionProblemDump", VALUEFUNC(_wrap_VersionProblemDump), -1);
 }
 

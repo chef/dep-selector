@@ -1,4 +1,4 @@
-%module "dep_selector_to_gecode_interface"
+%module "dep_gecode"
 %{
 #include "dep_selector_to_gecode_interface.h"
 %}
