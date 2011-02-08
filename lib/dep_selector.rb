@@ -11,3 +11,4 @@ require 'dep_selector/exceptions'
 
 # error reporting
 require 'dep_selector/error_reporter'
+require 'dep_selector/error_reporter/simple_tree_traverser'

@@ -1,6 +1,7 @@
 require 'dep_selector/dependency_graph'
 require 'dep_selector/exceptions'
 require 'dep_selector/error_reporter'
+require 'dep_selector/error_reporter/simple_tree_traverser'
 
 # A Selector contains the a DependencyGraph, which is populated with
 # the dependency relationships, and an array of solution
@@ -11,7 +12,7 @@ module DepSelector
   class Selector
     attr_accessor :dep_graph, :error_reporter
 
-    DEFAULT_ERROR_REPORTER = ErrorReporter.new
+    DEFAULT_ERROR_REPORTER = ErrorReporter::SimpleTreeTraverser.new
 
     def initialize(dep_graph, error_reporter = DEFAULT_ERROR_REPORTER)
       @dep_graph = dep_graph
