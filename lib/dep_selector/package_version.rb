@@ -29,6 +29,20 @@ module DepSelector
       components.join
     end
 
+    def hash
+      # Didn't put any thought or research into this, probably can be
+      # done better
+      to_s.hash
+    end
+
+    def eql?(o)
+      o.class == self.class &&
+        package == o.package &&
+        version == o.version &&
+        dependencies == o.dependencies
+    end
+    alias :== :eql?
+
     def to_hash
       { :package_name => package.name, :version => version }
     end
