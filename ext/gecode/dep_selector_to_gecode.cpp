@@ -92,9 +92,9 @@ Space* VersionProblem::copy(bool share)
 // Utility
 void VersionProblem::Print(std::ostream & out) 
 {
-  out << "Version problem dump: " << packages.size() << std::endl;
+  out << "Version problem dump: " << packages.size() << " elements" << std::endl;
   std::vector<Package *>::iterator it;
   for (it = packages.begin(); it < packages.end(); it++) {
-    out << "\t" << *it << std::endl;
+    out << "\t" << **it << std::endl;
   }
 }

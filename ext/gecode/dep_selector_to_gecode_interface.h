@@ -13,7 +13,9 @@ extern "C" {
   typedef struct VersionProblem VersionProblem;
   typedef struct Package Package;
 #endif
+  // Simple package stuff
   void PackageDump(Package * package);
+
 
   VersionProblem * VersionProblemCreate();
   void VersionProblemDestroy();
