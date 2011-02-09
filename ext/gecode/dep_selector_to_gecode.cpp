@@ -30,9 +30,10 @@ std::ostream & operator <<(std::ostream &os, const Package & obj)
 //
 // Version Problem
 //
+const int VersionProblem::UNRESOLVED_VARIABLE = -1;
+
 
 VersionProblem::VersionProblem() 
-  : packages()
 {
 
 
@@ -41,46 +42,49 @@ VersionProblem::VersionProblem()
 
 // Clone constructor; check gecode rules for this...
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
-  : Script(share, s),
-    packages() // TODO Check if this should be copy constructor???
+  : Script(share, s)
 {
-  // TODO: Update variables???
-  
+  //package_versions.update(*this, share, s.package_versions);
+  //version_flags.update(*this, share, s.version_flags);
 }
 
 VersionProblem::~VersionProblem() {
   std::vector<Package *>::iterator it;
-  for (it = packages.begin(); it < packages.end(); it++) {
-    delete *it;
-  }  
 }
 
 
-Package * 
+int
 VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion) 
 {
-  Package * package = new Package(*this, minVersion,maxVersion,currentVersion);
-  int index = packages.size();
-  packages.push_back(package);
-  package->index = index;
+  int index = package_versions.size();
+  IntVar version(*this, minVersion, maxVersion);
+  package_versions << version;
+  return index;
 }
 
 bool 
-VersionProblem::AddVersionConstraint(Package* pkg, int version, 
-				     Package* dependentPackage, int minDependentVersion, int maxDependentVersion) 
+VersionProblem::AddVersionConstraint(int packageId, int version, 
+				     int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
 
 {
-
+  BoolVar pred(*this, 0, 1);
+  version_flags << pred;
+  // Constrain pred to reify package @ version
+  rel(*this, package_versions[packageId], IRT_EQ, version, pred);
+  // Add the predicated version constraints imposed on dependent package
+  dom(*this, package_versions[dependentPackageId], minDependentVersion, maxDependentVersion, pred);
 }
 
 bool VersionProblem::Solve() 
 {
-
+  branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
 }
 
-int VersionProblem::GetPackageVersion(Package* pkg) 
+int VersionProblem::GetPackageVersion(int packageId) 
 {
-
+   IntVar & var = package_versions[packageId];
+   if (1 == var.size()) return var.val();
+   return UNRESOLVED_VARIABLE;
 }
   
 // Support for gecode
@@ -92,9 +96,18 @@ Space* VersionProblem::copy(bool share)
 // Utility
 void VersionProblem::Print(std::ostream & out) 
 {
-  out << "Version problem dump: " << packages.size() << " elements" << std::endl;
-  std::vector<Package *>::iterator it;
-  for (it = packages.begin(); it < packages.end(); it++) {
-    out << "\t" << **it << std::endl;
+  out << "Version problem dump: " << package_versions.size() << " elements" << std::endl;
+  for (int i = 0; i < package_versions.size(); i++) {
+    out << "\t";
+    PrintPackageVar(out, i);
+    out << std::endl;
   }
+}
+
+// TODO: Validate package ids !
+
+void VersionProblem::PrintPackageVar(std::ostream & out, int packageId) 
+{
+  IntVar & var = package_versions[packageId];
+  out << "PackageId: " << packageId <<  " Sltn: " << var.min() << " - " << var.max() << " afc: " << var.afc();
 }

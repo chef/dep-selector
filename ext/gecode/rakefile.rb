@@ -8,7 +8,7 @@ namespace :gecode do
   task :default => :make
 
   desc "Make gecode wrapper"
-  task :make => 'Makefile' do
+  task :make => :mkmf do
     sh "make"
   end
   desc "Cleanup gecode wrapper"

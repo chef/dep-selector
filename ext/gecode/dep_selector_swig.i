@@ -4,21 +4,20 @@
 %}
 
 class VersionProblem;
-class Package;
-
-void PackageDump(Package * package);
 
 VersionProblem * VersionProblemCreate();
-void VersionProblemDestroy();
+void VersionProblemDestroy(VersionProblem * vp);
 // Return ID #
-  Package * AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
+int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
 // Add constraint for package pkg @ version, 
 // that dependentPackage is at version [minDependentVersion,maxDependentVersion]
-  // Returns false if system becomes insoluble.
-bool AddVersionConstraint(VersionProblem *problem, Package *pkg, int version, 
-			  Package *pkg, int minDependentVersion, int maxDependentVersion);
+// Returns false if system becomes insoluble.
+bool AddVersionConstraint(VersionProblem *problem, int packageId, int version, 
+			  int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 // Solve system; 
-  bool Solve(VersionProblem *problem);
-int GetPackageVersion(VersionProblem *problem, Package *pkg);
+bool Solve(VersionProblem *problem);
+int GetPackageVersion(VersionProblem *problem, int packageId);
 
 void VersionProblemDump(VersionProblem * problem);
+void VersionProblemPrintPackageVar(VersionProblem * problem, int packageId);
+

@@ -28,30 +28,35 @@ class Package
   int index;
 };
 
+
 class VersionProblem : public Script
 {
  public:
+  static const int UNRESOLVED_VARIABLE;
+
   VersionProblem();
   // Clone constructor; check gecode rules for this...
   VersionProblem(bool share, VersionProblem & s);
   virtual ~VersionProblem();
 
-  Package * AddPackage(int minVersion, int maxVersion, int currentVersion);
+  int AddPackage(int minVersion, int maxVersion, int currentVersion);
 
-  bool AddVersionConstraint(Package* pkg, int version, 
-			    Package* dependentPackage, int minDependentVersion, int maxDependentVersion);
+  bool AddVersionConstraint(int packageId, int version, 
+			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
   bool Solve();
-  int GetPackageVersion(Package* pkg);
+  int GetPackageVersion(int packageId);
   
   // Support for gecode
   virtual Space* copy(bool share);
 
   // Debug and utility functions
   void Print(std::ostream &out);
+  void PrintPackageVar(std::ostream & out, int packageId) ;
  private:
 
   //  std::vector<int> test;
-  std::vector<Package *> packages;
+  BoolVarArgs version_flags;
+  IntVarArgs package_versions;
 };
 
 

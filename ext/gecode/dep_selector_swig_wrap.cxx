@@ -1541,11 +1541,10 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
 
 /* -------- TYPES TABLE (BEGIN) -------- */
 
-#define SWIGTYPE_p_Package swig_types[0]
-#define SWIGTYPE_p_VersionProblem swig_types[1]
-#define SWIGTYPE_p_char swig_types[2]
-static swig_type_info *swig_types[4];
-static swig_module_info swig_module = {swig_types, 3, 0, 0, 0, 0};
+#define SWIGTYPE_p_VersionProblem swig_types[0]
+#define SWIGTYPE_p_char swig_types[1]
+static swig_type_info *swig_types[3];
+static swig_module_info swig_module = {swig_types, 2, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1634,13 +1633,6 @@ SWIG_AsVal_int (VALUE obj, int *val)
 }
 
 
-SWIGINTERNINLINE VALUE
-SWIG_From_bool  (bool value)
-{
-  return value ? Qtrue : Qfalse;
-}
-
-
   #define SWIG_From_long   LONG2NUM 
 
 
@@ -1650,26 +1642,12 @@ SWIG_From_int  (int value)
   return SWIG_From_long  (value);
 }
 
-SWIGINTERN VALUE
-_wrap_PackageDump(int argc, VALUE *argv, VALUE self) {
-  Package *arg1 = (Package *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  
-  if ((argc < 1) || (argc > 1)) {
-    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
-  }
-  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_Package, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "PackageDump" "', argument " "1"" of type '" "Package *""'"); 
-  }
-  arg1 = reinterpret_cast< Package * >(argp1);
-  PackageDump(arg1);
-  return Qnil;
-fail:
-  return Qnil;
-}
 
+SWIGINTERNINLINE VALUE
+SWIG_From_bool  (bool value)
+{
+  return value ? Qtrue : Qfalse;
+}
 
 SWIGINTERN VALUE
 _wrap_VersionProblemCreate(int argc, VALUE *argv, VALUE self) {
@@ -1689,10 +1667,19 @@ fail:
 
 SWIGINTERN VALUE
 _wrap_VersionProblemDestroy(int argc, VALUE *argv, VALUE self) {
-  if ((argc < 0) || (argc > 0)) {
-    rb_raise(rb_eArgError, "wrong # of arguments(%d for 0)",argc); SWIG_fail;
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if ((argc < 1) || (argc > 1)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
   }
-  VersionProblemDestroy();
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VersionProblemDestroy" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  VersionProblemDestroy(arg1);
   return Qnil;
 fail:
   return Qnil;
@@ -1705,7 +1692,7 @@ _wrap_AddPackage(int argc, VALUE *argv, VALUE self) {
   int arg2 ;
   int arg3 ;
   int arg4 ;
-  Package *result = 0 ;
+  int result;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int val2 ;
@@ -1739,8 +1726,8 @@ _wrap_AddPackage(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "AddPackage" "', argument " "4"" of type '" "int""'");
   } 
   arg4 = static_cast< int >(val4);
-  result = (Package *)AddPackage(arg1,arg2,arg3,arg4);
-  vresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_Package, 0 |  0 );
+  result = (int)AddPackage(arg1,arg2,arg3,arg4);
+  vresult = SWIG_From_int(static_cast< int >(result));
   return vresult;
 fail:
   return Qnil;
@@ -1750,20 +1737,20 @@ fail:
 SWIGINTERN VALUE
 _wrap_AddVersionConstraint(int argc, VALUE *argv, VALUE self) {
   VersionProblem *arg1 = (VersionProblem *) 0 ;
-  Package *arg2 = (Package *) 0 ;
+  int arg2 ;
   int arg3 ;
-  Package *arg4 = (Package *) 0 ;
+  int arg4 ;
   int arg5 ;
   int arg6 ;
   bool result;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
   int val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
   int val5 ;
   int ecode5 = 0 ;
   int val6 ;
@@ -1778,21 +1765,21 @@ _wrap_AddVersionConstraint(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AddVersionConstraint" "', argument " "1"" of type '" "VersionProblem *""'"); 
   }
   arg1 = reinterpret_cast< VersionProblem * >(argp1);
-  res2 = SWIG_ConvertPtr(argv[1], &argp2,SWIGTYPE_p_Package, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "AddVersionConstraint" "', argument " "2"" of type '" "Package *""'"); 
-  }
-  arg2 = reinterpret_cast< Package * >(argp2);
+  ecode2 = SWIG_AsVal_int(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "AddVersionConstraint" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
   ecode3 = SWIG_AsVal_int(argv[2], &val3);
   if (!SWIG_IsOK(ecode3)) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "AddVersionConstraint" "', argument " "3"" of type '" "int""'");
   } 
   arg3 = static_cast< int >(val3);
-  res4 = SWIG_ConvertPtr(argv[3], &argp4,SWIGTYPE_p_Package, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "AddVersionConstraint" "', argument " "4"" of type '" "Package *""'"); 
-  }
-  arg4 = reinterpret_cast< Package * >(argp4);
+  ecode4 = SWIG_AsVal_int(argv[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "AddVersionConstraint" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = static_cast< int >(val4);
   ecode5 = SWIG_AsVal_int(argv[4], &val5);
   if (!SWIG_IsOK(ecode5)) {
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "AddVersionConstraint" "', argument " "5"" of type '" "int""'");
@@ -1838,12 +1825,12 @@ fail:
 SWIGINTERN VALUE
 _wrap_GetPackageVersion(int argc, VALUE *argv, VALUE self) {
   VersionProblem *arg1 = (VersionProblem *) 0 ;
-  Package *arg2 = (Package *) 0 ;
+  int arg2 ;
   int result;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
   VALUE vresult = Qnil;
   
   if ((argc < 2) || (argc > 2)) {
@@ -1854,11 +1841,11 @@ _wrap_GetPackageVersion(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetPackageVersion" "', argument " "1"" of type '" "VersionProblem *""'"); 
   }
   arg1 = reinterpret_cast< VersionProblem * >(argp1);
-  res2 = SWIG_ConvertPtr(argv[1], &argp2,SWIGTYPE_p_Package, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GetPackageVersion" "', argument " "2"" of type '" "Package *""'"); 
-  }
-  arg2 = reinterpret_cast< Package * >(argp2);
+  ecode2 = SWIG_AsVal_int(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetPackageVersion" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
   result = (int)GetPackageVersion(arg1,arg2);
   vresult = SWIG_From_int(static_cast< int >(result));
   return vresult;
@@ -1888,25 +1875,50 @@ fail:
 }
 
 
+SWIGINTERN VALUE
+_wrap_VersionProblemPrintPackageVar(int argc, VALUE *argv, VALUE self) {
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VersionProblemPrintPackageVar" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  ecode2 = SWIG_AsVal_int(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VersionProblemPrintPackageVar" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  VersionProblemPrintPackageVar(arg1,arg2);
+  return Qnil;
+fail:
+  return Qnil;
+}
+
+
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
-static swig_type_info _swigt__p_Package = {"_p_Package", "Package *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_VersionProblem = {"_p_VersionProblem", "VersionProblem *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
-  &_swigt__p_Package,
   &_swigt__p_VersionProblem,
   &_swigt__p_char,
 };
 
-static swig_cast_info _swigc__p_Package[] = {  {&_swigt__p_Package, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_VersionProblem[] = {  {&_swigt__p_VersionProblem, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
-  _swigc__p_Package,
   _swigc__p_VersionProblem,
   _swigc__p_char,
 };
@@ -2158,7 +2170,6 @@ SWIGEXPORT void Init_dep_gecode(void) {
   }
   
   SWIG_RubyInitializeTrackings();
-  rb_define_module_function(mDep_gecode, "PackageDump", VALUEFUNC(_wrap_PackageDump), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemCreate", VALUEFUNC(_wrap_VersionProblemCreate), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemDestroy", VALUEFUNC(_wrap_VersionProblemDestroy), -1);
   rb_define_module_function(mDep_gecode, "AddPackage", VALUEFUNC(_wrap_AddPackage), -1);
@@ -2166,5 +2177,6 @@ SWIGEXPORT void Init_dep_gecode(void) {
   rb_define_module_function(mDep_gecode, "Solve", VALUEFUNC(_wrap_Solve), -1);
   rb_define_module_function(mDep_gecode, "GetPackageVersion", VALUEFUNC(_wrap_GetPackageVersion), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemDump", VALUEFUNC(_wrap_VersionProblemDump), -1);
+  rb_define_module_function(mDep_gecode, "VersionProblemPrintPackageVar", VALUEFUNC(_wrap_VersionProblemPrintPackageVar), -1);
 }
 
