@@ -44,21 +44,19 @@ VersionProblem::VersionProblem()
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
   : Script(share, s)
 {
-  //package_versions.update(*this, share, s.package_versions);
-  //version_flags.update(*this, share, s.version_flags);
+  package_versions.update(*this, share, s.package_versions);
 }
 
 VersionProblem::~VersionProblem() {
-  std::vector<Package *>::iterator it;
 }
 
 
 int
 VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion) 
 {
-  int index = package_versions.size();
+  int index = package_version_accumulator.size();
   IntVar version(*this, minVersion, maxVersion);
-  package_versions << version;
+  package_version_accumulator << version;
   return index;
 }
 
@@ -70,13 +68,14 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
   BoolVar pred(*this, 0, 1);
   version_flags << pred;
   // Constrain pred to reify package @ version
-  rel(*this, package_versions[packageId], IRT_EQ, version, pred);
+  rel(*this, package_version_accumulator[packageId], IRT_EQ, version, pred);
   // Add the predicated version constraints imposed on dependent package
-  dom(*this, package_versions[dependentPackageId], minDependentVersion, maxDependentVersion, pred);
+  dom(*this, package_version_accumulator[dependentPackageId], minDependentVersion, maxDependentVersion, pred);
 }
 
 bool VersionProblem::Solve() 
 {
+  package_versions = IntVarArray(*this, package_version_accumulator);
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
 }
 
@@ -108,6 +107,15 @@ void VersionProblem::Print(std::ostream & out)
 
 void VersionProblem::PrintPackageVar(std::ostream & out, int packageId) 
 {
-  IntVar & var = package_versions[packageId];
+  // Hack Alert: we could have the package variable in one of two places, but we don't clearly distinguish where.
+  IntVar & var = package_version_accumulator[packageId];
+  if (package_versions.size() > 0) { 
+    var = package_versions[packageId];
+  }
   out << "PackageId: " << packageId <<  " Sltn: " << var.min() << " - " << var.max() << " afc: " << var.afc();
+}
+
+bool VersionProblem::CheckPackageId(int id) 
+{
+  return (id < package_version_accumulator.size()) || (id < package_versions.size());
 }

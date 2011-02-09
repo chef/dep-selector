@@ -53,10 +53,12 @@ class VersionProblem : public Script
   void Print(std::ostream &out);
   void PrintPackageVar(std::ostream & out, int packageId) ;
  private:
+  bool CheckPackageId(int id);
 
   //  std::vector<int> test;
   BoolVarArgs version_flags;
-  IntVarArgs package_versions;
+  IntVarArgs package_version_accumulator;
+  IntVarArray package_versions;
 };
 
 
