@@ -1651,6 +1651,27 @@ SWIG_From_int  (int value)
 }
 
 SWIGINTERN VALUE
+_wrap_PackageDump(int argc, VALUE *argv, VALUE self) {
+  Package *arg1 = (Package *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  
+  if ((argc < 1) || (argc > 1)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_Package, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "PackageDump" "', argument " "1"" of type '" "Package *""'"); 
+  }
+  arg1 = reinterpret_cast< Package * >(argp1);
+  PackageDump(arg1);
+  return Qnil;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
 _wrap_VersionProblemCreate(int argc, VALUE *argv, VALUE self) {
   VersionProblem *result = 0 ;
   VALUE vresult = Qnil;
@@ -2137,6 +2158,7 @@ SWIGEXPORT void Init_dep_gecode(void) {
   }
   
   SWIG_RubyInitializeTrackings();
+  rb_define_module_function(mDep_gecode, "PackageDump", VALUEFUNC(_wrap_PackageDump), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemCreate", VALUEFUNC(_wrap_VersionProblemCreate), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemDestroy", VALUEFUNC(_wrap_VersionProblemDestroy), -1);
   rb_define_module_function(mDep_gecode, "AddPackage", VALUEFUNC(_wrap_AddPackage), -1);

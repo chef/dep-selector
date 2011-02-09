@@ -14,16 +14,10 @@ using namespace Gecode;
 class Package
 {
  public:
- Package(Space & _space, int _minVersion, int _maxVersion, int _currentVersion) 
-   : minVersion(_minVersion), maxVersion(_maxVersion), currentVersion(_currentVersion), 
-    var(_space, _minVersion, _maxVersion)
-  {
-
-  }
-
-  friend std::ostream & operator<< (std::ostream &os, const Package & obj);
-
-  friend class VersionProblem;
+ Package(Space & _space, int _minVersion, int _maxVersion, int _currentVersion);
+ friend std::ostream & operator<< (std::ostream &os, const Package & obj);
+ // Debug and utility functions
+ friend class VersionProblem;
 
  private:
   int currentVersion;
@@ -31,7 +25,7 @@ class Package
   int maxVersion;
 
   IntVar var;
-
+  int index;
 };
 
 class VersionProblem : public Script

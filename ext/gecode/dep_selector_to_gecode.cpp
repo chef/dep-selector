@@ -11,13 +11,19 @@
 
 using namespace Gecode;
 
-
+Package::Package(Space & _space, int _minVersion, int _maxVersion, int _currentVersion) 
+  : minVersion(_minVersion), maxVersion(_maxVersion), currentVersion(_currentVersion), 
+    var(_space, _minVersion, _maxVersion),
+    index(0)
+{
+    
+}
 
 std::ostream & operator <<(std::ostream &os, const Package & obj) 
 {
-  os << "Initial range: " <<  obj.minVersion << " - " << obj.maxVersion << " (" << obj.currentVersion << ") ";
-  os << "Sltn: " << obj.var.min() << " - " << obj.var.max() << "afc: " << obj.var.afc();
-
+  os << "Id: " << index <<  " Initial range: " <<  obj.minVersion << " - " << obj.maxVersion << " (" << obj.currentVersion << ") ";
+  os << " Sltn: " << obj.var.min() << " - " << obj.var.max() << " afc: " << obj.var.afc();
+  
   return os;
 }
 
@@ -28,7 +34,7 @@ std::ostream & operator <<(std::ostream &os, const Package & obj)
 VersionProblem::VersionProblem() 
   : packages()
 {
-  
+
 
 }
 
@@ -43,16 +49,20 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
 }
 
 VersionProblem::~VersionProblem() {
-
+  std::vector<Package *>::iterator it;
+  for (it = packages.begin(); it < packages.end(); it++) {
+    delete *it;
+  }  
 }
 
 
 Package * 
 VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion) 
 {
-  //  Package * package = new Package(this, minVersion,maxVersion,currentVersion);
-  
-
+  Package * package = new Package(*this, minVersion,maxVersion,currentVersion);
+  int index = packages.size();
+  packages.push_back(package);
+  package->index = index;
 }
 
 bool 

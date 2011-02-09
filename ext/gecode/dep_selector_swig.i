@@ -6,6 +6,8 @@
 class VersionProblem;
 class Package;
 
+void PackageDump(Package * package);
+
 VersionProblem * VersionProblemCreate();
 void VersionProblemDestroy();
 // Return ID #
