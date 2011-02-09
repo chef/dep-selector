@@ -35,16 +35,19 @@ const int VersionProblem::UNRESOLVED_VARIABLE = -1;
 
 VersionProblem::VersionProblem() 
 {
-
-
 }
-
 
 // Clone constructor; check gecode rules for this...
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
   : Script(share, s)
 {
   package_versions.update(*this, share, s.package_versions);
+}
+
+// Support for gecode
+Space* VersionProblem::copy(bool share) 
+{
+  return new VersionProblem(share,*this);
 }
 
 VersionProblem::~VersionProblem() {
@@ -86,11 +89,6 @@ int VersionProblem::GetPackageVersion(int packageId)
    return UNRESOLVED_VARIABLE;
 }
   
-// Support for gecode
-Space* VersionProblem::copy(bool share) 
-{
-  return new VersionProblem(share,*this);
-}
 
 // Utility
 void VersionProblem::Print(std::ostream & out) 
