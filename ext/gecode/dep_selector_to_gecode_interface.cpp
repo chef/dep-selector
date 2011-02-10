@@ -58,4 +58,18 @@ int GetPackageVersion(VersionProblem *problem, int packageId)
   problem->GetPackageVersion(packageId);
 }
 
+int GetAFC(VersionProblem *problem, int packageId)
+{
+  problem->GetAFC(packageId);
+}
+
+int GetMax(VersionProblem *problem, int packageId)
+{
+  problem->GetMax(packageId);
+}
+
+int GetMin(VersionProblem *problem, int packageId)
+{
+  problem->GetMin(packageId);
+}
 
