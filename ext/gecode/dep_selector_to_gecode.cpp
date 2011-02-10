@@ -55,12 +55,14 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
 				     int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
 
 {
-  BoolVar pred(*this, 0, 1);
-  version_flags << pred;
+  BoolVar version_match(*this, 0, 1);
+  BoolVar depend_match(*this, 0, 1);
+  //version_flags << version_match;
   // Constrain pred to reify package @ version
-  rel(*this, package_version_accumulator[packageId], IRT_EQ, version, pred);
+  rel(*this, package_version_accumulator[packageId], IRT_EQ, version, version_match);
   // Add the predicated version constraints imposed on dependent package
-  dom(*this, package_version_accumulator[dependentPackageId], minDependentVersion, maxDependentVersion, pred);
+  dom(*this, package_version_accumulator[dependentPackageId], minDependentVersion, maxDependentVersion, depend_match);
+  rel(*this, version_match, BOT_IMP, depend_match, 1);  
 }
 
 void VersionProblem::Finalize() 
