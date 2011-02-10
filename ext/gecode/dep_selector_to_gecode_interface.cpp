@@ -11,9 +11,9 @@
 //  insure proper memory behaviour
 
 // FFI friendly
-VersionProblem * VersionProblemCreate() 
+VersionProblem * VersionProblemCreate(int packageCount) 
 {
-  return new VersionProblem();
+  return new VersionProblem(packageCount);
 }
 
 void VersionProblemDestroy(VersionProblem * p)

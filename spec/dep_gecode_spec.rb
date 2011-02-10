@@ -18,7 +18,7 @@ def setup_problem_for_dep_gecode(relationships)
   setup_constraint(dep_graph, relationships)
 
   dep_gecode_packages = {}
-  problem = Dep_gecode.VersionProblemCreate
+  problem = Dep_gecode.VersionProblemCreate(dep_graph.packages.size+1) # extra for runlist meta package
 
   # all packages must be created before dependencies using them can be created
   dep_graph.each_package do |package|
@@ -96,10 +96,12 @@ describe Dep_gecode do
     print_bindings(@problem, [*(0..3)])
 
     # solve and interrogate problem
-    Dep_gecode.Solve(@problem).should == true
+    puts "Solving"
+    new_problem = Dep_gecode.Solve(@problem)
+    puts "Solved"
 
     puts "after solving"
-    print_bindings(@problem, [*(0..3)])
+    print_bindings(new_problem, [*(0..3)])
 
     # TODO: check problem's bindings
   end
@@ -119,10 +121,19 @@ describe Dep_gecode do
     print_bindings(@problem, [*(0..3)])
 
     # solve and interrogate problem
-    Dep_gecode.Solve(@problem).should == false
+    puts "Solving"
+    new_problem = Dep_gecode.Solve(@problem)
+
+    new_problem.should == nil
 
     puts "after solving"
-    print_bindings(@problem, [*(0..3)])
+    if (!new_problem.nil?)
+      print_bindings(new_problem, [*(0..3)])
+    else
+      puts "No solution"
+    end
+    
+
 
     # TODO: do appropriate interrogation
   end

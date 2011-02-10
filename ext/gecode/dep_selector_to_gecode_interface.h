@@ -12,7 +12,7 @@ extern "C" {
   typedef struct VersionProblem VersionProblem;
 #endif
 
-  VersionProblem * VersionProblemCreate();
+  VersionProblem * VersionProblemCreate(int packageCount);
   void VersionProblemDestroy(VersionProblem * vp);
   // Return ID #
   int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);

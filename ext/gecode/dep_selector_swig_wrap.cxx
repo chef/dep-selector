@@ -1651,13 +1651,21 @@ SWIG_From_bool  (bool value)
 
 SWIGINTERN VALUE
 _wrap_VersionProblemCreate(int argc, VALUE *argv, VALUE self) {
+  int arg1 ;
   VersionProblem *result = 0 ;
+  int val1 ;
+  int ecode1 = 0 ;
   VALUE vresult = Qnil;
   
-  if ((argc < 0) || (argc > 0)) {
-    rb_raise(rb_eArgError, "wrong # of arguments(%d for 0)",argc); SWIG_fail;
+  if ((argc < 1) || (argc > 1)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
   }
-  result = (VersionProblem *)VersionProblemCreate();
+  ecode1 = SWIG_AsVal_int(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "VersionProblemCreate" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = static_cast< int >(val1);
+  result = (VersionProblem *)VersionProblemCreate(arg1);
   vresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_VersionProblem, 0 |  0 );
   return vresult;
 fail:

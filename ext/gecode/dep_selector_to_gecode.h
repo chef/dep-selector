@@ -16,7 +16,7 @@ class VersionProblem : public Script
  public:
   static const int UNRESOLVED_VARIABLE;
 
-  VersionProblem();
+  VersionProblem(int packageCount);
   // Clone constructor; check gecode rules for this...
   VersionProblem(bool share, VersionProblem & s);
   virtual ~VersionProblem();
@@ -47,15 +47,12 @@ class VersionProblem : public Script
   static VersionProblem *Solve(VersionProblem *problem);
 
  private:
+  int cur_package;
   bool CheckPackageId(int id);
   bool finalized;
   //  std::vector<int> test;
   BoolVarArgs version_flags;
-  IntVarArgs package_version_accumulator;
   IntVarArray package_versions;
 };
-
-// Solve system; 
-VersionProblem * Solve(VersionProblem *problem);
 
 #endif dep_selector_to_gecode_h

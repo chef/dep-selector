@@ -20,14 +20,15 @@ using namespace Gecode;
 const int VersionProblem::UNRESOLVED_VARIABLE = -1;
 
 
-VersionProblem::VersionProblem() 
-  : finalized(false)
+VersionProblem::VersionProblem(int packageCount) 
+  : finalized(false), cur_package(0), package_versions(*this, packageCount)
 {
+  
 }
 
 // Clone constructor; check gecode rules for this...
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
-  : Script(share, s), finalized(s.finalized)
+  : Script(share, s), finalized(s.finalized), cur_package(s.cur_package)
 {
   package_versions.update(*this, share, s.package_versions);
 }
@@ -45,9 +46,14 @@ VersionProblem::~VersionProblem() {
 int
 VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion) 
 {
-  int index = package_version_accumulator.size();
-  IntVar version(*this, minVersion, maxVersion);
-  package_version_accumulator << version;
+#ifdef DEBUG
+  std::cout << cur_package << '/' << package_versions.size() << ":" << minVersion << ", " << maxVersion << ", " << currentVersion << std::endl;
+  std::cout.flush();    
+#endif // DEBUG
+  int index = cur_package;
+  cur_package++;
+  //  IntVar version(*this, minVersion, maxVersion);
+  package_versions[index] = IntVar(*this, minVersion, maxVersion);
   return index;
 }
 
@@ -60,25 +66,30 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
   BoolVar depend_match(*this, 0, 1);
   //version_flags << version_match;
   // Constrain pred to reify package @ version
-  rel(*this, package_version_accumulator[packageId], IRT_EQ, version, version_match);
+  rel(*this, package_versions[packageId], IRT_EQ, version, version_match);
   // Add the predicated version constraints imposed on dependent package
-  dom(*this, package_version_accumulator[dependentPackageId], minDependentVersion, maxDependentVersion, depend_match);
+  dom(*this, package_versions[dependentPackageId], minDependentVersion, maxDependentVersion, depend_match);
   rel(*this, version_match, BOT_IMP, depend_match, 1);  
 }
 
 void VersionProblem::Finalize() 
 {
   finalized = true;
-  package_versions = IntVarArray(*this, package_version_accumulator);
+  // Assign a dummy variable 
+  for (int i = cur_package; i < package_versions.size(); i++) {
+    package_versions[i] = IntVar(*this, -1, -1);
+  }
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
+  std::cout << "Finalization Done" << std::endl;
 }
 
 IntVar & VersionProblem::GetPackageVersionVar(int packageId)
 {
-  if (finalized) {
+  if (packageId < cur_package) {
     return package_versions[packageId];
   } else {
-    return package_version_accumulator[packageId];
+    std::cout << "Bad package Id " << packageId << " >= " << cur_package << std::endl;
+    std::cout.flush();
   }
 }
 
@@ -105,12 +116,13 @@ int VersionProblem::GetMin(int packageId)
 // Utility
 void VersionProblem::Print(std::ostream & out) 
 {
-  out << "Version problem dump: " << package_versions.size() << " elements" << std::endl;
-  for (int i = 0; i < package_versions.size(); i++) {
+  out << "Version problem dump: " << cur_package << "/" << package_versions.size() << " packages used/allocated" << std::endl;
+  for (int i = 0; i < cur_package; i++) {
     out << "\t";
     PrintPackageVar(out, i);
     out << std::endl;
   }
+  out.flush();
 }
 
 // TODO: Validate package ids !
@@ -124,7 +136,7 @@ void VersionProblem::PrintPackageVar(std::ostream & out, int packageId)
 
 bool VersionProblem::CheckPackageId(int id) 
 {
-  return (id < package_version_accumulator.size()) || (id < package_versions.size());
+  return (id < package_versions.size());
 }
 
 VersionProblem * VersionProblem::Solve(VersionProblem * problem) 
