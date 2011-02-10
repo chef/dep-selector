@@ -21,12 +21,13 @@ const int VersionProblem::UNRESOLVED_VARIABLE = -1;
 
 
 VersionProblem::VersionProblem() 
+  : finalized(false)
 {
 }
 
 // Clone constructor; check gecode rules for this...
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
-  : Script(share, s)
+  : Script(share, s), finalized(s.finalized)
 {
   package_versions.update(*this, share, s.package_versions);
 }
@@ -67,33 +68,38 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
 
 void VersionProblem::Finalize() 
 {
+  finalized = true;
   package_versions = IntVarArray(*this, package_version_accumulator);
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
 }
 
-IntVar & VersionProblem::SafeGetVar(int packageId)
+IntVar & VersionProblem::GetPackageVersionVar(int packageId)
 {
-  IntVar & var = package_versions[packageId];
+  if (finalized) {
+    return package_versions[packageId];
+  } else {
+    return package_version_accumulator[packageId];
+  }
 }
 
 int VersionProblem::GetPackageVersion(int packageId) 
 {
-  IntVar & var = SafeGetVar(packageId);
+  IntVar & var = GetPackageVersionVar(packageId);
   if (1 == var.size()) return var.val();
   return UNRESOLVED_VARIABLE;
 }
 int VersionProblem::GetAFC(int packageId)
 {
-  return SafeGetVar(packageId).afc();
+  return GetPackageVersionVar(packageId).afc();
 }  
 
 int VersionProblem::GetMax(int packageId)
 {
-  return SafeGetVar(packageId).max();
+  return GetPackageVersionVar(packageId).max();
 }
 int VersionProblem::GetMin(int packageId)
 {
-  return SafeGetVar(packageId).min();
+  return GetPackageVersionVar(packageId).min();
 }
 
 // Utility
@@ -112,10 +118,7 @@ void VersionProblem::Print(std::ostream & out)
 void VersionProblem::PrintPackageVar(std::ostream & out, int packageId) 
 {
   // Hack Alert: we could have the package variable in one of two places, but we don't clearly distinguish where.
-  IntVar & var = package_version_accumulator[packageId];
-  if (package_versions.size() > 0) { 
-    var = package_versions[packageId];
-  }
+  IntVar & var = GetPackageVersionVar(packageId);
   out << "PackageId: " << packageId <<  " Sltn: " << var.min() << " - " << var.max() << " afc: " << var.afc();
 }
 
