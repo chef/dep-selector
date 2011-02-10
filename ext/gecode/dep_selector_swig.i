@@ -17,6 +17,9 @@ bool AddVersionConstraint(VersionProblem *problem, int packageId, int version,
 // Solve system; 
 bool Solve(VersionProblem *problem);
 int GetPackageVersion(VersionProblem *problem, int packageId);
+int GetAFC(VersionProblem *problem, int packageId);
+int GetMax(VersionProblem *problem, int packageId);
+int GetMin(VersionProblem *problem, int packageId);
 
 void VersionProblemDump(VersionProblem * problem);
 void VersionProblemPrintPackageVar(VersionProblem * problem, int packageId);

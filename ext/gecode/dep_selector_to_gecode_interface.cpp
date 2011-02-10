@@ -33,7 +33,6 @@ void VersionProblemPrintPackageVar(VersionProblem *p, int packageId)
   std::cout.flush();
 }
 
-
 // Return ID #
 int AddPackage(VersionProblem *problem, int min, int max, int currentVersion) {
   problem->AddPackage(min,max,currentVersion);
