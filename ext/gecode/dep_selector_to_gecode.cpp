@@ -12,6 +12,8 @@
 // T
 //
 
+#define DEBUG
+
 using namespace Gecode;
 
 //
@@ -74,13 +76,24 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
 
 void VersionProblem::Finalize() 
 {
+#ifdef DEBUG
+  std::cout << "Finalization Started" << std::endl;
+  std::cout.flush();
+#endif // DEBUG
   finalized = true;
   // Assign a dummy variable 
   for (int i = cur_package; i < package_versions.size(); i++) {
     package_versions[i] = IntVar(*this, -1, -1);
   }
+#ifdef DEBUG
+  std::cout << "Branch Started" << std::endl;
+  std::cout.flush();
+#endif // DEBUG
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
+#ifdef DEBUG
   std::cout << "Finalization Done" << std::endl;
+  std::cout.flush();
+#endif // DEBUG
 }
 
 IntVar & VersionProblem::GetPackageVersionVar(int packageId)
@@ -88,8 +101,11 @@ IntVar & VersionProblem::GetPackageVersionVar(int packageId)
   if (packageId < cur_package) {
     return package_versions[packageId];
   } else {
+#ifdef DEBUG
     std::cout << "Bad package Id " << packageId << " >= " << cur_package << std::endl;
     std::cout.flush();
+#endif //DEBUG
+    //    return 0;
   }
 }
 
@@ -143,7 +159,9 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
 {
   problem->Finalize();
   problem->status();
+#ifdef DEBUG
   problem->Print(std::cout);
+#endif //DEBUG
   DFS<VersionProblem> solver(problem);
   
   // std::cout << solver.statistics();

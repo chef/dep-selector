@@ -6,6 +6,8 @@ require 'mkmf'
 
 $LIBS << " -lstdc++"
 
+$CFLAGS << "-g"
+
 have_library('gecodesearch')
 have_library('gecodeint')
 have_library('gecodekernel')
