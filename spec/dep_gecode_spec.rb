@@ -103,6 +103,9 @@ describe Dep_gecode do
     puts "after solving"
     print_bindings(new_problem, [*(0..3)])
 
+    Dep_gecode.VersionProblemDestroy(@problem);
+    Dep_gecode.VersionProblemDestroy(new_problem);
+
     # TODO: check problem's bindings
   end
 
@@ -132,8 +135,8 @@ describe Dep_gecode do
     else
       puts "No solution"
     end
-    
-
+   
+    Dep_gecode.VersionProblemDestroy(@problem);
 
     # TODO: do appropriate interrogation
   end
