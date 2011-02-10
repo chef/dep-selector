@@ -21,8 +21,6 @@ extern "C" {
   // Returns false if system becomes insoluble.
   bool AddVersionConstraint(VersionProblem *problem, int packageId, int version, 
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
-  // Solve system; 
-  bool Solve(VersionProblem *problem);
 
   int GetPackageVersion(VersionProblem *problem, int packageId);
   int GetAFC(VersionProblem *problem, int packageId);
@@ -31,6 +29,8 @@ extern "C" {
 
   void VersionProblemDump(VersionProblem * problem);
   void VersionProblemPrintPackageVar(VersionProblem * problem, int packageId);
+
+  VersionProblem * Solve(VersionProblem * problem);
 
 #ifdef __cplusplus
 }

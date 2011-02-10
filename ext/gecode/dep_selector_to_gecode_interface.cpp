@@ -46,12 +46,6 @@ bool AddVersionConstraint(VersionProblem *problem, int packageId, int version,
   problem->AddVersionConstraint(packageId, version, dependentPackageId, minDependentVersion, maxDependentVersion);
 }
 
-// Solve system; 
-bool Solve(VersionProblem *problem) 
-{
-  problem->Solve();
-}
-
 int GetPackageVersion(VersionProblem *problem, int packageId)
 {
   problem->GetPackageVersion(packageId);
@@ -72,3 +66,6 @@ int GetMin(VersionProblem *problem, int packageId)
   problem->GetMin(packageId);
 }
 
+VersionProblem * Solve(VersionProblem * problem)  {
+  return VersionProblem::Solve(problem);
+}

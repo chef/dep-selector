@@ -1,6 +1,9 @@
 #include <gecode/driver.hh>
 #include <gecode/int.hh>
 #include <gecode/minimodel.hh>
+#include <gecode/gist.hh>
+#include <gecode/search.hh>
+
 #include "dep_selector_to_gecode.h"
 
 #include <iostream>
@@ -10,22 +13,6 @@
 //
 
 using namespace Gecode;
-
-Package::Package(Space & _space, int _minVersion, int _maxVersion, int _currentVersion) 
-  : minVersion(_minVersion), maxVersion(_maxVersion), currentVersion(_currentVersion), 
-    var(_space, _minVersion, _maxVersion),
-    index(0)
-{
-    
-}
-
-std::ostream & operator <<(std::ostream &os, const Package & obj) 
-{
-  os << "Id: " << index <<  " Initial range: " <<  obj.minVersion << " - " << obj.maxVersion << " (" << obj.currentVersion << ") ";
-  os << " Sltn: [" << obj.var.min() << ", " << obj.var.max() << "]  afc: " << obj.var.afc();
-  
-  return os;
-}
 
 //
 // Version Problem
@@ -76,7 +63,7 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
   dom(*this, package_version_accumulator[dependentPackageId], minDependentVersion, maxDependentVersion, pred);
 }
 
-bool VersionProblem::Solve() 
+void VersionProblem::Finalize() 
 {
   package_versions = IntVarArray(*this, package_version_accumulator);
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
@@ -133,4 +120,20 @@ void VersionProblem::PrintPackageVar(std::ostream & out, int packageId)
 bool VersionProblem::CheckPackageId(int id) 
 {
   return (id < package_version_accumulator.size()) || (id < package_versions.size());
+}
+
+VersionProblem * VersionProblem::Solve(VersionProblem * problem) 
+{
+  problem->Finalize();
+  problem->status();
+  problem->Print(std::cout);
+  DFS<VersionProblem> solver(problem);
+  
+  // std::cout << solver.statistics();
+
+  if (VersionProblem * solution = solver.next())
+    {
+      return solution;
+    }
+  return 0;
 }

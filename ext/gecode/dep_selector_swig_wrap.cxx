@@ -1799,30 +1799,6 @@ fail:
 
 
 SWIGINTERN VALUE
-_wrap_Solve(int argc, VALUE *argv, VALUE self) {
-  VersionProblem *arg1 = (VersionProblem *) 0 ;
-  bool result;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  VALUE vresult = Qnil;
-  
-  if ((argc < 1) || (argc > 1)) {
-    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
-  }
-  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Solve" "', argument " "1"" of type '" "VersionProblem *""'"); 
-  }
-  arg1 = reinterpret_cast< VersionProblem * >(argp1);
-  result = (bool)Solve(arg1);
-  vresult = SWIG_From_bool(static_cast< bool >(result));
-  return vresult;
-fail:
-  return Qnil;
-}
-
-
-SWIGINTERN VALUE
 _wrap_GetPackageVersion(int argc, VALUE *argv, VALUE self) {
   VersionProblem *arg1 = (VersionProblem *) 0 ;
   int arg2 ;
@@ -1847,6 +1823,102 @@ _wrap_GetPackageVersion(int argc, VALUE *argv, VALUE self) {
   } 
   arg2 = static_cast< int >(val2);
   result = (int)GetPackageVersion(arg1,arg2);
+  vresult = SWIG_From_int(static_cast< int >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_GetAFC(int argc, VALUE *argv, VALUE self) {
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  int arg2 ;
+  int result;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetAFC" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  ecode2 = SWIG_AsVal_int(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetAFC" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  result = (int)GetAFC(arg1,arg2);
+  vresult = SWIG_From_int(static_cast< int >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_GetMax(int argc, VALUE *argv, VALUE self) {
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  int arg2 ;
+  int result;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetMax" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  ecode2 = SWIG_AsVal_int(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetMax" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  result = (int)GetMax(arg1,arg2);
+  vresult = SWIG_From_int(static_cast< int >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_GetMin(int argc, VALUE *argv, VALUE self) {
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  int arg2 ;
+  int result;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetMin" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  ecode2 = SWIG_AsVal_int(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetMin" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  result = (int)GetMin(arg1,arg2);
   vresult = SWIG_From_int(static_cast< int >(result));
   return vresult;
 fail:
@@ -1899,6 +1971,30 @@ _wrap_VersionProblemPrintPackageVar(int argc, VALUE *argv, VALUE self) {
   arg2 = static_cast< int >(val2);
   VersionProblemPrintPackageVar(arg1,arg2);
   return Qnil;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_Solve(int argc, VALUE *argv, VALUE self) {
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  VersionProblem *result = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 1) || (argc > 1)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Solve" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  result = (VersionProblem *)Solve(arg1);
+  vresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_VersionProblem, 0 |  0 );
+  return vresult;
 fail:
   return Qnil;
 }
@@ -2174,9 +2270,12 @@ SWIGEXPORT void Init_dep_gecode(void) {
   rb_define_module_function(mDep_gecode, "VersionProblemDestroy", VALUEFUNC(_wrap_VersionProblemDestroy), -1);
   rb_define_module_function(mDep_gecode, "AddPackage", VALUEFUNC(_wrap_AddPackage), -1);
   rb_define_module_function(mDep_gecode, "AddVersionConstraint", VALUEFUNC(_wrap_AddVersionConstraint), -1);
-  rb_define_module_function(mDep_gecode, "Solve", VALUEFUNC(_wrap_Solve), -1);
   rb_define_module_function(mDep_gecode, "GetPackageVersion", VALUEFUNC(_wrap_GetPackageVersion), -1);
+  rb_define_module_function(mDep_gecode, "GetAFC", VALUEFUNC(_wrap_GetAFC), -1);
+  rb_define_module_function(mDep_gecode, "GetMax", VALUEFUNC(_wrap_GetMax), -1);
+  rb_define_module_function(mDep_gecode, "GetMin", VALUEFUNC(_wrap_GetMin), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemDump", VALUEFUNC(_wrap_VersionProblemDump), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemPrintPackageVar", VALUEFUNC(_wrap_VersionProblemPrintPackageVar), -1);
+  rb_define_module_function(mDep_gecode, "Solve", VALUEFUNC(_wrap_Solve), -1);
 }
 

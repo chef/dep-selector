@@ -11,24 +11,6 @@
 
 using namespace Gecode;
 
-class Package
-{
- public:
- Package(Space & _space, int _minVersion, int _maxVersion, int _currentVersion);
- friend std::ostream & operator<< (std::ostream &os, const Package & obj);
- // Debug and utility functions
- friend class VersionProblem;
-
- private:
-  int currentVersion;
-  int minVersion;
-  int maxVersion;
-
-  IntVar var;
-  int index;
-};
-
-
 class VersionProblem : public Script
 {
  public:
@@ -44,7 +26,7 @@ class VersionProblem : public Script
 
   bool AddVersionConstraint(int packageId, int version, 
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
-  bool Solve();
+  void Finalize();
   int GetPackageVersion(int packageId);
   int GetAFC(int packageId);
   int GetMax(int packageId);
@@ -56,6 +38,10 @@ class VersionProblem : public Script
   // Debug and utility functions
   void Print(std::ostream &out);
   void PrintPackageVar(std::ostream & out, int packageId) ;
+
+
+  static VersionProblem *Solve(VersionProblem *problem);
+
  private:
   bool CheckPackageId(int id);
 
@@ -65,5 +51,7 @@ class VersionProblem : public Script
   IntVarArray package_versions;
 };
 
+// Solve system; 
+VersionProblem * Solve(VersionProblem *problem);
 
 #endif dep_selector_to_gecode_h
