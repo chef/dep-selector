@@ -22,7 +22,7 @@ Package::Package(Space & _space, int _minVersion, int _maxVersion, int _currentV
 std::ostream & operator <<(std::ostream &os, const Package & obj) 
 {
   os << "Id: " << index <<  " Initial range: " <<  obj.minVersion << " - " << obj.maxVersion << " (" << obj.currentVersion << ") ";
-  os << " Sltn: " << obj.var.min() << " - " << obj.var.max() << " afc: " << obj.var.afc();
+  os << " Sltn: [" << obj.var.min() << ", " << obj.var.max() << "]  afc: " << obj.var.afc();
   
   return os;
 }
@@ -82,13 +82,30 @@ bool VersionProblem::Solve()
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
 }
 
+IntVar & VersionProblem::SafeGetVar(int packageId)
+{
+  IntVar & var = package_versions[packageId];
+}
+
 int VersionProblem::GetPackageVersion(int packageId) 
 {
-   IntVar & var = package_versions[packageId];
-   if (1 == var.size()) return var.val();
-   return UNRESOLVED_VARIABLE;
+  IntVar & var = SafeGetVar(packageId);
+  if (1 == var.size()) return var.val();
+  return UNRESOLVED_VARIABLE;
 }
-  
+int VersionProblem::GetAFC(int packageId)
+{
+  return SafeGetVar(packageId).afc();
+}  
+
+int VersionProblem::GetMax(int packageId)
+{
+  return SafeGetVar(packageId).max();
+}
+int VersionProblem::GetMin(int packageId)
+{
+  return SafeGetVar(packageId).min();
+}
 
 // Utility
 void VersionProblem::Print(std::ostream & out) 

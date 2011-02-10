@@ -39,12 +39,16 @@ class VersionProblem : public Script
   VersionProblem(bool share, VersionProblem & s);
   virtual ~VersionProblem();
 
+  IntVar & SafeGetVar(int packageId);
   int AddPackage(int minVersion, int maxVersion, int currentVersion);
 
   bool AddVersionConstraint(int packageId, int version, 
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
   bool Solve();
   int GetPackageVersion(int packageId);
+  int GetAFC(int packageId);
+  int GetMax(int packageId);
+  int GetMin(int packageId);
   
   // Support for gecode
   virtual Space* copy(bool share);
