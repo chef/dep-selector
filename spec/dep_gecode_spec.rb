@@ -108,18 +108,24 @@ describe Dep_gecode do
 
   it "Can be created, and have packages added to it" do
     problem = Dep_gecode.VersionProblemCreate(2) 
+    Dep_gecode.VersionProblemSize(problem).should == 2
+    Dep_gecode.VersionProblemPackageCount(problem).should == 0
     packageId = Dep_gecode.AddPackage(problem, 0, 2, 8)
     packageId.should == 0
     Dep_gecode.GetPackageVersion(problem, packageId).should == -(2**31)
     Dep_gecode.GetAFC(problem,packageId).should == 0
     Dep_gecode.GetMax(problem,packageId).should == 2
     Dep_gecode.GetMin(problem,packageId).should == 0
+    Dep_gecode.VersionProblemSize(problem).should == 2
+    Dep_gecode.VersionProblemPackageCount(problem).should == 1
     packageId = Dep_gecode.AddPackage(problem, 1, 6, 8)
     packageId.should == 1
     Dep_gecode.GetPackageVersion(problem, packageId).should == -(2**31)
     Dep_gecode.GetAFC(problem,packageId).should == 0
     Dep_gecode.GetMax(problem,packageId).should == 6
     Dep_gecode.GetMin(problem,packageId).should == 1
+    Dep_gecode.VersionProblemSize(problem).should == 2
+    Dep_gecode.VersionProblemPackageCount(problem).should == 2
     Dep_gecode.VersionProblemDestroy(problem)
   end
 
