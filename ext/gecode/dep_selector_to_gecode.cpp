@@ -10,11 +10,7 @@
 #include <iostream>
 #include <vector>
 
-//
-// T
-//
-
-#define DEBUG
+#undef DEBUG
 
 using namespace Gecode;
 
