@@ -77,7 +77,7 @@ module DepSelector
         if constraint
           pkg_mv.must_be.in(pkg.densely_packed_versions[constraint])
         end
-        workspace.branch_on(pkg_mv)
+        workspace.branch_on(pkg_mv, :value => :max)
       end
 
       # if a block was specified, use that as the objective function;
