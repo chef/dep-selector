@@ -36,7 +36,7 @@ module DepSelector
         end
       end
 
-      range.empty? ? Range.new(1,0) : Range.new(range.first, range.last)
+      range.empty? ? [] : Range.new(range.first, range.last)
     end
   end
 end

@@ -70,12 +70,27 @@ module DepSelector
       # generate constraints imposed by solution_constraints
       solution_constraints.each do |soln_constraint|
         # look up the package in the cloned dep_graph that corresponds to soln_constraint
-        pkg = workspace.package(soln_constraint.package.name)
+        pkg_name = soln_constraint.package.name
+        # Note: right now this is unlikely to ever be triggered,
+        # because the user has probably constructed the
+        # SolutionConstraint by calling DependencyGraph#package, which
+        # auto-vivifies it if it doesn't exist. See TODO in
+        # selector_spec.rb. Instead, users will have to implement
+        # checking logic when they're creating solution_constraints.
+        unless workspace.packages.has_key?(pkg_name)
+          raise Exceptions::InvalidPackage.new("#{pkg_name} does not exist in the dependency graph")
+        end
+        pkg = workspace.package(pkg_name)
         constraint = soln_constraint.constraint
 
         pkg_mv = pkg.gecode_model_var
         if constraint
           pkg_mv.must_be.in(pkg.densely_packed_versions[constraint])
+        else
+          # this restricts the domain of the variable to >= 0, which
+          # means -1, the shadow package, cannot be assigned, meaning
+          # the package must be bound to an actual version
+          pkg_mv.must_be.in(Range.new(0, pkg.densely_packed_versions.max))
         end
         workspace.branch_on(pkg_mv, :value => :max)
       end
