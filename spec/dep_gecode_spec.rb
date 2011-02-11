@@ -1,19 +1,15 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'spec_helper'))
 
 require 'ext/gecode/dep_gecode'
-
-simple_cookbook_version_constraint =
-  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 2.0.0"}},
-   {"key"=>["A", "2.0.0"], "value"=>{"B"=>"= 1.0.0", "C"=>"= 1.0.0"}},
-   {"key"=>["B", "1.0.0"], "value"=>{}},
-   {"key"=>["B", "2.0.0"], "value"=>{}},
-   {"key"=>["C", "1.0.0"], "value"=>{}}
-  ]
+require 'version_constraints'
 
 # so that we can use test data that's already written in other tests,
 # we're accepting the same format but adapting it for our C++ wrapper
 # for gecode, which is exposed in Dep_gecode
 def setup_problem_for_dep_gecode(relationships)
+
+#  pp :relationships=>relationships
+  
   dep_graph = DepSelector::DependencyGraph.new
   setup_constraint(dep_graph, relationships)
 
@@ -67,6 +63,33 @@ def setup_soln_constraints_for_dep_gecode(soln_constraints, problem, pkg_name_to
   end
 end
 
+def print_human_readable_solution(problem, pkg_name_to_id, dep_graph)
+  dep_graph.each_package do |package|  
+    package_id = pkg_name_to_id[package.name]
+    package_version = Dep_gecode.GetPackageVersion(problem,package_id)
+    version_text = package.densely_packed_versions.sorted_triples[package_version]
+    puts "#{package.name} @ #{version_text} (#{package_id} @ #{package_version})"
+  end
+end
+
+def print_check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
+  if (problem.nil?)
+    return expected_solution.nil?
+  end
+
+  passed = true;
+  dep_graph.each_package do |package|
+    package_id = pkg_name_to_id[package.name]
+    package_version = Dep_gecode.GetPackageVersion(problem,package_id)
+    version_text = package.densely_packed_versions.sorted_triples[package_version]
+    expected_version = expected_solution.nil? ? "NA" : expected_solution[package.name]
+    pass = (version_text.to_s==expected_version.to_s)
+    puts "#{package.name} @ '#{version_text}' (#{package_id} @ #{package_version}) Expected '#{expected_version}' #{pass ? 'OK' : 'FAIL'}"
+    passed &= pass
+  end
+  return passed
+end
+
 
 def print_bindings(problem, vars)
   vars.each do |var|
@@ -75,10 +98,45 @@ def print_bindings(problem, vars)
   end
 end
 
+def generic_problem_solver(problem_desc, version_constraint, solution_constraints, solveable, expected_solution) 
+  before do
+    @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(version_constraint)
+  end
+
+  it problem_desc do
+    puts "before adding soln constraints"
+    print_bindings(@problem, [*(0..2)])
+    # solution constraints: [A,(B=0)], which is satisfiable as A=1, B=0
+    setup_soln_constraints_for_dep_gecode(solution_constraints, @problem, @pkg_name_to_id, @dep_graph)
+
+    puts "after adding soln constraints"
+    print_bindings(@problem, [*(0..3)])
+
+    # solve and interrogate problem
+    puts "Solving"
+    new_problem = Dep_gecode.Solve(@problem)
+    puts "Solved"
+    
+    if solveable
+      new_problem.should != nil
+      puts "after solving"
+      print_bindings(new_problem, [*(0..3)])
+      Dep_gecode.VersionProblemDestroy(new_problem);
+      
+      # TODO: check problem's bindings
+    else
+      new_problem.should == nil
+    end
+
+    Dep_gecode.VersionProblemDestroy(@problem);
+
+  end
+end
+
 describe Dep_gecode do
 
   before do
-    @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(simple_cookbook_version_constraint)
+    @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(VersionConstraints::Simple_cookbook_version_constraint)
   end
 
   it "solves a simple set of constraints" do
@@ -102,6 +160,10 @@ describe Dep_gecode do
 
     puts "after solving"
     print_bindings(new_problem, [*(0..3)])
+    puts "HR solution"
+#    print_human_readable_solution(new_problem, @pkg_name_to_id, @dep_graph)
+    print_check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
+                         {'A'=>'2.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'}).should == true
 
     Dep_gecode.VersionProblemDestroy(@problem);
     Dep_gecode.VersionProblemDestroy(new_problem);
@@ -112,7 +174,7 @@ describe Dep_gecode do
   it "fails to solve a simple, unsatisfiable set of constraints" do
     puts "before adding soln constraints"
     print_bindings(@problem, [*(0..2)])
-
+    
     # solution constraints: [(A=1.0.0),(B=1.0.0)], which is not satisfiable
     solution_constraints = [
                             ["A", "= 1.0.0"],
@@ -130,16 +192,58 @@ describe Dep_gecode do
     new_problem.should == nil
 
     puts "after solving"
-    if (!new_problem.nil?)
-      print_bindings(new_problem, [*(0..3)])
-    else
-      puts "No solution"
-    end
-   
+    print_check_solution(new_problem, @pkg_name_to_id, @dep_graph, nil).should == true
+
     Dep_gecode.VersionProblemDestroy(@problem);
 
     # TODO: do appropriate interrogation
   end
+
+#  it "fails to solve a simple, unsatisfiable set of constraints (2)" do
+#    generic_problem_solver("fails to solve a simple, unsatisfiable set of constraints",
+#                           simple_cookbook_version_constraint,
+#                           [
+#                            ["A", "= 1.0.0"],
+#                            ["B", "= 1.0.0"]
+#                           ],
+#                           false,
+#                           nil)
+#  end
+
+  before do
+    @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(VersionConstraints::Simple_cookbook_version_constraint_2)
+  end
+  
+  it "solves a simple set of constraints" do
+    puts "before adding soln constraints"
+    print_bindings(@problem, [*(0..2)])
+
+    # solution constraints: [A,(B=0)], which is satisfiable as A=1, B=0
+    solution_constraints = [
+                            ["A"],
+                            ["B", "= 2.0.0"]
+                           ]
+    setup_soln_constraints_for_dep_gecode(solution_constraints, @problem, @pkg_name_to_id, @dep_graph)
+
+    puts "after adding soln constraints"
+    print_bindings(@problem, [*(0..3)])
+
+    # solve and interrogate problem
+    puts "Solving"
+    new_problem = Dep_gecode.Solve(@problem)
+    puts "Solved"
+
+    puts "after solving"
+    print_bindings(new_problem, [*(0..3)])
+    puts "HR solution"
+    print_check_solution(new_problem, @pkg_name_to_id, @dep_graph, { 'A'=>'1.0.0', 'B'=>'2.0.0', 'C'=>'2.0.0'})
+
+    Dep_gecode.VersionProblemDestroy(@problem);
+    Dep_gecode.VersionProblemDestroy(new_problem);
+
+    # TODO: check problem's bindings
+  end
+
 
 end
 
