@@ -1,5 +1,7 @@
 require 'dep_selector/exceptions'
 
+# TODO [cw,2011/2/4]: there is no longer any assumption about triples,
+# so remove references to triples in favor or versions
 module DepSelector
   class DenselyPackedSet
     attr_reader :sorted_triples

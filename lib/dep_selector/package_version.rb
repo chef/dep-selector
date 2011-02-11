@@ -1,5 +1,3 @@
-require 'gecoder'
-
 module DepSelector
   class PackageVersion
     attr_accessor :package, :version, :dependencies
