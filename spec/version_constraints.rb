@@ -7,7 +7,27 @@ module VersionConstraints
      {"key"=>["B", "2.0.0"], "value"=>{}},
      {"key"=>["C", "1.0.0"], "value"=>{}},
     ]
+
+  SimpleProblem_1_soluble = {
+    :desc => "Simple soluble problem, one solution",
+    :version_constraint => Simple_cookbook_version_constraint,
+    :runlist_constraint => [
+                            ["A"],
+                            ["B", "= 1.0.0"]
+                           ],
+    :solution =>  {'A'=>'2.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'}
+  }
   
+  SimpleProblem_2_insoluble = {
+    :desc => "fails to solve a simple, unsatisfiable set of constraints",
+    :version_constraint => Simple_cookbook_version_constraint,
+    :runlist_constraint => [
+                            ["A", "= 1.0.0"],
+                            ["B", "= 1.0.0"]
+                           ],
+    :solution =>  nil
+  }
+   
   Simple_cookbook_version_constraint_2 =
     [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 2.0.0", "C"=>"= 2.0.0"}},
      {"key"=>["A", "2.0.0"], "value"=>{"B"=>"= 1.0.0", "C"=>"= 1.0.0"}},
@@ -17,6 +37,19 @@ module VersionConstraints
      {"key"=>["C", "2.0.0"], "value"=>{}},
      {"key"=>["C", "3.0.0"], "value"=>{}}
     ]
+
+  SimpleProblem_3_soluble = {
+    :desc => "solves problem 3 constraints",
+    :version_constraint => Simple_cookbook_version_constraint_2,
+    :runlist_constraint => [
+                            ["A"],
+                            ["B", "= 2.0.0"]
+                           ],
+    :solution => { 'A'=>'1.0.0', 'B'=>'2.0.0', 'C'=>'2.0.0'}
+  }
+
+
+
 
   Simple_cookbook_version_constraint_3 =
     [{"key"=>["A", "1.0.0"], "value"=>{"B"=>">= 1.0.0"}},
