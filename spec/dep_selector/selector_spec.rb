@@ -50,7 +50,13 @@ moderate_cookbook_version_constraint_2 =
    {"key"=>["F", "1.0"], "value"=>{}},
 ]
 
-
+dependencies_whose_constraints_match_no_versions =
+  [{"key"=>["A", "1.0"], "value"=>{}},
+   {"key"=>["B", "1.0"], "value"=>{"A"=>"> 1.0"}},
+   {"key"=>["C", "1.0"], "value"=>{"B"=>nil}},
+   {"key"=>["padding1", "1.0"], "value"=>{}},
+   {"key"=>["padding2", "1.0"], "value"=>{}},
+]
 
 def compute_edit_distance(soln, current_versions)
   current_versions.inject(0) do |acc, curr_version|
@@ -66,7 +72,7 @@ def compute_edit_distance(soln, current_versions)
     pkg_name, curr_version = curr_version
     if soln.has_key?(pkg_name)
       putative_version = soln[pkg_name]
-      puts "Package #{pkg_name}: current = #{curr_version} (#{curr_version.class}), soln assignment = #{putative_version} (#{putative_version.class})#{putative_version == curr_version ? "" : " (changing)"}"
+#      puts "Package #{pkg_name}: current = #{curr_version} (#{curr_version.class}), soln assignment = #{putative_version} (#{putative_version.class})#{putative_version == curr_version ? "" : " (changing)"}"
       acc -= 1 unless putative_version == curr_version
       end
     acc
@@ -78,7 +84,7 @@ def compute_latest_version_count(soln, latest_versions)
     pkg_name, latest_version = version
     if soln.has_key?(pkg_name) 
       trial_version = soln[pkg_name]
-      puts "Package #{pkg_name}: latest = #{latest_version} (#{latest_version.class}), soln assignment = #{trial_version} (#{trial_version.class})#{trial_version == latest_version ? "" : " (NOT latest)"}"
+#      puts "Package #{pkg_name}: latest = #{latest_version} (#{latest_version.class}), soln assignment = #{trial_version} (#{trial_version.class})#{trial_version == latest_version ? "" : " (NOT latest)"}"
       acc -= 1 unless trial_version == latest_version
     end
     acc
@@ -118,9 +124,7 @@ def create_latest_version_minimum_churn_objective_function(dep_graph, current_ve
   lambda do |soln|
     latest_weight = latest_version_objective_function.call(soln)
     churn_weight = minimum_churn_objective_function.call(soln)
-    x = [latest_weight, churn_weight]    
-    pp :obj_fun => x
-    x
+    [latest_weight, churn_weight]    
   end
 end
 
@@ -228,7 +232,63 @@ describe DepSelector::Selector do
                       })
     end
 
-  end
+    it "fails to find a solution when a solution constraint is constrained to a range that includes no cookbooks" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
+      selector = DepSelector::Selector.new(dep_graph)
+      unsatisfiable_solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["A", "> 1.0"],
+                                ["padding2"]
+                               ])
+      begin
+        selector.find_solution(unsatisfiable_solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
+      end
+    end
+
+    it "fails to find a solution when a solution constraint's dependency is constrained to a range that includes no cookbooks" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
+      selector = DepSelector::Selector.new(dep_graph)
+      unsatisfiable_solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["B"],
+                                ["padding2"],
+                               ])
+      begin
+        selector.find_solution(unsatisfiable_solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
+      end
+    end
+
+    it "fails to find a solution when a solution constraint's transitive dependency is constrained to a range that includes no cookbooks" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
+      selector = DepSelector::Selector.new(dep_graph)
+      unsatisfiable_solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["C"],
+                                ["padding2"],
+                               ])
+      begin
+        selector.find_solution(unsatisfiable_solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
+      end
+    end
+end
 
   describe "solves with an objective function" do
 
@@ -298,8 +358,7 @@ describe DepSelector::Selector do
                                 ["A"],
                                ])
       current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
-      bottom = [DepSelector::ObjectiveFunction::MinusInfinity, DepSelector::ObjectiveFunction::MinusInfinity] 
-      pp :current_versions=>current_versions, :bottom=>bottom
+      bottom = [DepSelector::ObjectiveFunction::MinusInfinity, DepSelector::ObjectiveFunction::MinusInfinity]
       objective_function = create_latest_version_minimum_churn_objective_function(dep_graph, current_versions)
       soln = selector.find_solution(solution_constraints,bottom) do |soln|
         objective_function.call(soln)
@@ -320,11 +379,7 @@ describe DepSelector::Selector do
         setup_soln_constraints(dep_graph,
                                [
                                 ["A", "~> 1.0"],
-                                # why does constraining to C=3 not make
-                                # this work? (and of course, why
-                                # doesn't the objective function just
-                                # work?)
-#                                ["C", "= 3.0.0"]
+                                ["C", "= 3.0.0"]
                                ])
       objective_function = create_latest_version_objective_function(dep_graph)
       soln = selector.find_solution(solution_constraints) do |soln|
@@ -347,6 +402,18 @@ describe DepSelector::Selector do
       pending "TODO"
     end
 
+    # TODO [cw,2011/2/11]: The Package class, as designed,
+    # auto-vivifies packages when they're asked for, which means that
+    # we can't distinguish between packages being requested for
+    # constructing the dependency graph vs. those for the solution
+    # constraints. The reason we would want to distinguish is that a
+    # solution constraint that references a Package that doesn't exist
+    # should cause a special error. See note in Selector#solve.
+    #
+    # Open question: Do we want to raise an error if we find that a
+    # Package A has a PackageVersion that has a dependency on a
+    # non-existent Package but there is nonetheless a valid assignment
+    # of Package A that doesn't have in illegal dependency?
   end
 
 end
