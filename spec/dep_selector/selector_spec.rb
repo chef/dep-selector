@@ -382,11 +382,7 @@ end
         setup_soln_constraints(dep_graph,
                                [
                                 ["A", "~> 1.0"],
-                                # why does constraining to C=3 not make
-                                # this work? (and of course, why
-                                # doesn't the objective function just
-                                # work?)
-#                                ["C", "= 3.0.0"]
+                                ["C", "= 3.0.0"]
                                ])
       objective_function = create_latest_version_objective_function(dep_graph)
       soln = selector.find_solution(solution_constraints) do |soln|
