@@ -46,10 +46,24 @@ Space* VersionProblem::copy(bool share)
 VersionProblem::~VersionProblem() {
 }
 
+int VersionProblem::Size() 
+{
+  return package_versions.size();
+}
+
+int VersionProblem::PackageCount() 
+{
+  return cur_package;
+}
+
 
 int
 VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion) 
 {
+  if (cur_package == package_versions.size()) {
+    return -1;
+  }
+
 #ifdef DEBUG
   std::cout << cur_package << '/' << package_versions.size() << ":" << minVersion << ", " << maxVersion << ", " << currentVersion << std::endl;
   std::cout.flush();    
@@ -64,7 +78,6 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
 bool 
 VersionProblem::AddVersionConstraint(int packageId, int version, 
 				     int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
-
 {
   BoolVar version_match(*this, 0, 1);
   BoolVar depend_match(*this, 0, 1);

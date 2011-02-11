@@ -100,7 +100,32 @@ def print_bindings(problem, vars)
 end
 
 describe Dep_gecode do
+  
+  it "Can be created and destroyed" do
+    problem = Dep_gecode.VersionProblemCreate(1) 
+    Dep_gecode.VersionProblemDestroy(problem)
+  end
 
+  it "Can be created, and have packages added to it" do
+    problem = Dep_gecode.VersionProblemCreate(2) 
+    packageId = Dep_gecode.AddPackage(problem, 0, 2, 8)
+    packageId.should == 0
+    Dep_gecode.GetPackageVersion(problem, packageId).should == -(2**31)
+    Dep_gecode.GetAFC(problem,packageId).should == 0
+    Dep_gecode.GetMax(problem,packageId).should == 2
+    Dep_gecode.GetMin(problem,packageId).should == 0
+    packageId = Dep_gecode.AddPackage(problem, 1, 6, 8)
+    packageId.should == 1
+    Dep_gecode.GetPackageVersion(problem, packageId).should == -(2**31)
+    Dep_gecode.GetAFC(problem,packageId).should == 0
+    Dep_gecode.GetMax(problem,packageId).should == 6
+    Dep_gecode.GetMin(problem,packageId).should == 1
+    Dep_gecode.VersionProblemDestroy(problem)
+  end
+
+end
+
+describe Dep_gecode do
   before do
     @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(VersionConstraints::Simple_cookbook_version_constraint)
   end

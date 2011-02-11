@@ -21,6 +21,18 @@ void VersionProblemDestroy(VersionProblem * p)
   delete p;
 }
 
+int VersionProblemSize(VersionProblem *p) 
+{
+  return p->Size();
+}
+
+int VersionProblemPackageCount(VersionProblem *p) 
+{
+  return p->PackageCount();
+}
+
+
+
 void VersionProblemDump(VersionProblem *p)
 {
   p->Print(std::cout);

@@ -21,6 +21,9 @@ class VersionProblem : public Script
   VersionProblem(bool share, VersionProblem & s);
   virtual ~VersionProblem();
 
+  int Size();
+  int PackageCount();
+
   IntVar & GetPackageVersionVar(int packageId);
 
   int AddPackage(int minVersion, int maxVersion, int currentVersion);
