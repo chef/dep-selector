@@ -50,7 +50,13 @@ moderate_cookbook_version_constraint_2 =
    {"key"=>["F", "1.0"], "value"=>{}},
 ]
 
-
+dependencies_whose_constraints_match_no_versions =
+  [{"key"=>["A", "1.0"], "value"=>{}},
+   {"key"=>["B", "1.0"], "value"=>{"A"=>"> 1.0"}},
+   {"key"=>["C", "1.0"], "value"=>{"B"=>nil}},
+   {"key"=>["padding1", "1.0"], "value"=>{}},
+   {"key"=>["padding2", "1.0"], "value"=>{}},
+]
 
 def compute_edit_distance(soln, current_versions)
   current_versions.inject(0) do |acc, curr_version|
@@ -228,7 +234,63 @@ describe DepSelector::Selector do
                       })
     end
 
-  end
+    it "fails to find a solution when a solution constraint is constrained to a range that includes no cookbooks" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
+      selector = DepSelector::Selector.new(dep_graph)
+      unsatisfiable_solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["A", "> 1.0"],
+                                ["padding2"]
+                               ])
+      begin
+        selector.find_solution(unsatisfiable_solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
+      end
+    end
+
+    it "fails to find a solution when a solution constraint's dependency is constrained to a range that includes no cookbooks" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
+      selector = DepSelector::Selector.new(dep_graph)
+      unsatisfiable_solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["B"],
+                                ["padding2"],
+                               ])
+      begin
+        selector.find_solution(unsatisfiable_solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
+      end
+    end
+
+    it "fails to find a solution when a solution constraint's transitive dependency is constrained to a range that includes no cookbooks" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
+      selector = DepSelector::Selector.new(dep_graph)
+      unsatisfiable_solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["C"],
+                                ["padding2"],
+                               ])
+      begin
+        selector.find_solution(unsatisfiable_solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
+      end
+    end
+end
 
   describe "solves with an objective function" do
 
