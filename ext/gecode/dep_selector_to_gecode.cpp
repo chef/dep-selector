@@ -6,8 +6,10 @@
 
 #include "dep_selector_to_gecode.h"
 
+#include <limits>
 #include <iostream>
 #include <vector>
+
 //
 // T
 //
@@ -19,7 +21,7 @@ using namespace Gecode;
 //
 // Version Problem
 //
-const int VersionProblem::UNRESOLVED_VARIABLE = -1;
+const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
 
 
 VersionProblem::VersionProblem(int packageCount) 
