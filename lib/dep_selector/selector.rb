@@ -132,7 +132,6 @@ module DepSelector
       trimmed_soln[package.name] = version
 
       # expand the package's dependencies
-      pp :package_name => package.name, :version => version
       pkg_version = package[version]
       pkg_version.dependencies.each do |pkg_dep|
         expand_package(trimmed_soln, pkg_dep.package, soln)

@@ -72,7 +72,7 @@ def compute_edit_distance(soln, current_versions)
     pkg_name, curr_version = curr_version
     if soln.has_key?(pkg_name)
       putative_version = soln[pkg_name]
-      puts "Package #{pkg_name}: current = #{curr_version} (#{curr_version.class}), soln assignment = #{putative_version} (#{putative_version.class})#{putative_version == curr_version ? "" : " (changing)"}"
+#      puts "Package #{pkg_name}: current = #{curr_version} (#{curr_version.class}), soln assignment = #{putative_version} (#{putative_version.class})#{putative_version == curr_version ? "" : " (changing)"}"
       acc -= 1 unless putative_version == curr_version
       end
     acc
@@ -84,7 +84,7 @@ def compute_latest_version_count(soln, latest_versions)
     pkg_name, latest_version = version
     if soln.has_key?(pkg_name) 
       trial_version = soln[pkg_name]
-      puts "Package #{pkg_name}: latest = #{latest_version} (#{latest_version.class}), soln assignment = #{trial_version} (#{trial_version.class})#{trial_version == latest_version ? "" : " (NOT latest)"}"
+#      puts "Package #{pkg_name}: latest = #{latest_version} (#{latest_version.class}), soln assignment = #{trial_version} (#{trial_version.class})#{trial_version == latest_version ? "" : " (NOT latest)"}"
       acc -= 1 unless trial_version == latest_version
     end
     acc
@@ -124,9 +124,7 @@ def create_latest_version_minimum_churn_objective_function(dep_graph, current_ve
   lambda do |soln|
     latest_weight = latest_version_objective_function.call(soln)
     churn_weight = minimum_churn_objective_function.call(soln)
-    x = [latest_weight, churn_weight]    
-    pp :obj_fun => x
-    x
+    [latest_weight, churn_weight]    
   end
 end
 
@@ -360,8 +358,7 @@ end
                                 ["A"],
                                ])
       current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
-      bottom = [DepSelector::ObjectiveFunction::MinusInfinity, DepSelector::ObjectiveFunction::MinusInfinity] 
-      pp :current_versions=>current_versions, :bottom=>bottom
+      bottom = [DepSelector::ObjectiveFunction::MinusInfinity, DepSelector::ObjectiveFunction::MinusInfinity]
       objective_function = create_latest_version_minimum_churn_objective_function(dep_graph, current_versions)
       soln = selector.find_solution(solution_constraints,bottom) do |soln|
         objective_function.call(soln)
