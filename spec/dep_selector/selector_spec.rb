@@ -405,6 +405,18 @@ end
       pending "TODO"
     end
 
+    # TODO [cw,2011/2/11]: The Package class, as designed,
+    # auto-vivifies packages when they're asked for, which means that
+    # we can't distinguish between packages being requested for
+    # constructing the dependency graph vs. those for the solution
+    # constraints. The reason we would want to distinguish is that a
+    # solution constraint that references a Package that doesn't exist
+    # should cause a special error. See note in Selector#solve.
+    #
+    # Open question: Do we want to raise an error if we find that a
+    # Package A has a PackageVersion that has a dependency on a
+    # non-existent Package but there is nonetheless a valid assignment
+    # of Package A that doesn't have in illegal dependency?
   end
 
 end
