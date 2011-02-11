@@ -11,6 +11,7 @@ module DepSelector
       end
     end
 
+    class InvalidPackage < ArgumentError ; end
     class InvalidVersion < ArgumentError ; end
     class InvalidVersionConstraint < ArgumentError; end
 
