@@ -36,13 +36,13 @@ module DepSelector
       Dep_gecode.GetPackageVersion(gecode_problem, package_id)
     end
     def get_package_afc(package_id) 
-      Dep_gecode.GetAFC(gecode_problem, package_id)
+      Dep_gecode.GetPackageAFC(gecode_problem, package_id)
     end
     def get_package_max(package_id) 
-      Dep_gecode.GetMax(gecode_problem, package_id)
+      Dep_gecode.GetPackageMax(gecode_problem, package_id)
     end
     def get_package_min(package_id) 
-      Dep_gecode.GetMin(gecode_problem, package_id)
+      Dep_gecode.GetPackageMin(gecode_problem, package_id)
     end
     def dump() 
       Dep_gecode.VersionProblemDump(gecode_problem)
