@@ -29,6 +29,9 @@ module DepSelector
     def add_package(min, max, current_version)
       Dep_gecode.AddPackage(gecode_problem, min, max, current_version)
     end
+    def add_version_constraint(package_id, version, dependent_package_id, min_dependent_version, max_dependent_version)
+      Dep_gecode.AddVersionConstraint(gecode_problem, package_id, version, dependent_package_id, min_dependent_version, max_dependent_version)
+    end
     def get_package_version(package_id)
       Dep_gecode.GetPackageVersion(gecode_problem, package_id)
     end
