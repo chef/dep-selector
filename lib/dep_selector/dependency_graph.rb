@@ -1,15 +1,13 @@
 require 'dep_selector/package'
-
-require 'gecoder'
+require 'dep_selector/gecode_wrapper'
 
 # DependencyGraphs contain Packages, which in turn contain
 # PackageVersions. Packages are created at access-time through
 # #package
 module DepSelector
   class DependencyGraph
-    include Gecode::Mixin
 
-    attr_reader :packages
+    attr_reader :packages, :gecode_wrapper
 
     def initialize
       @packages = {}
@@ -25,8 +23,9 @@ module DepSelector
       end
     end
 
-    def generate_gecode_constraints
-      each_package{ |pkg| pkg.generate_gecode_constraints }
+    def generate_gecode_wrapper_constraints
+      @gecode_wrapper = GecodeWrapper.new(packages.size + 1)
+      each_package{ |pkg| pkg.generate_gecode_wrapper_constraints }
     end
 
     def gecode_model_vars

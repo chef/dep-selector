@@ -33,7 +33,7 @@ module DepSelector
       begin
         # first, try to solve the whole set of constraints
         solve(solution_constraints, bottom, &block)
-      rescue Gecode::NoSolutionError
+      rescue Exceptions::NoSolutionExists
         # since we're here, solving the whole system failed, so add
         # the solution_constraints one-by-one and try to solve in
         # order to find the constraint that breaks the system in order
@@ -48,7 +48,7 @@ module DepSelector
         solution_constraints.each_index do |idx|
           begin
             solve(solution_constraints[0..idx], bottom, &block)
-          rescue Gecode::NoSolutionError
+          rescue Exceptions::NoSolutionExists
             most_constrained_package = dep_graph.package('X') # TODO: FOR TESTING ONLY!
             feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx, most_constrained_package)
             raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx])
@@ -65,7 +65,10 @@ module DepSelector
       workspace = dep_graph.clone
 
       # generate constraints imposed by the dependency graph
-      workspace.generate_gecode_constraints
+      workspace.generate_gecode_wrapper_constraints
+
+      # create shadow package whose dependencies are the solution constraints
+      soln_constraints_pkg_id = workspace.gecode_wrapper.add_package(0, 0, 0)
 
       # generate constraints imposed by solution_constraints
       solution_constraints.each do |soln_constraint|
@@ -83,21 +86,22 @@ module DepSelector
         pkg = workspace.package(pkg_name)
         constraint = soln_constraint.constraint
 
-        pkg_mv = pkg.gecode_model_var
+        pkg_id = pkg.gecode_package_id
         if constraint
-          pkg_mv.must_be.in(pkg.densely_packed_versions[constraint])
+          acceptable_versions = pkg.densely_packed_versions[constraint]
+          workspace.gecode_wrapper.add_version_constraint(soln_constraints_pkg_id, 0, pkg_id, acceptable_versions.min, acceptable_versions.max)
         else
           # this restricts the domain of the variable to >= 0, which
           # means -1, the shadow package, cannot be assigned, meaning
           # the package must be bound to an actual version
-          pkg_mv.must_be.in(Range.new(0, pkg.densely_packed_versions.max))
+          workspace.gecode_wrapper.add_version_constraint(soln_constraints_pkg_id, 0, pkg_id, 0, pkg.densely_packed_versions.range.max)
         end
-        workspace.branch_on(pkg_mv, :value => :max)
       end
 
       # if a block was specified, use that as the objective function;
       # otherwise, just find any solution
       if block_given?
+        raise "foo"
         objective_function = ObjectiveFunction.new(bottom, &block)
         workspace.each_solution do |soln|
           trimmed_soln = trim_solution(solution_constraints, soln)
@@ -105,16 +109,15 @@ module DepSelector
         end
         objective_function.best_solution
       else
-        soln = workspace.solve!
-        trim_solution(solution_constraints, soln)
+        soln = workspace.gecode_wrapper.solve
+        trim_solution(solution_constraints, soln, workspace)
       end
     end
 
-    def trim_solution(soln_constraints, soln)
-      pp :pre_trimmed_soln => soln.gecode_model_vars
+    def trim_solution(soln_constraints, soln, workspace)
       trimmed_soln = {}
       soln_constraints.each do |soln_constraint|
-        package = soln.package(soln_constraint.package.name)
+        package = workspace.package(soln_constraint.package.name)
         expand_package(trimmed_soln, package, soln)
       end
 
@@ -126,8 +129,7 @@ module DepSelector
       return if trimmed_soln.has_key?(package.name)
 
       # add the package's assignment to the trimmed solution
-      pkg_mv = package.gecode_model_var
-      densely_packed_version = pkg_mv.max
+      densely_packed_version = soln.get_package_version(package.gecode_package_id)
       version = package.version_from_densely_packed_version(densely_packed_version)
       trimmed_soln[package.name] = version
 

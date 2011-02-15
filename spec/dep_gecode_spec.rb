@@ -1,6 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'spec_helper'))
 
-require 'ext/gecode/dep_gecode'
 require 'version_constraints'
 
 # so that we can use test data that's already written in other tests,

@@ -1,6 +1,5 @@
-
-
-require 'ext/gecode/dep_gecode'
+require "#{File.dirname(__FILE__)}/../../ext/gecode/dep_gecode"
+require 'dep_selector/exceptions'
 
 module DepSelector
   class GecodeWrapper
@@ -30,7 +29,13 @@ module DepSelector
       Dep_gecode.AddPackage(gecode_problem, min, max, current_version)
     end
     def add_version_constraint(package_id, version, dependent_package_id, min_dependent_version, max_dependent_version)
-      Dep_gecode.AddVersionConstraint(gecode_problem, package_id, version, dependent_package_id, min_dependent_version, max_dependent_version)
+      # valid package versions are between -1 and its max (-1 means
+      # don't care). To indicate constraints that match no versions,
+      # -2 is used, since it's not a valid assignment of the variable;
+      # thus, any branch that assigns -2 will fail
+      min = min_dependent_version || -2
+      max = max_dependent_version || -2
+      Dep_gecode.AddVersionConstraint(gecode_problem, package_id, version, dependent_package_id, min, max)
     end
     def get_package_version(package_id)
       Dep_gecode.GetPackageVersion(gecode_problem, package_id)
@@ -52,7 +57,11 @@ module DepSelector
     end
 
     def solve()
-      GecodeWrapper.new(Dep_gecode.Solve(gecode_problem))
+      solution = Dep_gecode.Solve(gecode_problem)
+      # TODO: communicate solution stats here (most constrained var,
+      # etc.) here. Maybe needs to be a different exception.
+      raise Exceptions::NoSolutionExists.new(nil) unless solution
+      GecodeWrapper.new(solution)
     end
 
   end
