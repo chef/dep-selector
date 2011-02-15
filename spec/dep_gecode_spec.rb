@@ -71,8 +71,7 @@ def print_human_readable_solution(problem, pkg_name_to_id, dep_graph)
   end
 end
 
-def print_check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
-  puts "Checking solution"
+def check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
   if (problem.nil?)
     return expected_solution.nil?
   end
@@ -84,7 +83,6 @@ def print_check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
     version_text = package.densely_packed_versions.sorted_triples[package_version]
     expected_version = expected_solution.nil? ? "NA" : expected_solution[package.name]
     pass = (version_text.to_s==expected_version.to_s)
-    puts "#{package.name} @ '#{version_text}' (#{package_id} @ #{package_version}) Expected '#{expected_version}' #{pass ? 'OK' : 'FAIL'}"
     passed &= pass
   end
   return passed
@@ -136,9 +134,6 @@ describe Dep_gecode do
   end
 
   it "solves a simple set of constraints" do
-    puts "before adding soln constraints"
-    print_bindings(@problem, [*(0..2)])
-
     # solution constraints: [A,(B=0)], which is satisfiable as A=1, B=0
     solution_constraints = [
                             ["A"],
@@ -146,20 +141,12 @@ describe Dep_gecode do
                            ]
     setup_soln_constraints_for_dep_gecode(solution_constraints, @problem, @pkg_name_to_id, @dep_graph)
 
-    puts "after adding soln constraints"
-    print_bindings(@problem, [*(0..3)])
-
     # solve and interrogate problem
-    puts "Solving"
     new_problem = Dep_gecode.Solve(@problem)
-    puts "Solved"
 
-    puts "after solving"
-    print_bindings(new_problem, [*(0..3)])
-    puts "HR solution"
 #    print_human_readable_solution(new_problem, @pkg_name_to_id, @dep_graph)
-    print_check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
-                         {'A'=>'2.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'}).should == true
+    check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
+                   {'A'=>'2.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'}).should == true
 
     Dep_gecode.VersionProblemDestroy(@problem);
     Dep_gecode.VersionProblemDestroy(new_problem);
@@ -168,9 +155,6 @@ describe Dep_gecode do
   end
 
   it "fails to solve a simple, unsatisfiable set of constraints" do
-    puts "before adding soln constraints"
-    print_bindings(@problem, [*(0..2)])
-    
     # solution constraints: [(A=1.0.0),(B=1.0.0)], which is not satisfiable
     solution_constraints = [
                             ["A", "= 1.0.0"],
@@ -178,53 +162,39 @@ describe Dep_gecode do
                            ]
     setup_soln_constraints_for_dep_gecode(solution_constraints, @problem, @pkg_name_to_id, @dep_graph)
 
-    puts "after adding soln constraints"
-    print_bindings(@problem, [*(0..3)])
-
     # solve and interrogate problem
-    puts "Solving"
     new_problem = Dep_gecode.Solve(@problem)
 
     new_problem.should == nil
 
-    puts "after solving"
-    print_check_solution(new_problem, @pkg_name_to_id, @dep_graph, nil).should == true
+    check_solution(new_problem, @pkg_name_to_id, @dep_graph, nil).should == true
 
     Dep_gecode.VersionProblemDestroy(@problem);
-
-    # TODO: do appropriate interrogation
   end
 
   # Friendlier, more abstracted tests
   it VersionConstraints::SimpleProblem_2_insoluble[:desc] do
     problem_system = VersionConstraints::SimpleProblem_2_insoluble
-    puts "before adding soln constraints"
-    print_bindings(@problem, [*(0..2)])
    
     setup_soln_constraints_for_dep_gecode(problem_system[:runlist_constraint], @problem, @pkg_name_to_id, @dep_graph)
 
     # solve and interrogate problem
-    puts "Solving"
     new_problem = Dep_gecode.Solve(@problem)
-    print_check_solution(new_problem, @pkg_name_to_id, @dep_graph, problem_system[:solution]).should == true
+    check_solution(new_problem, @pkg_name_to_id, @dep_graph, problem_system[:solution]).should == true
     Dep_gecode.VersionProblemDestroy(@problem);
   end
 
   it VersionConstraints::SimpleProblem_3_soluble[:desc] do
     @problem_system = VersionConstraints::SimpleProblem_3_soluble
     @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(@problem_system[:version_constraint])
-    puts "before adding soln constraints"
-    print_bindings(@problem, [*(0..2)])
-   
+
     setup_soln_constraints_for_dep_gecode(@problem_system[:runlist_constraint], @problem, @pkg_name_to_id, @dep_graph)
 
     # solve and interrogate problem
-    puts "Solving"
     new_problem = Dep_gecode.Solve(@problem)
-    print_check_solution(new_problem, @pkg_name_to_id, @dep_graph, @problem_system[:solution]).should == true
+    check_solution(new_problem, @pkg_name_to_id, @dep_graph, @problem_system[:solution]).should == true
     Dep_gecode.VersionProblemDestroy(@problem);
   end
-
 
 end
 
