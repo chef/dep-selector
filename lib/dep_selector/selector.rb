@@ -101,7 +101,7 @@ module DepSelector
       # if a block was specified, use that as the objective function;
       # otherwise, just find any solution
       if block_given?
-        raise "foo"
+        raise NotImplemented, "Objective function functionality has been temporarily removed while we move to the GecodeWrapper interface to gecode"
         objective_function = ObjectiveFunction.new(bottom, &block)
         workspace.each_solution do |soln|
           trimmed_soln = trim_solution(solution_constraints, soln)
