@@ -288,7 +288,7 @@ describe DepSelector::Selector do
         nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
       end
     end
-end
+  end
 
   describe "solves with an objective function" do
 
