@@ -1,4 +1,6 @@
 require 'rubygems'
+require 'rake'
+
 require 'rake/gempackagetask'
 require 'rubygems/specification'
 require 'date'
@@ -22,7 +24,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "gecoder-with-gecode", "= 1.0.0"
   s.require_path = 'lib'
   s.autorequire = GEM
-  s.files = Dir.glob("lib/**/*")
+  s.files = Dir.glob("lib/**/*") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
   s.extensions << 'ext/gecode/extconf.rb'
 end
 
