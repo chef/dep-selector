@@ -20,9 +20,9 @@ int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
 bool AddVersionConstraint(VersionProblem *problem, int packageId, int version, 
 			  int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 int GetPackageVersion(VersionProblem *problem, int packageId);
-int GetAFC(VersionProblem *problem, int packageId);
-int GetMax(VersionProblem *problem, int packageId);
-int GetMin(VersionProblem *problem, int packageId);
+int GetPackageAFC(VersionProblem *problem, int packageId);
+int GetPackageMax(VersionProblem *problem, int packageId);
+int GetPackageMin(VersionProblem *problem, int packageId);
 
 void VersionProblemDump(VersionProblem * problem);
 void VersionProblemPrintPackageVar(VersionProblem * problem, int packageId);

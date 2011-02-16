@@ -23,8 +23,5 @@ module DepSelector
       self.class == o.class && self == o
     end
 
-    def generate_gecode_constraint
-      package.gecode_model_var.must_be.in(package.densely_packed_versions[constraint])
-    end
   end
 end

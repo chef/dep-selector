@@ -288,132 +288,28 @@ describe DepSelector::Selector do
         nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
       end
     end
-end
-
-  describe "solves with an objective function" do
-
-    it "a simple set of constraints and does not include unnecessary assignments" do
-      dep_graph = DepSelector::DependencyGraph.new
-      setup_constraint(dep_graph, simple_cookbook_version_constraint)
-      selector = DepSelector::Selector.new(dep_graph)
-      solution_constraints =
-        setup_soln_constraints(dep_graph,
-                               [
-                                ["A"]
-                               ])
-
-      # optimize for one configuration
-      current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
-      objective_function = create_minimum_churn_objective_function(dep_graph, current_versions)
-
-      soln = selector.find_solution(solution_constraints) do |soln|
-        objective_function.call(soln)
-      end
-
-      verify_solution(soln,
-                      { "A" => "1.0.0",
-                        "B" => "2.0.0"
-                      })
-
-      # now optimize for another
-      current_versions = { "A" => "2.0.0", "B" => "1.0.0" }
-      objective_function = create_minimum_churn_objective_function(dep_graph, current_versions)
-
-      soln = selector.find_solution(solution_constraints) do |soln|
-        objective_function.call(soln)
-      end
-
-      verify_solution(soln,
-                      { "A" => "2.0.0",
-                        "B" => "1.0.0",
-                        "C" => "1.0.0" })
-    end
-
-    it "a simple set of constraints with ranges, selects the latest transitive dependencies, and does not include unnecessary assignments" do
-      dep_graph = DepSelector::DependencyGraph.new
-      setup_constraint(dep_graph, simple_cookbook_version_constraint_3)
-      selector = DepSelector::Selector.new(dep_graph)
-      solution_constraints =
-        setup_soln_constraints(dep_graph,
-                               [
-                                ["A"]
-                               ])
-      objective_function = create_latest_version_objective_function(dep_graph)
-      soln = selector.find_solution(solution_constraints) do |soln|
-        objective_function.call(soln)
-      end
-
-      verify_solution(soln,
-                      { "A" => "1.0.0",
-                        "B" => "2.0.0" })
-    end
-
-    it "a moderately complex system with a set of current versions" do
-      dep_graph = DepSelector::DependencyGraph.new
-      setup_constraint(dep_graph, moderate_cookbook_version_constraint)
-      selector = DepSelector::Selector.new(dep_graph)
-      solution_constraints =
-        setup_soln_constraints(dep_graph,
-                               [
-                                ["A"],
-                               ])
-      current_versions = { "A" => "1.0.0", "B" => "2.0.0"}
-      bottom = [DepSelector::ObjectiveFunction::MinusInfinity, DepSelector::ObjectiveFunction::MinusInfinity]
-      objective_function = create_latest_version_minimum_churn_objective_function(dep_graph, current_versions)
-      soln = selector.find_solution(solution_constraints,bottom) do |soln|
-        objective_function.call(soln)
-      end
-
-      verify_solution(soln,
-                      { "A" => "1.0.0",
-                        "B" => "2.0.0",
-                        "C" => "4.0.0",
-                        "D" => "4.0.0" })
-    end
-
-    it "a moderately complex system with ranges and non-triple version numbers that can be solved such that all packages are at latest" do
-      dep_graph = DepSelector::DependencyGraph.new
-      setup_constraint(dep_graph, moderate_cookbook_version_constraint_2)
-      selector = DepSelector::Selector.new(dep_graph)
-      solution_constraints =
-        setup_soln_constraints(dep_graph,
-                               [
-                                ["A", "~> 1.0"],
-                                ["C", "= 3.0.0"]
-                               ])
-      objective_function = create_latest_version_objective_function(dep_graph)
-      soln = selector.find_solution(solution_constraints) do |soln|
-        objective_function.call(soln)
-      end
-
-      verify_solution(soln,
-                      { "A" => "1.0.0",
-                        "C" => "3.0.0",
-                        "D" => "2.1.0",
-                        "E" => "1.0.0" })
-    end
-
-    # TODO [cw,2011/2/4]: Add a test for a set of solution constraints
-    # that contains multiple restrictions on the same package. Do the
-    # same for a PackageVersion that has several Dependencies on the
-    # same package, some satisfiable, some not.
-
-    it "and indicates which solution constraint makes the system unsatisfiable if there is no solution" do
-      pending "TODO"
-    end
-
-    # TODO [cw,2011/2/11]: The Package class, as designed,
-    # auto-vivifies packages when they're asked for, which means that
-    # we can't distinguish between packages being requested for
-    # constructing the dependency graph vs. those for the solution
-    # constraints. The reason we would want to distinguish is that a
-    # solution constraint that references a Package that doesn't exist
-    # should cause a special error. See note in Selector#solve.
-    #
-    # Open question: Do we want to raise an error if we find that a
-    # Package A has a PackageVersion that has a dependency on a
-    # non-existent Package but there is nonetheless a valid assignment
-    # of Package A that doesn't have in illegal dependency?
   end
+
+  # TODO [cw,2011/2/4]: Add a test for a set of solution constraints
+  # that contains multiple restrictions on the same package. Do the
+  # same for a PackageVersion that has several Dependencies on the
+  # same package, some satisfiable, some not.
+
+  it "and indicates which solution constraint makes the system unsatisfiable if there is no solution" do
+    pending "TODO"
+  end
+
+  # TODO [cw,2011/2/11]: The Package class, as designed, auto-vivifies
+  # packages when they're asked for, which means that we can't
+  # distinguish between packages being requested for constructing the
+  # dependency graph vs. those for the solution constraints. The
+  # reason we would want to distinguish is that a solution constraint
+  # that references a Package that doesn't exist should cause a
+  # special error. See note in Selector#solve.
+  #
+  # Open question: Do we want to raise an error if we find that a
+  # Package A has a PackageVersion that has a dependency on a
+  # non-existent Package but there is nonetheless a valid assignment
+  # of Package A that doesn't have in illegal dependency?
 
 end

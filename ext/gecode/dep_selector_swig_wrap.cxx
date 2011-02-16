@@ -1887,7 +1887,7 @@ fail:
 
 
 SWIGINTERN VALUE
-_wrap_GetAFC(int argc, VALUE *argv, VALUE self) {
+_wrap_GetPackageAFC(int argc, VALUE *argv, VALUE self) {
   VersionProblem *arg1 = (VersionProblem *) 0 ;
   int arg2 ;
   int result;
@@ -1902,15 +1902,15 @@ _wrap_GetAFC(int argc, VALUE *argv, VALUE self) {
   }
   res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetAFC" "', argument " "1"" of type '" "VersionProblem *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetPackageAFC" "', argument " "1"" of type '" "VersionProblem *""'"); 
   }
   arg1 = reinterpret_cast< VersionProblem * >(argp1);
   ecode2 = SWIG_AsVal_int(argv[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetAFC" "', argument " "2"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetPackageAFC" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  result = (int)GetAFC(arg1,arg2);
+  result = (int)GetPackageAFC(arg1,arg2);
   vresult = SWIG_From_int(static_cast< int >(result));
   return vresult;
 fail:
@@ -1919,7 +1919,7 @@ fail:
 
 
 SWIGINTERN VALUE
-_wrap_GetMax(int argc, VALUE *argv, VALUE self) {
+_wrap_GetPackageMax(int argc, VALUE *argv, VALUE self) {
   VersionProblem *arg1 = (VersionProblem *) 0 ;
   int arg2 ;
   int result;
@@ -1934,15 +1934,15 @@ _wrap_GetMax(int argc, VALUE *argv, VALUE self) {
   }
   res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetMax" "', argument " "1"" of type '" "VersionProblem *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetPackageMax" "', argument " "1"" of type '" "VersionProblem *""'"); 
   }
   arg1 = reinterpret_cast< VersionProblem * >(argp1);
   ecode2 = SWIG_AsVal_int(argv[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetMax" "', argument " "2"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetPackageMax" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  result = (int)GetMax(arg1,arg2);
+  result = (int)GetPackageMax(arg1,arg2);
   vresult = SWIG_From_int(static_cast< int >(result));
   return vresult;
 fail:
@@ -1951,7 +1951,7 @@ fail:
 
 
 SWIGINTERN VALUE
-_wrap_GetMin(int argc, VALUE *argv, VALUE self) {
+_wrap_GetPackageMin(int argc, VALUE *argv, VALUE self) {
   VersionProblem *arg1 = (VersionProblem *) 0 ;
   int arg2 ;
   int result;
@@ -1966,15 +1966,15 @@ _wrap_GetMin(int argc, VALUE *argv, VALUE self) {
   }
   res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetMin" "', argument " "1"" of type '" "VersionProblem *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetPackageMin" "', argument " "1"" of type '" "VersionProblem *""'"); 
   }
   arg1 = reinterpret_cast< VersionProblem * >(argp1);
   ecode2 = SWIG_AsVal_int(argv[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetMin" "', argument " "2"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetPackageMin" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  result = (int)GetMin(arg1,arg2);
+  result = (int)GetPackageMin(arg1,arg2);
   vresult = SWIG_From_int(static_cast< int >(result));
   return vresult;
 fail:
@@ -2329,9 +2329,9 @@ SWIGEXPORT void Init_dep_gecode(void) {
   rb_define_module_function(mDep_gecode, "AddPackage", VALUEFUNC(_wrap_AddPackage), -1);
   rb_define_module_function(mDep_gecode, "AddVersionConstraint", VALUEFUNC(_wrap_AddVersionConstraint), -1);
   rb_define_module_function(mDep_gecode, "GetPackageVersion", VALUEFUNC(_wrap_GetPackageVersion), -1);
-  rb_define_module_function(mDep_gecode, "GetAFC", VALUEFUNC(_wrap_GetAFC), -1);
-  rb_define_module_function(mDep_gecode, "GetMax", VALUEFUNC(_wrap_GetMax), -1);
-  rb_define_module_function(mDep_gecode, "GetMin", VALUEFUNC(_wrap_GetMin), -1);
+  rb_define_module_function(mDep_gecode, "GetPackageAFC", VALUEFUNC(_wrap_GetPackageAFC), -1);
+  rb_define_module_function(mDep_gecode, "GetPackageMax", VALUEFUNC(_wrap_GetPackageMax), -1);
+  rb_define_module_function(mDep_gecode, "GetPackageMin", VALUEFUNC(_wrap_GetPackageMin), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemDump", VALUEFUNC(_wrap_VersionProblemDump), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemPrintPackageVar", VALUEFUNC(_wrap_VersionProblemPrintPackageVar), -1);
   rb_define_module_function(mDep_gecode, "Solve", VALUEFUNC(_wrap_Solve), -1);

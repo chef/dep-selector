@@ -8,13 +8,13 @@ module DepSelector
       @dependencies = []
     end
 
-    def generate_gecode_constraints
-      pkg_mv = package.gecode_model_var
+    def generate_gecode_wrapper_constraints
       pkg_densely_packed_version = package.densely_packed_versions.index(version)
 
-      guard = (pkg_mv.must == pkg_densely_packed_version)
-      conjunction = dependencies.inject(guard){ |acc, dep| acc & dep.generate_gecode_constraint }
-      conjunction | (pkg_mv.must_not == pkg_densely_packed_version)
+      dependencies.each do |dep|
+        dep_pkg_range = dep.package.densely_packed_versions[dep.constraint]
+        package.dependency_graph.gecode_wrapper.add_version_constraint(package.gecode_package_id, pkg_densely_packed_version, dep.package.gecode_package_id, dep_pkg_range.min, dep_pkg_range.max)
+      end
     end
 
     def to_s(incl_densely_packed_versions = false)

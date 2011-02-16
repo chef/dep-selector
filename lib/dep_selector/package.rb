@@ -58,18 +58,18 @@ module DepSelector
     end
 
     # Note: only invoke this method after all PackageVersions have been added
-    def gecode_model_var
+    def gecode_package_id
       # Note: gecoder does naive bounds propagation at every post,
       # which means that any package with exactly one version is
       # considered bound and its dependencies propagated, so we want
       # every package to have at least two versions, one of which is
       # neither the target of other packages' dependencies nor induces
       # other dependencies. -1 serves this purpose.
-      @gecode_model_var ||= dependency_graph.int_var(Range.new(-1, densely_packed_versions.range.max))
+      @gecode_package_id ||= dependency_graph.gecode_wrapper.add_package(-1, densely_packed_versions.range.max, 0)
     end
 
-    def generate_gecode_constraints
-      versions.each{|version| version.generate_gecode_constraints }
+    def generate_gecode_wrapper_constraints
+      versions.each{|version| version.generate_gecode_wrapper_constraints }
     end
 
     def eql?(o)
