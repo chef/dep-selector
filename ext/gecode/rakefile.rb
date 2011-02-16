@@ -7,8 +7,10 @@ namespace :gecode do
 
   task :default => :make
 
+  swig_out = 'dep_selector_swig_wrap.cxx'
+
   desc "Make gecode wrapper"
-  task :make => :mkmf do
+  task :make =>["Makefile", swig_out] do
     sh "make"
   end
   desc "Cleanup gecode wrapper"
@@ -16,21 +18,13 @@ namespace :gecode do
     sh "make clean"
   end
   desc "MKMF gecode wrapper"
-  task :mkmf do
+  file "Makefile" => ["extconf.rb"] do
     sh "ruby extconf.rb"
   end
   
-  #
-  # Broken:
-  # swig -c++ -ruby dep_selector_swig.i
-  # :3: Error: Unable to find 'ruby.swg'
-  # 
   desc "Make wrapper from swig code"
-  file "dep_selector_swig_wrap.cxx" => [ 'dep_selector_swig.i' ] do |t|
-    puts "SWIG : #{t.prerequisites[0]}"
-    sh "printenv"
+  file swig_out => [ 'dep_selector_swig.i' ] do |t|
     cmd = "swig -c++ -ruby #{t.prerequisites[0]}"
-    puts "SWIG : #{cmd}"
     sh cmd
   end
   
