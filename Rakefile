@@ -39,7 +39,7 @@ task :install => :package do
   sh %{gem install pkg/#{GEM}-#{GEM_VERSION}}
 end
 
-Rake::ExtensionTask.new('gecode', spec)
+Rake::ExtensionTask.new('dep_gecode', spec)
 
 begin
   require 'spec/rake/spectask'
