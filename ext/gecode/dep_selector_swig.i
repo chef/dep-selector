@@ -10,7 +10,7 @@ void VersionProblemDestroy(VersionProblem * vp);
 
 int VersionProblemSize(VersionProblem *p); 
 int VersionProblemPackageCount(VersionProblem *p);
-
+ 
 // Return ID #
 
 int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);

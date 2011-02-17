@@ -74,7 +74,7 @@ class Solver {
   VersionProblem GetNextSolution();
  private:
   DFS<VersionProblem> solver;
-}
+};
 
 
 #endif dep_selector_to_gecode_h
