@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/../../ext/gecode/dep_gecode"
+require "dep_gecode"
 require 'dep_selector/exceptions'
 
 module DepSelector
