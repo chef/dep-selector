@@ -68,6 +68,19 @@ dependency_on_non_existent_package =
    *padding_packages
   ]
 
+satisfiable_circular_dependency_graph =
+  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 1.0.0"}},
+   {"key"=>["B", "1.0.0"], "value"=>{"A"=>"= 1.0.0"}}
+  ]
+
+unsatisfiable_circular_dependency_graph =
+  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 1.0.0"}},
+   {"key"=>["A", "2.0.0"], "value"=>{"B"=>"= 2.0.0"}},
+   {"key"=>["B", "1.0.0"], "value"=>{"A"=>"= 2.0.0"}},
+   {"key"=>["B", "2.0.0"], "value"=>{"A"=>"= 1.0.0"}},
+   *padding_packages
+  ]
+
 def compute_edit_distance(soln, current_versions)
   current_versions.inject(0) do |acc, curr_version|
     # TODO [cw,2010/11/21]: This edit distance only increases when a
@@ -386,6 +399,42 @@ describe DepSelector::Selector do
                                [
                                 ["padding1"],
                                 ["transitive_dep_on_nosuch"],
+                                ["padding2"]
+                               ])
+      begin
+        selector.find_solution(solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == solution_constraints[1].to_s
+      end
+    end
+
+    it "should solve a circular dependency graph that has a valid solution" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, satisfiable_circular_dependency_graph)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                               ])
+      soln = selector.find_solution(solution_constraints)
+
+      verify_solution(soln,
+                      { "A" => "1.0.0",
+                        "B" => "1.0.0"
+                      })
+    end
+
+    it "should fail to find a solution for (and not infinitely recurse on) a dependency graph that does not have a valid solution" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, unsatisfiable_circular_dependency_graph)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["A", "= 1.0.0"],
                                 ["padding2"]
                                ])
       begin

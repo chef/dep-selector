@@ -52,6 +52,13 @@ module DepSelector
           return
         end
 
+        if curr_path.select{|elt| elt.package == curr_pkg}.any?
+          # TODO [cw, 2011/2/18]: this indicates a circular dependency
+          # in the dependency graph. This might be useful warning
+          # information to report to the user.
+          return
+        end
+
         # determine all versions of curr_pkg that match
         # version_constraint and recurse into them
         curr_pkg[version_constraint].each do |curr_pkg_ver|
