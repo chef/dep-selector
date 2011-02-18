@@ -7,11 +7,11 @@ module DepSelector
 
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
-    def initialize(package_or_package_count)
-      if (package_or_package_count.is_a?(Numeric))
-        @gecode_problem = Dep_gecode.VersionProblemCreate(package_or_package_count)
+    def initialize(problem_or_package_count)
+      if (problem_or_package_count.is_a?(Numeric))
+        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count)
       else
-        @gecode_problem = package_or_package_count;
+        @gecode_problem = problem_or_package_count
       end
       ObjectSpace.define_finalizer(self, self.class.finalize(@gecode_problem))
     end

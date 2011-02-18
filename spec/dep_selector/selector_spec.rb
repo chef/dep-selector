@@ -37,7 +37,7 @@ moderate_cookbook_version_constraint =
    {"key"=>["D", "2.0.0"], "value"=>{}},
    {"key"=>["D", "3.0.0"], "value"=>{}},
    {"key"=>["D", "4.0.0"], "value"=>{}} 
-]
+  ]
 
 moderate_cookbook_version_constraint_2 =
   [{"key"=>["A", "1.0"], "value"=>{"C"=>"< 4.0"}},
@@ -402,10 +402,6 @@ describe DepSelector::Selector do
   # that contains multiple restrictions on the same package. Do the
   # same for a PackageVersion that has several Dependencies on the
   # same package, some satisfiable, some not.
-
-  it "and indicates which solution constraint makes the system unsatisfiable if there is no solution" do
-    pending "TODO"
-  end
 
   # TODO [cw,2011/2/11]: The Package class, as designed, auto-vivifies
   # packages when they're asked for, which means that we can't
