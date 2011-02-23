@@ -74,19 +74,17 @@ module DepSelector
       solution_constraints.each do |soln_constraint|
         # look up the package in the cloned dep_graph that corresponds to soln_constraint
         pkg_name = soln_constraint.package.name
-        # Note: right now this is unlikely to ever be triggered,
-        # because the user has probably constructed the
-        # SolutionConstraint by calling DependencyGraph#package, which
-        # auto-vivifies it if it doesn't exist. See TODO in
-        # selector_spec.rb. Instead, users will have to implement
-        # checking logic when they're creating solution_constraints.
-        unless workspace.packages.has_key?(pkg_name)
-          raise Exceptions::InvalidPackage.new("#{pkg_name} does not exist in the dependency graph")
-        end
         pkg = workspace.package(pkg_name)
+        unless pkg.valid?
+          raise Exceptions::InvalidPackage.new("#{pkg_name} does not exist in the dependency graph or has no versions")
+        end
         constraint = soln_constraint.constraint
 
         pkg_id = pkg.gecode_package_id
+        # package 0 is created in
+        # workspace.generate_gecode_wrapper_constraints and represents
+        # a "ghost" package that is automatically bound to version 0
+        # and whose dependencies are the solution constraints.
         if constraint
           acceptable_versions = pkg.densely_packed_versions[constraint]
           workspace.gecode_wrapper.add_version_constraint(soln_constraints_pkg_id, 0, pkg_id, acceptable_versions.min, acceptable_versions.max)
@@ -130,7 +128,7 @@ module DepSelector
 
       # add the package's assignment to the trimmed solution
       densely_packed_version = soln.get_package_version(package.gecode_package_id)
-      version = package.version_from_densely_packed_version(densely_packed_version)
+      version = package.densely_packed_versions.sorted_elements[densely_packed_version]
       trimmed_soln[package.name] = version
 
       # expand the package's dependencies

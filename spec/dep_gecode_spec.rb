@@ -66,7 +66,7 @@ def print_human_readable_solution(problem, pkg_name_to_id, dep_graph)
   dep_graph.each_package do |package|  
     package_id = pkg_name_to_id[package.name]
     package_version = Dep_gecode.GetPackageVersion(problem,package_id)
-    version_text = package.densely_packed_versions.sorted_triples[package_version]
+    version_text = package.densely_packed_versions.sorted_elements[package_version]
     puts "#{package.name} @ #{version_text} (#{package_id} @ #{package_version})"
   end
 end
@@ -80,7 +80,7 @@ def check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
   dep_graph.each_package do |package|
     package_id = pkg_name_to_id[package.name]
     package_version = Dep_gecode.GetPackageVersion(problem,package_id)
-    version_text = package.densely_packed_versions.sorted_triples[package_version]
+    version_text = package.densely_packed_versions.sorted_elements[package_version]
     expected_version = expected_solution.nil? ? "NA" : expected_solution[package.name]
     pass = (version_text.to_s==expected_version.to_s)
     passed &= pass

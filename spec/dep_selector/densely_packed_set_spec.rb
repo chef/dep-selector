@@ -85,7 +85,7 @@ describe DepSelector::DenselyPackedSet do
       dpt_set.index(DepSelector::Version.new("3.0.0")).should == 2
     end
 
-    it "errors if the densely packed version is requested for an invalid triple" do
+    it "errors if the densely packed version is requested for an invalid element" do
       dpt_set = DepSelector::DenselyPackedSet.new ["1.0.0"]
       lambda{ dpt_set.index("2.0.0") }.should raise_error(DepSelector::Exceptions::InvalidVersion)
     end

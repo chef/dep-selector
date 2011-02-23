@@ -98,7 +98,7 @@ describe DepSelector::ErrorReporter::SimpleTreeTraverser do
       er = DepSelector::ErrorReporter::SimpleTreeTraverser.new
       er.give_feedback(dep_graph, solution_constraints, 2, dep_graph.package("X")).should ==
         "most constrained package: X, unsatisfiability introduced at solution constraint (C >= 0.0.0), possibly relevant paths through the dependency graph from the solution constraints that may constrain X: <A@1.0.0, L@1.0.0, (X = 1.0.0)> | <A@{1.0.0,2.0.0}, L@2.0.0, (X = 2.0.0)> | <B@1.0.0, (X >= 1.0.0)> | <C@1.0.0, (X = 3.0.0)> | <D@1.0.0, (X >= 0.0.0)>"
-end
+    end
 
   end
 

@@ -37,7 +37,7 @@ moderate_cookbook_version_constraint =
    {"key"=>["D", "2.0.0"], "value"=>{}},
    {"key"=>["D", "3.0.0"], "value"=>{}},
    {"key"=>["D", "4.0.0"], "value"=>{}} 
-]
+  ]
 
 moderate_cookbook_version_constraint_2 =
   [{"key"=>["A", "1.0"], "value"=>{"C"=>"< 4.0"}},
@@ -48,15 +48,38 @@ moderate_cookbook_version_constraint_2 =
    {"key"=>["D", "2.1"], "value"=>{}},
    {"key"=>["E", "1.0"], "value"=>{}},
    {"key"=>["F", "1.0"], "value"=>{}},
-]
+  ]
+
+padding_packages =
+  [{"key"=>["padding1", "1.0"], "value"=>{}},
+   {"key"=>["padding2", "1.0"], "value"=>{}}
+  ]
 
 dependencies_whose_constraints_match_no_versions =
   [{"key"=>["A", "1.0"], "value"=>{}},
    {"key"=>["B", "1.0"], "value"=>{"A"=>"> 1.0"}},
    {"key"=>["C", "1.0"], "value"=>{"B"=>nil}},
-   {"key"=>["padding1", "1.0"], "value"=>{}},
-   {"key"=>["padding2", "1.0"], "value"=>{}},
-]
+   *padding_packages
+  ]
+
+dependency_on_non_existent_package =
+  [{"key"=>["depends_on_nosuch", "1.0.0"], "value"=>{"nosuch"=>"= 2.0.0"}},
+   {"key"=>["transitive_dep_on_nosuch", "1.0.0"], "value"=>{"depends_on_nosuch"=>nil}},
+   *padding_packages
+  ]
+
+satisfiable_circular_dependency_graph =
+  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 1.0.0"}},
+   {"key"=>["B", "1.0.0"], "value"=>{"A"=>"= 1.0.0"}}
+  ]
+
+unsatisfiable_circular_dependency_graph =
+  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 1.0.0"}},
+   {"key"=>["A", "2.0.0"], "value"=>{"B"=>"= 2.0.0"}},
+   {"key"=>["B", "1.0.0"], "value"=>{"A"=>"= 2.0.0"}},
+   {"key"=>["B", "2.0.0"], "value"=>{"A"=>"= 1.0.0"}},
+   *padding_packages
+  ]
 
 def compute_edit_distance(soln, current_versions)
   current_versions.inject(0) do |acc, curr_version|
@@ -96,8 +119,8 @@ def create_latest_version_objective_function(dep_graph)
   latest_versions = {}
   dep_graph.each_package do |pkg|
     latest_version_id =  pkg.densely_packed_versions.range.last
-#    pp :name=>pkg.name, :latest_version_id=>latest_version_id, :latest_version_string=>pkg.densely_packed_versions.sorted_triples[latest_version_id]
-    latest_versions[pkg.name] = pkg.densely_packed_versions.sorted_triples[latest_version_id]
+#    pp :name=>pkg.name, :latest_version_id=>latest_version_id, :latest_version_string=>pkg.densely_packed_versions.sorted_elements[latest_version_id]
+    latest_versions[pkg.name] = pkg.densely_packed_versions.sorted_elements[latest_version_id]
   end
   
   lambda do |soln|
@@ -232,7 +255,27 @@ describe DepSelector::Selector do
                       })
     end
 
-    it "fails to find a solution when a solution constraint is constrained to a range that includes no cookbooks" do
+    it "should find a solution regardless of the dependency graph having a packages with a dependency constrained to a range that includes no packages" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, simple_cookbook_version_constraint)
+      setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                                ["B", "= 1.0.0"]
+                               ])
+      soln = selector.find_solution(solution_constraints)
+
+      verify_solution(soln,
+                      { "A" => "2.0.0",
+                        "B" => "1.0.0",
+                        "C" => "1.0.0"
+                      })
+    end
+
+    it "fails to find a solution when a solution constraint is constrained to a range that includes no packages" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
       selector = DepSelector::Selector.new(dep_graph)
@@ -251,7 +294,7 @@ describe DepSelector::Selector do
       end
     end
 
-    it "fails to find a solution when a solution constraint's dependency is constrained to a range that includes no cookbooks" do
+    it "fails to find a solution when a solution constraint's dependency is constrained to a range that includes no packages" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
       selector = DepSelector::Selector.new(dep_graph)
@@ -270,7 +313,7 @@ describe DepSelector::Selector do
       end
     end
 
-    it "fails to find a solution when a solution constraint's transitive dependency is constrained to a range that includes no cookbooks" do
+    it "fails to find a solution when a solution constraint's transitive dependency is constrained to a range that includes no packages" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
       selector = DepSelector::Selector.new(dep_graph)
@@ -288,28 +331,125 @@ describe DepSelector::Selector do
         nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
       end
     end
+
+    it "should find a solution if one can be found regardless of invalid dependencies" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, simple_cookbook_version_constraint)
+      setup_constraint(dep_graph, dependency_on_non_existent_package)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                                ["B", "= 1.0.0"]
+                               ])
+      soln = selector.find_solution(solution_constraints)
+
+      verify_solution(soln,
+                      { "A" => "2.0.0",
+                        "B" => "1.0.0",
+                        "C" => "1.0.0"
+                      })
+    end
+
+    it "should fail to find a solution if a non-existent package is in the solution constraints" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependency_on_non_existent_package)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["nosuch"],
+                                ["padding2"]
+                               ])
+      begin
+        selector.find_solution(solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::InvalidPackage => nse
+        nse.message.should == "nosuch does not exist in the dependency graph or has no versions"
+      end
+    end
+
+    it "should fail to find a solution if a package with an invalid dependency is a direct dependency of one of the solution constraints" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependency_on_non_existent_package)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["depends_on_nosuch"],
+                                ["padding2"]
+                               ])
+      begin
+        selector.find_solution(solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == solution_constraints[1].to_s
+      end
+    end
+
+    it "should fail to find a solution if a package with an invalid dependency is a transitive dependency of one of the solution constraints" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependency_on_non_existent_package)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["transitive_dep_on_nosuch"],
+                                ["padding2"]
+                               ])
+      begin
+        selector.find_solution(solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == solution_constraints[1].to_s
+      end
+    end
+
+    it "should solve a circular dependency graph that has a valid solution" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, satisfiable_circular_dependency_graph)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["A"],
+                               ])
+      soln = selector.find_solution(solution_constraints)
+
+      verify_solution(soln,
+                      { "A" => "1.0.0",
+                        "B" => "1.0.0"
+                      })
+    end
+
+    it "should fail to find a solution for (and not infinitely recurse on) a dependency graph that does not have a valid solution" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, unsatisfiable_circular_dependency_graph)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["A", "= 1.0.0"],
+                                ["padding2"]
+                               ])
+      begin
+        selector.find_solution(solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_constraint.to_s.should == solution_constraints[1].to_s
+      end
+    end
+
   end
 
   # TODO [cw,2011/2/4]: Add a test for a set of solution constraints
   # that contains multiple restrictions on the same package. Do the
   # same for a PackageVersion that has several Dependencies on the
   # same package, some satisfiable, some not.
-
-  it "and indicates which solution constraint makes the system unsatisfiable if there is no solution" do
-    pending "TODO"
-  end
-
-  # TODO [cw,2011/2/11]: The Package class, as designed, auto-vivifies
-  # packages when they're asked for, which means that we can't
-  # distinguish between packages being requested for constructing the
-  # dependency graph vs. those for the solution constraints. The
-  # reason we would want to distinguish is that a solution constraint
-  # that references a Package that doesn't exist should cause a
-  # special error. See note in Selector#solve.
-  #
-  # Open question: Do we want to raise an error if we find that a
-  # Package A has a PackageVersion that has a dependency on a
-  # non-existent Package but there is nonetheless a valid assignment
-  # of Package A that doesn't have in illegal dependency?
 
 end

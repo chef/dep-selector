@@ -7,11 +7,11 @@ module DepSelector
 
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
-    def initialize(package_or_package_count)
-      if (package_or_package_count.is_a?(Numeric))
-        @gecode_problem = Dep_gecode.VersionProblemCreate(package_or_package_count)
+    def initialize(problem_or_package_count)
+      if (problem_or_package_count.is_a?(Numeric))
+        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count)
       else
-        @gecode_problem = package_or_package_count;
+        @gecode_problem = problem_or_package_count
       end
       ObjectSpace.define_finalizer(self, self.class.finalize(@gecode_problem))
     end
@@ -29,10 +29,22 @@ module DepSelector
       Dep_gecode.AddPackage(gecode_problem, min, max, current_version)
     end
     def add_version_constraint(package_id, version, dependent_package_id, min_dependent_version, max_dependent_version)
-      # valid package versions are between -1 and its max (-1 means
-      # don't care). To indicate constraints that match no versions,
-      # -2 is used, since it's not a valid assignment of the variable;
-      # thus, any branch that assigns -2 will fail
+      # Valid package versions are between -1 and its max (-1 means
+      # don't care, meaning it doesn't need to be assigned). To
+      # indicate constraints that match no versions, -2 is used, since
+      # it's not a valid assignment of the variable; thus, any branch
+      # that assigns -2 will fail.
+      #
+      # This mechanism is also used when a dependent package has no
+      # versions, which only happens if the dependency's package is
+      # auto-vivified when creating the parent PackageVersion's
+      # dependency but with no corresponding set of PackageVersions
+      # (i.e. it's an invalid deendency, because it does not exist in
+      # the dependency graph). Again, we won't abort immediately, but
+      # we'll add a constraint to the package that makes exploring
+      # that portion of the solution space unsatisfiable. Thus it is
+      # impossible to find solutions dependent on non-existent
+      # packages.
       min = min_dependent_version || -2
       max = max_dependent_version || -2
       Dep_gecode.AddVersionConstraint(gecode_problem, package_id, version, dependent_package_id, min, max)

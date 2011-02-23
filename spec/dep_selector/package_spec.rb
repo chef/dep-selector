@@ -21,11 +21,15 @@ require 'dep_selector/package'
 require 'dep_selector/version'
 
 describe DepSelector::Package do
+
+  before do
+    @dep_graph = DepSelector::DependencyGraph.new
+    @test_pkg1 = DepSelector::Package.new(@dep_graph, "test_pkg")
+  end
+
   describe "[]" do
 
     before do
-      @dep_graph = DepSelector::DependencyGraph.new
-      @test_pkg1 = DepSelector::Package.new(@dep_graph, "test_pkg")
       @tp1v1_0 = @test_pkg1.add_version(DepSelector::Version.new("1.0.0"))
       @tp1v1_1 = @test_pkg1.add_version(DepSelector::Version.new("1.1.0"))
       @tp1v2_0 = @test_pkg1.add_version(DepSelector::Version.new("2.0.0"))
@@ -49,6 +53,17 @@ describe DepSelector::Package do
                                                                           ]
     end
 
+  end
+
+  describe "valid?" do
+    it "should return false if the package has no versions" do
+      @test_pkg1.valid?.should == false
+    end
+
+    it "should return true if the package has at least one version" do
+      @test_pkg1.add_version(DepSelector::Version.new("1.0.0"))
+      @test_pkg1.valid?.should == true
+    end
   end
 end
 
