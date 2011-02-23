@@ -119,8 +119,8 @@ def create_latest_version_objective_function(dep_graph)
   latest_versions = {}
   dep_graph.each_package do |pkg|
     latest_version_id =  pkg.densely_packed_versions.range.last
-#    pp :name=>pkg.name, :latest_version_id=>latest_version_id, :latest_version_string=>pkg.densely_packed_versions.sorted_triples[latest_version_id]
-    latest_versions[pkg.name] = pkg.densely_packed_versions.sorted_triples[latest_version_id]
+#    pp :name=>pkg.name, :latest_version_id=>latest_version_id, :latest_version_string=>pkg.densely_packed_versions.sorted_elements[latest_version_id]
+    latest_versions[pkg.name] = pkg.densely_packed_versions.sorted_elements[latest_version_id]
   end
   
   lambda do |soln|

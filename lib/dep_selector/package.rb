@@ -21,12 +21,6 @@ module DepSelector
       @densely_packed_versions ||= DenselyPackedSet.new(versions.map{|pkg_version| pkg_version.version})
     end
 
-    # Note: Since this invokes densely_packed_versions, only invoke
-    # this method after all PackageVersions have been added
-    def version_from_densely_packed_version(dpv)
-      densely_packed_versions.sorted_triples[dpv]
-    end
-
     # Given a version, this method returns the corresonding
     # PackageVersion. Given a version constraint, this method returns
     # an array of matching PackageVersions.

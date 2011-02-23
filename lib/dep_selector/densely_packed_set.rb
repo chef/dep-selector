@@ -1,27 +1,25 @@
 require 'dep_selector/exceptions'
 
-# TODO [cw,2011/2/4]: there is no longer any assumption about triples,
-# so remove references to triples in favor or versions
 module DepSelector
   class DenselyPackedSet
-    attr_reader :sorted_triples
+    attr_reader :sorted_elements
 
-    def initialize(triples)
-      @sorted_triples = triples.sort
-      @triple_to_index = {}
-      @sorted_triples.each_with_index{|triple, idx| @triple_to_index[triple] = idx}
+    def initialize(elements)
+      @sorted_elements = elements.sort
+      @element_to_index = {}
+      @sorted_elements.each_with_index{|elt, idx| @element_to_index[elt] = idx}
     end
 
     def range
-      Range.new(0, @sorted_triples.size-1)
+      Range.new(0, @sorted_elements.size-1)
     end
 
-    def index(triple)
-      unless @triple_to_index.has_key?(triple)
-        msg = "#{triple} is not a valid version for this package"
+    def index(element)
+      unless @element_to_index.has_key?(element)
+        msg = "#{element} is not a valid version for this package"
         raise Exceptions::InvalidVersion.new(msg)
       end
-      @triple_to_index[triple]
+      @element_to_index[element]
     end
 
     def [](constraint)
@@ -29,9 +27,9 @@ module DepSelector
       range = []
       started = false
       done = false
-      sorted_triples.each_with_index do |triple, idx|
-        if constraint.include?(triple)
-          raise "Currently only handle continuous gap between #{range.last} and #{idx} \n\tfor #{constraint.to_s} over #{@sorted_triples.join(', ')}" if (range.any? && range.last+1 != idx)
+      sorted_elements.each_with_index do |element, idx|
+        if constraint.include?(element)
+          raise "Currently only handle continuous gap between #{range.last} and #{idx} for #{constraint.to_s} over #{@sorted_elements.join(', ')}" if (range.any? && range.last+1 != idx)
           range << idx
         end
       end

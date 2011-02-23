@@ -128,7 +128,7 @@ module DepSelector
 
       # add the package's assignment to the trimmed solution
       densely_packed_version = soln.get_package_version(package.gecode_package_id)
-      version = package.version_from_densely_packed_version(densely_packed_version)
+      version = package.densely_packed_versions.sorted_elements[densely_packed_version]
       trimmed_soln[package.name] = version
 
       # expand the package's dependencies
