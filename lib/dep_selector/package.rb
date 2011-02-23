@@ -27,10 +27,6 @@ module DepSelector
       densely_packed_versions.sorted_triples[dpv]
     end
 
-    def find_package_version(version)
-      versions.find{|pkg_version| pkg_version.version == version}
-    end
-
     # Given a version, this method returns the corresonding
     # PackageVersion. Given a version constraint, this method returns
     # an array of matching PackageVersions.
@@ -43,7 +39,7 @@ module DepSelector
           version_or_constraint.include?(ver)
         end
       else
-        find_package_version(version_or_constraint)
+        versions.find{|pkg_version| pkg_version.version == version_or_constraint}
       end
     end
 
