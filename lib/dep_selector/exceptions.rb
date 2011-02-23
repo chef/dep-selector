@@ -11,6 +11,15 @@ module DepSelector
       end
     end
 
+    class NoSolutionFound < StandardError
+      attr_reader :unsatisfiable_problem
+      def initialize(unsatisfiable_problem=nil)
+        @unsatisfiable_problem = unsatisfiable_problem
+      end
+    end
+  
+
+
     class InvalidPackage < ArgumentError ; end
     class InvalidVersion < ArgumentError ; end
     class InvalidVersionConstraint < ArgumentError; end

@@ -74,7 +74,7 @@ module DepSelector
       solution = Dep_gecode.Solve(gecode_problem)
       # TODO: communicate solution stats here (most constrained var,
       # etc.) here. Maybe needs to be a different exception.
-      raise Exceptions::NoSolutionExists.new(nil) unless solution
+      raise Exceptions::NoSolutionFound.new(gecode_problem) unless solution
       GecodeWrapper.new(solution)
     end
 
