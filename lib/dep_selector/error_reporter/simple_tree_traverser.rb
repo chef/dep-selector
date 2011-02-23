@@ -44,18 +44,23 @@ module DepSelector
           return
         end
 
-        # determine all versions of curr_pkg that match version_constraint
-        matching_versions = curr_pkg[version_constraint]
+        # curr_pkg has no versions, it is invalid so don't recurse
+        if curr_pkg.versions.empty?
+          # TODO [cw, 2011/2/17]: find a way to track these invalid
+          # packages and return as potential conflict-causing
+          # constraints.
+          return
+        end
 
-        # recurse into each Packageversion matching curr_pkg/version_constraint
-        matching_versions.each do |curr_pkg_ver|
+        # determine all versions of curr_pkg that match
+        # version_constraint and recurse into them
+        curr_pkg[version_constraint].each do |curr_pkg_ver|
           curr_path.push(curr_pkg_ver)
           curr_pkg_ver.dependencies.each do |dep|
             paths_to_pkg(dep_graph, dep.package, dep.constraint, target_pkg, curr_path, all_paths)
           end
           curr_path.pop
         end
-
       end
 
       # This is a simple collapsing function. For each adjacent path,

@@ -24,8 +24,13 @@ module DepSelector
     end
 
     def generate_gecode_wrapper_constraints
-      @gecode_wrapper = GecodeWrapper.new(packages.size + 1)
-      each_package{ |pkg| pkg.generate_gecode_wrapper_constraints }
+      unless @gecode_wrapper
+        # In addition to all the packages that the user specified,
+        # there is a "ghost" package that contains the solution
+        # constraints. See Selector#solve for more information.
+        @gecode_wrapper = GecodeWrapper.new(packages.size + 1)
+        each_package{ |pkg| pkg.generate_gecode_wrapper_constraints }
+      end
     end
 
     def gecode_model_vars

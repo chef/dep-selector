@@ -59,13 +59,25 @@ module DepSelector
 
     # Note: only invoke this method after all PackageVersions have been added
     def gecode_package_id
-      # Note: gecoder does naive bounds propagation at every post,
+      # Note: gecode does naive bounds propagation at every post,
       # which means that any package with exactly one version is
-      # considered bound and its dependencies propagated, so we want
-      # every package to have at least two versions, one of which is
-      # neither the target of other packages' dependencies nor induces
-      # other dependencies. -1 serves this purpose.
-      @gecode_package_id ||= dependency_graph.gecode_wrapper.add_package(-1, densely_packed_versions.range.max, 0)
+      # considered bound and its dependencies propagated even though
+      # there might not be a solution constraint that requires that
+      # package to be bound, which means that otherwise-irrelevant
+      # constraints (e.g. A1->B1 when the solution constraint is B=2
+      # and there is nothing to induce a dependency on A) can cause
+      # unsatisfiability. Therefore, we want every package to have at
+      # least two versions, one of which is neither the target of
+      # other packages' dependencies nor induces other
+      # dependencies. Package version id -1 serves this purpose.
+      #
+      # TODO [cw, 2011/2/22]: Do we likewise want to leave packages
+      # with no versions (the target of an invalid dependency) with
+      # two versions in order to allow the solver to explore the
+      # invalid portion of the state space instead of naively limiting
+      # it for the purposes of having failure count heuristics?
+      max = densely_packed_versions.range.max || -1
+      @gecode_package_id ||= dependency_graph.gecode_wrapper.add_package(-1, max, 0)
     end
 
     def generate_gecode_wrapper_constraints
