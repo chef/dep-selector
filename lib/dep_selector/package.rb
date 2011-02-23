@@ -37,6 +37,11 @@ module DepSelector
       end
     end
 
+    # A Package is considered valid if it has at least one version
+    def valid?
+      versions.any?
+    end
+
     def to_s(incl_densely_packed_versions = false)
       components = []
       components << "Package #{name}"
