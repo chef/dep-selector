@@ -47,8 +47,8 @@ module DepSelector
       # that portion of the solution space unsatisfiable. Thus it is
       # impossible to find solutions dependent on non-existent
       # packages.
-      min = min_dependent_version || DontCareConstraint
-      max = max_dependent_version || DontCareConstraint
+      min = min_dependent_version || NoMatchConstraint
+      max = max_dependent_version || NoMatchConstraint
       Dep_gecode.AddVersionConstraint(gecode_problem, package_id, version, dependent_package_id, min, max)
     end
     def get_package_version(package_id)
