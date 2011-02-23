@@ -118,7 +118,7 @@ describe Dep_gecode do
     packageId = Dep_gecode.AddPackage(problem, 1, 6, 8)
     packageId.should == 1
     Dep_gecode.GetPackageVersion(problem, packageId).should == -(2**31)
-    Dep_gecode.GetPakageAFC(problem,packageId).should == 0
+    Dep_gecode.GetPackageAFC(problem,packageId).should == 0
     Dep_gecode.GetPackageMax(problem,packageId).should == 6
     Dep_gecode.GetPackageMin(problem,packageId).should == 1
     Dep_gecode.VersionProblemSize(problem).should == 2
