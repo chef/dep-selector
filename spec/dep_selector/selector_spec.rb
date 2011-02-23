@@ -452,12 +452,4 @@ describe DepSelector::Selector do
   # same for a PackageVersion that has several Dependencies on the
   # same package, some satisfiable, some not.
 
-  # TODO [cw,2011/2/11]: The Package class, as designed, auto-vivifies
-  # packages when they're asked for, which means that we can't
-  # distinguish between packages being requested for constructing the
-  # dependency graph vs. those for the solution constraints. The
-  # reason we would want to distinguish is that a solution constraint
-  # that references a Package that doesn't exist should cause a
-  # special error. See note in Selector#solve.
-
 end
