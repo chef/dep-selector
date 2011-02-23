@@ -49,8 +49,8 @@ describe DepSelector::ErrorReporter::SimpleTreeTraverser do
                                 ["D"]
                                ])
       er = DepSelector::ErrorReporter::SimpleTreeTraverser.new
-      er.give_feedback(dep_graph, solution_constraints, 2, dep_graph.package('X')).should ==
-        "most constrained package: X, unsatisfiability introduced at solution constraint , possibly relevant paths through the dependency graph from the solution constraints that may constrain X: <(X > 1.0.0)> | <D@1.0.0, A@2.0.0, (X = 2.0.0)> | <D@1.0.0, (X = 1.0.0)>"
+      er.give_feedback(dep_graph, solution_constraints, 1, dep_graph.package('X')).should ==
+        "Unable to satisfy constraints on package X due to solution constraint (D >= 0.0.0). Solution constraints that may result in a constraint on X: [(X > 1.0.0)], [(D = 1.0.0) -> (A = 2.0.0) -> (X = 2.0.0)], [(D = 1.0.0) -> (X = 1.0.0)]"
     end
 
     it "finds constraints on the target package in first-level dependencies" do
@@ -65,7 +65,7 @@ describe DepSelector::ErrorReporter::SimpleTreeTraverser do
                                ])
       er = DepSelector::ErrorReporter::SimpleTreeTraverser.new
       er.give_feedback(dep_graph, solution_constraints, 1, dep_graph.package('X')).should ==
-        "most constrained package: X, unsatisfiability introduced at solution constraint (D >= 0.0.0), possibly relevant paths through the dependency graph from the solution constraints that may constrain X: <A@1.0.0, (X >= 1.0.0)> | <A@2.0.0, (X = 2.0.0)> | <D@1.0.0, A@2.0.0, (X = 2.0.0)> | <D@1.0.0, (X = 1.0.0)>"
+        "Unable to satisfy constraints on package X due to solution constraint (D >= 0.0.0). Solution constraints that may result in a constraint on X: [(A = 1.0.0) -> (X >= 1.0.0)], [(A = 2.0.0) -> (X = 2.0.0)], [(D = 1.0.0) -> (A = 2.0.0) -> (X = 2.0.0)], [(D = 1.0.0) -> (X = 1.0.0)]"
     end
 
     it "finds constraints on the target package in transitive dependencies" do
@@ -80,7 +80,7 @@ describe DepSelector::ErrorReporter::SimpleTreeTraverser do
                                ])
       er = DepSelector::ErrorReporter::SimpleTreeTraverser.new
       er.give_feedback(dep_graph, solution_constraints, 1, dep_graph.package("X")).should ==
-        "most constrained package: X, unsatisfiability introduced at solution constraint (D >= 0.0.0), possibly relevant paths through the dependency graph from the solution constraints that may constrain X: <C@1.0.0, A@1.0.0, (X >= 1.0.0)> | <C@1.0.0, A@2.0.0, (X = 2.0.0)> | <D@1.0.0, A@2.0.0, (X = 2.0.0)> | <D@1.0.0, (X = 1.0.0)>"
+        "Unable to satisfy constraints on package X due to solution constraint (D >= 0.0.0). Solution constraints that may result in a constraint on X: [(C = 1.0.0) -> (A = 1.0.0) -> (X >= 1.0.0)], [(C = 1.0.0) -> (A = 2.0.0) -> (X = 2.0.0)], [(D = 1.0.0) -> (A = 2.0.0) -> (X = 2.0.0)], [(D = 1.0.0) -> (X = 1.0.0)]"
     end
 
     it "should construct all paths from the solution constraint packages to the most constrained package and collapse paths that have exactly one difference on the version selected of the same package" do
@@ -97,7 +97,7 @@ describe DepSelector::ErrorReporter::SimpleTreeTraverser do
                                ])
       er = DepSelector::ErrorReporter::SimpleTreeTraverser.new
       er.give_feedback(dep_graph, solution_constraints, 2, dep_graph.package("X")).should ==
-        "most constrained package: X, unsatisfiability introduced at solution constraint (C >= 0.0.0), possibly relevant paths through the dependency graph from the solution constraints that may constrain X: <A@1.0.0, L@1.0.0, (X = 1.0.0)> | <A@{1.0.0,2.0.0}, L@2.0.0, (X = 2.0.0)> | <B@1.0.0, (X >= 1.0.0)> | <C@1.0.0, (X = 3.0.0)> | <D@1.0.0, (X >= 0.0.0)>"
+        "Unable to satisfy constraints on package X due to solution constraint (C >= 0.0.0). Solution constraints that may result in a constraint on X: [(A = 1.0.0) -> (L = 1.0.0) -> (X = 1.0.0)], [(A = {1.0.0,2.0.0}) -> (L = 2.0.0) -> (X = 2.0.0)], [(B = 1.0.0) -> (X >= 1.0.0)], [(C = 1.0.0) -> (X = 3.0.0)], [(D = 1.0.0) -> (X >= 0.0.0)]"
     end
 
   end

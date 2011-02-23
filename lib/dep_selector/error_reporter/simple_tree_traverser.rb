@@ -9,16 +9,12 @@ module DepSelector
 
       def give_feedback(dep_graph, soln_constraints, unsatisfiable_constraint_idx, most_constrained_pkg)
         unsatisfiable_soln_constraint = soln_constraints[unsatisfiable_constraint_idx]
-        feedback = [
-                    "most constrained package: #{most_constrained_pkg.name}",
-                    "unsatisfiability introduced at solution constraint #{unsatisfiable_soln_constraint}"
-                   ]
+        feedback = "Unable to satisfy constraints on package #{most_constrained_pkg.name} due to solution constraint #{unsatisfiable_soln_constraint}. "
 
         all_paths = paths_from_soln_constraints_to_pkg_constraints(dep_graph, soln_constraints, most_constrained_pkg)
-        collapsed_paths = collapse_adjacent_paths(all_paths).map{|collapsed_path| "<#{print_path(collapsed_path).join(', ')}>"}
+        collapsed_paths = collapse_adjacent_paths(all_paths).map{|collapsed_path| "[#{print_path(collapsed_path).join(' -> ')}]"}
 
-        feedback << "possibly relevant paths through the dependency graph from the solution constraints that may constrain #{most_constrained_pkg.name}: #{collapsed_paths.join(' | ')}"
-        feedback.join(', ')
+        feedback << "Solution constraints that may result in a constraint on #{most_constrained_pkg.name}: #{collapsed_paths.join(', ')}"
       end
 
       private
@@ -88,10 +84,12 @@ module DepSelector
       def print_path(path)
         path.map do |step|
           if step.respond_to? :version
-            "#{step.package.name}@#{step.version}"
+            "(#{step.package.name} = #{step.version})"
           else
             if step.kind_of?(Array)
-              "#{step.first.package.name}@{#{step.map{|elt| "#{elt.version}"}.join(',')}}"
+              # TODO [cw, 2011/2/23]: consider detecting complete
+              # ranges here instead of calling each out individually
+              "(#{step.first.package.name} = {#{step.map{|elt| "#{elt.version}"}.join(',')}})"
             else
               step.to_s
             end
