@@ -9,7 +9,9 @@ module DepSelector
 
       def give_feedback(dep_graph, soln_constraints, unsatisfiable_constraint_idx, most_constrained_pkg)
         unsatisfiable_soln_constraint = soln_constraints[unsatisfiable_constraint_idx]
-        feedback = "Unable to satisfy constraints on package #{most_constrained_pkg.name} due to solution constraint #{unsatisfiable_soln_constraint}. "
+        feedback = "Unable to satisfy constraints on package #{most_constrained_pkg.name}"
+        feedback << ", which does not exist," unless most_constrained_pkg.valid?
+        feedback << " due to solution constraint #{unsatisfiable_soln_constraint}. "
 
         all_paths = paths_from_soln_constraints_to_pkg_constraints(dep_graph, soln_constraints, most_constrained_pkg)
         collapsed_paths = collapse_adjacent_paths(all_paths).map{|collapsed_path| "[#{print_path(collapsed_path).join(' -> ')}]"}
