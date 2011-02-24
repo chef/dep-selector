@@ -1,10 +1,12 @@
-require "#{File.dirname(__FILE__)}/../../ext/gecode/dep_gecode"
+require "dep_gecode"
 require 'dep_selector/exceptions'
 
 module DepSelector
   class GecodeWrapper
     attr_reader :gecode_problem
-
+    DontCareConstraint = -1
+    NoMatchConstraint = -2
+    
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
     def initialize(problem_or_package_count)
@@ -45,8 +47,8 @@ module DepSelector
       # that portion of the solution space unsatisfiable. Thus it is
       # impossible to find solutions dependent on non-existent
       # packages.
-      min = min_dependent_version || -2
-      max = max_dependent_version || -2
+      min = min_dependent_version || NoMatchConstraint
+      max = max_dependent_version || NoMatchConstraint
       Dep_gecode.AddVersionConstraint(gecode_problem, package_id, version, dependent_package_id, min, max)
     end
     def get_package_version(package_id)
@@ -72,7 +74,7 @@ module DepSelector
       solution = Dep_gecode.Solve(gecode_problem)
       # TODO: communicate solution stats here (most constrained var,
       # etc.) here. Maybe needs to be a different exception.
-      raise Exceptions::NoSolutionExists.new(nil) unless solution
+      raise Exceptions::NoSolutionFound.new(gecode_problem) unless solution
       GecodeWrapper.new(solution)
     end
 

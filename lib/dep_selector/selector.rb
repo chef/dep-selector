@@ -33,7 +33,7 @@ module DepSelector
       begin
         # first, try to solve the whole set of constraints
         solve(solution_constraints, bottom, &block)
-      rescue Exceptions::NoSolutionExists
+      rescue Exceptions::NoSolutionFound
         # since we're here, solving the whole system failed, so add
         # the solution_constraints one-by-one and try to solve in
         # order to find the constraint that breaks the system in order
@@ -48,7 +48,7 @@ module DepSelector
         solution_constraints.each_index do |idx|
           begin
             solve(solution_constraints[0..idx], bottom, &block)
-          rescue Exceptions::NoSolutionExists
+          rescue Exceptions::NoSolutionFound
             most_constrained_package = dep_graph.package('X') # TODO: FOR TESTING ONLY!
             feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx, most_constrained_package)
             raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx])

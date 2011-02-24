@@ -11,6 +11,16 @@
 
 using namespace Gecode;
 
+// TODO:
+// Allow retrieval of multiple solutions
+// Understand how assign versions where necessary, and not assign unnecessary versions.
+// Understand how to assign empty versions
+//
+
+// Extend:
+// Add optimization functions
+// Allow non-contiguous ranges in package dependencies. 
+
 class VersionProblem : public Script
 {
  public:
@@ -57,5 +67,14 @@ class VersionProblem : public Script
   BoolVarArgs version_flags;
   IntVarArray package_versions;
 };
+
+class Solver {
+ public:
+  Solver(VersionProblem *s);
+  VersionProblem GetNextSolution();
+ private:
+  DFS<VersionProblem> solver;
+};
+
 
 #endif dep_selector_to_gecode_h

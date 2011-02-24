@@ -1,9 +1,13 @@
 require 'rubygems'
+require 'rake'
+
+require 'rake/extensiontask'
+
 require 'rake/gempackagetask'
 require 'rubygems/specification'
 require 'date'
 
-require (File.join(File.dirname(__FILE__), 'ext', 'gecode', 'rakefile.rb')) 
+#require (File.join(File.dirname(__FILE__), 'ext', 'gecode', 'rakefile.rb')) 
 
 GEM = "dep_selector"
 GEM_VERSION = "0.0.1"
@@ -22,8 +26,8 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "gecoder-with-gecode", "= 1.0.0"
   s.require_path = 'lib'
   s.autorequire = GEM
-  s.files = Dir.glob("lib/**/*")
-  s.extensions << 'ext/gecode/extconf.rb'
+  s.files = Dir.glob("lib/**/*") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
+  s.extensions = FileList["ext/**/extconf.rb"]
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
@@ -34,6 +38,8 @@ desc "install the gem locally"
 task :install => :package do
   sh %{gem install pkg/#{GEM}-#{GEM_VERSION}}
 end
+
+Rake::ExtensionTask.new('dep_gecode', spec)
 
 begin
   require 'spec/rake/spectask'
