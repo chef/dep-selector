@@ -75,10 +75,13 @@ module DepSelector
         # look up the package in the cloned dep_graph that corresponds to soln_constraint
         pkg_name = soln_constraint.package.name
         pkg = workspace.package(pkg_name)
-        unless pkg.valid?
-          raise Exceptions::InvalidPackage.new("#{pkg_name} does not exist in the dependency graph or has no versions")
-        end
         constraint = soln_constraint.constraint
+        unless pkg.valid?
+          raise Exceptions::InvalidSolutionConstraint.new("Solution constraint (#{pkg_name} #{constraint.to_s}) specifies a package that does not exist in the dependency graph")
+        end
+        if pkg[constraint].empty?
+          raise Exceptions::InvalidSolutionConstraint.new("Solution constraint (#{pkg_name} #{constraint.to_s}) does not match any versions")
+        end
 
         pkg_id = pkg.gecode_package_id
         # package 0 is created in

@@ -275,22 +275,20 @@ describe DepSelector::Selector do
                       })
     end
 
-    it "fails to find a solution when a solution constraint is constrained to a range that includes no packages" do
+    it "fails to find a solution when a solution constraint constraints a package to a range that includes no versions" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
       selector = DepSelector::Selector.new(dep_graph)
       unsatisfiable_solution_constraints =
         setup_soln_constraints(dep_graph,
                                [
-                                ["padding1"],
-                                ["A", "> 1.0"],
-                                ["padding2"]
+                                ["A", "> 1.0"]
                                ])
       begin
         selector.find_solution(unsatisfiable_solution_constraints)
         fail "Should have failed to find a solution"
-      rescue DepSelector::Exceptions::NoSolutionExists => nse
-        nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
+      rescue DepSelector::Exceptions::InvalidSolutionConstraint => nse
+        nse.message.should == "Solution constraint (A > 1.0.0) does not match any versions"
       end
     end
 
@@ -359,15 +357,13 @@ describe DepSelector::Selector do
       solution_constraints =
         setup_soln_constraints(dep_graph,
                                [
-                                ["padding1"],
-                                ["nosuch"],
-                                ["padding2"]
+                                ["nosuch"]
                                ])
       begin
         selector.find_solution(solution_constraints)
         fail "Should have failed to find a solution"
-      rescue DepSelector::Exceptions::InvalidPackage => nse
-        nse.message.should == "nosuch does not exist in the dependency graph or has no versions"
+      rescue DepSelector::Exceptions::InvalidSolutionConstraint => nse
+        nse.message.should == "Solution constraint (nosuch >= 0.0.0) specifies a package that does not exist in the dependency graph"
       end
     end
 
