@@ -112,6 +112,7 @@ void VersionProblem::Finalize()
 #endif // DEBUG
   branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
+  branch(*this, total_disabled, INT_VAL_MIN);
 #ifdef DEBUG
   std::cout << "Finalization Done" << std::endl;
   std::cout.flush();
