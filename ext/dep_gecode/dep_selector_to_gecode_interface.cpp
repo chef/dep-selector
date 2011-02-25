@@ -3,7 +3,8 @@
 #include <iostream>
 
 #include "dep_selector_to_gecode_interface.h"
-#include "dep_selector_to_gecode.h"
+//#include "dep_selector_to_gecode.h"
+#include "version_problem_oc_ih.h"
 
 //
 // TODO:
@@ -11,73 +12,73 @@
 //  insure proper memory behaviour
 
 // FFI friendly
-VersionProblem * VersionProblemCreate(int packageCount) 
+VersionProblemOCIH * VersionProblemCreate(int packageCount) 
 {
-  return new VersionProblem(packageCount);
+  return new VersionProblemOCIH(packageCount);
 }
 
-void VersionProblemDestroy(VersionProblem * p)
+void VersionProblemDestroy(VersionProblemOCIH * p)
 {
   delete p;
 }
 
-int VersionProblemSize(VersionProblem *p) 
+int VersionProblemSize(VersionProblemOCIH *p) 
 {
   return p->Size();
 }
 
-int VersionProblemPackageCount(VersionProblem *p) 
+int VersionProblemPackageCount(VersionProblemOCIH *p) 
 {
   return p->PackageCount();
 }
 
 
 
-void VersionProblemDump(VersionProblem *p)
+void VersionProblemDump(VersionProblemOCIH *p)
 {
   p->Print(std::cout);
   std::cout.flush();
 }
 
-void VersionProblemPrintPackageVar(VersionProblem *p, int packageId) 
+void VersionProblemPrintPackageVar(VersionProblemOCIH *p, int packageId) 
 {
   p->PrintPackageVar(std::cout, packageId);
   std::cout.flush();
 }
 
 // Return ID #
-int AddPackage(VersionProblem *problem, int min, int max, int currentVersion) {
+int AddPackage(VersionProblemOCIH *problem, int min, int max, int currentVersion) {
   problem->AddPackage(min,max,currentVersion);
 }
 // Add constraint for package pkg @ version, 
 // that dependentPackage is at version [minDependentVersion,maxDependentVersion]
 // Returns false if system becomes insoluble.
-bool AddVersionConstraint(VersionProblem *problem, int packageId, int version, 
+bool AddVersionConstraint(VersionProblemOCIH *problem, int packageId, int version, 
 			  int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
 {
   problem->AddVersionConstraint(packageId, version, dependentPackageId, minDependentVersion, maxDependentVersion);
 }
 
-int GetPackageVersion(VersionProblem *problem, int packageId)
+int GetPackageVersion(VersionProblemOCIH *problem, int packageId)
 {
   problem->GetPackageVersion(packageId);
 }
 
-int GetPackageAFC(VersionProblem *problem, int packageId)
+int GetPackageAFC(VersionProblemOCIH *problem, int packageId)
 {
   problem->GetAFC(packageId);
 }
 
-int GetPackageMax(VersionProblem *problem, int packageId)
+int GetPackageMax(VersionProblemOCIH *problem, int packageId)
 {
   problem->GetMax(packageId);
 }
 
-int GetPackageMin(VersionProblem *problem, int packageId)
+int GetPackageMin(VersionProblemOCIH *problem, int packageId)
 {
   problem->GetMin(packageId);
 }
 
-VersionProblem * Solve(VersionProblem * problem)  {
-  return VersionProblem::Solve(problem);
+VersionProblemOCIH * Solve(VersionProblemOCIH * problem)  {
+  return VersionProblemOCIH::Solve(problem);
 }

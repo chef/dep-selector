@@ -4,7 +4,7 @@
 #include <gecode/gist.hh>
 #include <gecode/search.hh>
 
-#include "dep_selector_to_gecode.h"
+#include "version_problem_oc_ih.h"
 
 #include <limits>
 #include <iostream>
@@ -12,49 +12,49 @@
 
 #undef DEBUG
 
+const int VersionProblemOCIH::UNRESOLVED_VARIABLE = INT_MIN;
+
 using namespace Gecode;
 
-//
-// Version Problem
-//
-const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
-
-
-VersionProblem::VersionProblem(int packageCount) 
-  : finalized(false), cur_package(0), package_versions(*this, packageCount)
+VersionProblemOCIH::VersionProblemOCIH(int packageCount)
+  : finalized(false), cur_package(0), package_versions(*this, packageCount), 
+    disabled_package_variables(*this, packageCount, 0, 1), total_disabled(*this, 0, packageCount)
 {
-  
 }
 
-// Clone constructor; check gecode rules for this...
-VersionProblem::VersionProblem(bool share, VersionProblem & s) 
-  : Script(share, s), finalized(s.finalized), cur_package(s.cur_package)
+VersionProblemOCIH::VersionProblemOCIH(bool share, VersionProblemOCIH & s) 
+  : MinimizeSpace(share, s),
+    finalized(s.finalized), cur_package(s.cur_package),
+    disabled_package_variables(s.disabled_package_variables), total_disabled(s.total_disabled)
 {
   package_versions.update(*this, share, s.package_versions);
+  disabled_package_variables.update(*this, share, s.disabled_package_variables);
+  total_disabled.update(*this, share, s.total_disabled);
 }
 
 // Support for gecode
-Space* VersionProblem::copy(bool share) 
+Space* VersionProblemOCIH::copy(bool share) 
 {
-  return new VersionProblem(share,*this);
+  return new VersionProblemOCIH(share,*this);
 }
 
-VersionProblem::~VersionProblem() {
+VersionProblemOCIH::~VersionProblemOCIH() 
+{
+
 }
 
-int VersionProblem::Size() 
+int VersionProblemOCIH::Size() 
 {
   return package_versions.size();
 }
 
-int VersionProblem::PackageCount() 
+int VersionProblemOCIH::PackageCount() 
 {
   return cur_package;
 }
 
-
 int
-VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion) 
+VersionProblemOCIH::AddPackage(int minVersion, int maxVersion, int currentVersion) 
 {
   if (cur_package == package_versions.size()) {
     return -1;
@@ -72,34 +72,46 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
 }
 
 bool 
-VersionProblem::AddVersionConstraint(int packageId, int version, 
-				     int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
+VersionProblemOCIH::AddVersionConstraint(int packageId, int version, 
+							int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
 {
   BoolVar version_match(*this, 0, 1);
   BoolVar depend_match(*this, 0, 1);
+  BoolVar predicated_depend_match(*this, 0, 1);
+
   //version_flags << version_match;
   // Constrain pred to reify package @ version
   rel(*this, package_versions[packageId], IRT_EQ, version, version_match);
   // Add the predicated version constraints imposed on dependent package
   dom(*this, package_versions[dependentPackageId], minDependentVersion, maxDependentVersion, depend_match);
-  rel(*this, version_match, BOT_IMP, depend_match, 1);  
+
+  // disabled_package_variables[dependentPackageId] OR depend_match <=> predicated_depend_match
+  rel(*this, disabled_package_variables[dependentPackageId], BOT_OR, depend_match, predicated_depend_match);
+
+  rel(*this, version_match, BOT_IMP, predicated_depend_match, 1);  
 }
 
-void VersionProblem::Finalize() 
+
+void VersionProblemOCIH::Finalize() 
 {
 #ifdef DEBUG
   std::cout << "Finalization Started" << std::endl;
   std::cout.flush();
 #endif // DEBUG
   finalized = true;
-  // Assign a dummy variable 
+  // Setup constraint for cost
+  linear(*this, disabled_package_variables, IRT_EQ, total_disabled);
+
+  // Assign a dummy variable to elements greater than actually used.
   for (int i = cur_package; i < package_versions.size(); i++) {
     package_versions[i] = IntVar(*this, -1, -1);
+    disabled_package_variables[i] = BoolVar(*this, 1, 1);
   }
 #ifdef DEBUG
   std::cout << "Branch Started" << std::endl;
   std::cout.flush();
 #endif // DEBUG
+  branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
 #ifdef DEBUG
   std::cout << "Finalization Done" << std::endl;
@@ -107,7 +119,13 @@ void VersionProblem::Finalize()
 #endif // DEBUG
 }
 
-IntVar & VersionProblem::GetPackageVersionVar(int packageId)
+IntVar VersionProblemOCIH::cost(void) const {
+  return total_disabled;
+}
+
+
+
+IntVar & VersionProblemOCIH::GetPackageVersionVar(int packageId)
 {
   if (packageId < cur_package) {
     return package_versions[packageId];
@@ -120,28 +138,33 @@ IntVar & VersionProblem::GetPackageVersionVar(int packageId)
   }
 }
 
-int VersionProblem::GetPackageVersion(int packageId) 
+int VersionProblemOCIH::GetPackageVersion(int packageId) 
 {
   IntVar & var = GetPackageVersionVar(packageId);
   if (1 == var.size()) return var.val();
   return UNRESOLVED_VARIABLE;
 }
-int VersionProblem::GetAFC(int packageId)
+bool VersionProblemOCIH::GetPackageDisabledState(int packageId) 
+{
+  return disabled_package_variables[packageId].val();
+}
+
+int VersionProblemOCIH::GetAFC(int packageId)
 {
   return GetPackageVersionVar(packageId).afc();
 }  
 
-int VersionProblem::GetMax(int packageId)
+int VersionProblemOCIH::GetMax(int packageId)
 {
   return GetPackageVersionVar(packageId).max();
 }
-int VersionProblem::GetMin(int packageId)
+int VersionProblemOCIH::GetMin(int packageId)
 {
   return GetPackageVersionVar(packageId).min();
 }
 
 // Utility
-void VersionProblem::Print(std::ostream & out) 
+void VersionProblemOCIH::Print(std::ostream & out) 
 {
   out << "Version problem dump: " << cur_package << "/" << package_versions.size() << " packages used/allocated" << std::endl;
   for (int i = 0; i < cur_package; i++) {
@@ -154,30 +177,31 @@ void VersionProblem::Print(std::ostream & out)
 
 // TODO: Validate package ids !
 
-void VersionProblem::PrintPackageVar(std::ostream & out, int packageId) 
+void VersionProblemOCIH::PrintPackageVar(std::ostream & out, int packageId) 
 {
   // Hack Alert: we could have the package variable in one of two places, but we don't clearly distinguish where.
   IntVar & var = GetPackageVersionVar(packageId);
   out << "PackageId: " << packageId <<  " Sltn: " << var.min() << " - " << var.max() << " afc: " << var.afc();
+  out << " disabled: " << disabled_package_variables[packageId].min() << " - " << disabled_package_variables[packageId].max();
 }
 
-bool VersionProblem::CheckPackageId(int id) 
+bool VersionProblemOCIH::CheckPackageId(int id) 
 {
   return (id < package_versions.size());
 }
 
-VersionProblem * VersionProblem::Solve(VersionProblem * problem) 
+VersionProblemOCIH * VersionProblemOCIH::Solve(VersionProblemOCIH * problem) 
 {
   problem->Finalize();
   problem->status();
 #ifdef DEBUG
   problem->Print(std::cout);
 #endif //DEBUG
-  DFS<VersionProblem> solver(problem);
+  Restart<VersionProblemOCIH> solver(problem);
   
   // std::cout << solver.statistics();
 
-  if (VersionProblem * solution = solver.next())
+  if (VersionProblemOCIH * solution = solver.next())
     {
       return solution;
     }
@@ -185,6 +209,15 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
 }
 
 
+//
+// 
+//
+
+
+
+//
+// Version Problem
+//
 //
 // 
 //
