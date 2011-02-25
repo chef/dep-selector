@@ -79,9 +79,9 @@ module DepSelector
     end
 
     def solve()
-      solution = Dep_gecode.Solve(gecode_problem)
-      raise Exceptions::NoSolutionFound.new(solution) if package_disabled_count > 0
-      GecodeWrapper.new(solution)
+      solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem))
+      raise Exceptions::NoSolutionFound.new(solution) if solution.package_disabled_count > 0
+      solution
     end
 
   end
