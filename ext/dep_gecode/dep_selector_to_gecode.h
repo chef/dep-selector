@@ -49,6 +49,7 @@ class VersionProblem : public MinimizeSpace
   int GetAFC(int packageId);
   int GetMax(int packageId);
   int GetMin(int packageId);
+  int GetDisabledVariableCount();
   
   // Support for gecode
   virtual Space* copy(bool share);

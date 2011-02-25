@@ -12,9 +12,8 @@
 
 #undef DEBUG
 
-const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
-
 using namespace Gecode;
+const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
 
 VersionProblem::VersionProblem(int packageCount)
   : finalized(false), cur_package(0), package_versions(*this, packageCount), 
@@ -146,7 +145,7 @@ int VersionProblem::GetPackageVersion(int packageId)
 }
 bool VersionProblem::GetPackageDisabledState(int packageId) 
 {
-  return disabled_package_variables[packageId].val();
+  return disabled_package_variables[packageId].val() == 1;
 }
 
 int VersionProblem::GetAFC(int packageId)
@@ -162,6 +161,16 @@ int VersionProblem::GetMin(int packageId)
 {
   return GetPackageVersionVar(packageId).min();
 }
+
+int VersionProblem::GetDisabledVariableCount()
+{
+  if (total_disabled.min() == total_disabled.max()) {
+    return total_disabled.min();
+  } else {
+    return UNRESOLVED_VARIABLE;
+  }
+}
+  
 
 // Utility
 void VersionProblem::Print(std::ostream & out) 
@@ -182,7 +191,13 @@ void VersionProblem::PrintPackageVar(std::ostream & out, int packageId)
   // Hack Alert: we could have the package variable in one of two places, but we don't clearly distinguish where.
   IntVar & var = GetPackageVersionVar(packageId);
   out << "PackageId: " << packageId <<  " Sltn: " << var.min() << " - " << var.max() << " afc: " << var.afc();
-  out << " disabled: " << disabled_package_variables[packageId].min() << " - " << disabled_package_variables[packageId].max();
+  
+  out << " disabled: ";
+  if (disabled_package_variables[packageId].min() == disabled_package_variables[packageId].max()) {
+    out << disabled_package_variables[packageId].min();
+  } else {
+    out << disabled_package_variables[packageId].min() << " - " << disabled_package_variables[packageId].max();
+  }
 }
 
 bool VersionProblem::CheckPackageId(int id) 

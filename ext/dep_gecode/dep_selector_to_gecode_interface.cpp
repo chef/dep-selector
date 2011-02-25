@@ -64,6 +64,11 @@ int GetPackageVersion(VersionProblem *problem, int packageId)
   problem->GetPackageVersion(packageId);
 }
 
+bool GetPackageDisabledState(VersionProblem *problem, int packageId)
+{
+  problem->GetPackageDisabledState(packageId);
+}
+
 int GetPackageAFC(VersionProblem *problem, int packageId)
 {
   problem->GetAFC(packageId);
@@ -78,6 +83,12 @@ int GetPackageMin(VersionProblem *problem, int packageId)
 {
   problem->GetMin(packageId);
 }
+
+int GetDisabledVariableCount(VersionProblem *problem)
+{
+  problem->GetDisabledVariableCount();
+}
+
 
 VersionProblem * Solve(VersionProblem * problem)  {
   return VersionProblem::Solve(problem);

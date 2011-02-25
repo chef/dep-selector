@@ -54,6 +54,10 @@ module DepSelector
     def get_package_version(package_id)
       Dep_gecode.GetPackageVersion(gecode_problem, package_id)
     end
+    def is_package_disabled?(package_id)
+      Dep_gecode.GetPackageDisabledState(package_id);
+    end
+    
     def get_package_afc(package_id) 
       Dep_gecode.GetPackageAFC(gecode_problem, package_id)
     end
@@ -70,11 +74,13 @@ module DepSelector
       Dep_gecode.VersionProblemPrintPackageVar(gecode_problem, package_id)
     end
 
+    def package_disabled_count
+      Dep_gecode.GetDisabledVariableCount(gecode_problem)
+    end
+
     def solve()
       solution = Dep_gecode.Solve(gecode_problem)
-      # TODO: communicate solution stats here (most constrained var,
-      # etc.) here. Maybe needs to be a different exception.
-      raise Exceptions::NoSolutionFound.new(gecode_problem) unless solution
+      raise Exceptions::NoSolutionFound.new(solution) if package_disabled_count > 0
       GecodeWrapper.new(solution)
     end
 
