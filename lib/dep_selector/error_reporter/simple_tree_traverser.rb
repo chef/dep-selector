@@ -87,14 +87,14 @@ module DepSelector
         path.map do |step|
           if step.respond_to? :version
             "(#{step.package.name} = #{step.version})"
+          elsif step.respond_to? :constraint
+            step.to_s
+          elsif step.kind_of?(Array)
+            # TODO [cw, 2011/2/23]: consider detecting complete
+            # ranges here instead of calling each out individually
+            "(#{step.first.package.name} = {#{step.map{|elt| "#{elt.version}"}.join(',')}})"
           else
-            if step.kind_of?(Array)
-              # TODO [cw, 2011/2/23]: consider detecting complete
-              # ranges here instead of calling each out individually
-              "(#{step.first.package.name} = {#{step.map{|elt| "#{elt.version}"}.join(',')}})"
-            else
-              step.to_s
-            end
+            raise "don't know how to print step"
           end
         end
       end
@@ -119,8 +119,9 @@ module DepSelector
 
         # lengths are equal, so find the first path element where
         # curr_collapsed_path and path_under_consideration diverge, if
-        # that is the only unequal element and it's for the same
-        # package, then merge; otherwise, this is a new path
+        # that is the only unequal element, it's for the same package,
+        # and they are both PackageVersion objects then merge;
+        # otherwise, this is a new path
         #
         # TODO [cw,2011/2/7]: should we merge even if they're not for
         # the same package?
@@ -131,7 +132,9 @@ module DepSelector
           if path_element != curr_collapsed_path[curr_idx]
             unless unequal_idx
               merged_set = [curr_collapsed_path[curr_idx]].flatten
-              if merged_set.first.package == path_element.package
+              if merged_set.first.package == path_element.package &&
+                  merged_set.first.is_a?(PackageVersion) &&
+                  path_element.is_a?(PackageVersion)
                 merged_set << path_element
               else
                 mergeable = false
