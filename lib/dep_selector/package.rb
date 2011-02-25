@@ -76,6 +76,13 @@ module DepSelector
     end
 
     def generate_gecode_wrapper_constraints
+      # if this is a valid package (has versions), we don't need to
+      # explicitly call gecode_package_id, because they will do it for
+      # us; however, if this package isn't valid (it only exists as an
+      # invalid dependency and thus has no versions), the solver gets
+      # confused, because we won't have generated its package id by
+      # the time it starts solving.
+      gecode_package_id
       versions.each{|version| version.generate_gecode_wrapper_constraints }
     end
 
