@@ -32,7 +32,7 @@ module DepSelector
     def find_solution(solution_constraints, bottom = ObjectiveFunction::MinusInfinity,  &block)
       begin
         # first, try to solve the whole set of constraints
-        solve(solution_constraints, bottom, &block)
+        solve(dep_graph.clone, solution_constraints, bottom, &block)
       rescue Exceptions::NoSolutionFound
         # since we're here, solving the whole system failed, so add
         # the solution_constraints one-by-one and try to solve in
@@ -46,10 +46,17 @@ module DepSelector
         # propagations. This will require separating setting up the
         # constraints from searching for the solution.
         solution_constraints.each_index do |idx|
+          workspace = dep_graph.clone
           begin
-            solve(solution_constraints[0..idx], bottom, &block)
-          rescue Exceptions::NoSolutionFound
-            most_constrained_package = dep_graph.package('X') # TODO: FOR TESTING ONLY!
+            solve(workspace, solution_constraints[0..idx], bottom, &block)
+          rescue Exceptions::NoSolutionFound => nsf
+            # pick the first package whose constraints had to be
+            # disabled in order to find a solution and generate
+            # feedback for it
+            most_constrained_package =
+              workspace.packages.find do |name, pkg|
+                nsf.unsatisfiable_problem.is_package_disabled?(pkg.gecode_package_id)
+            end.last
             feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx, most_constrained_package)
             raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx])
           end
@@ -59,11 +66,10 @@ module DepSelector
 
     private
 
-    # Clones the dependency graph, applies the solution_constraints,
-    # and attempts to find a solution.
-    def solve(solution_constraints, bottom = ObjectiveFunction::MinusInfinity, &block)
-      workspace = dep_graph.clone
-
+    # Given a workspace (a clone of the dependency graph) and an array
+    # of SolutionConstraints, this method attempts to find a
+    # satisfiable set of <Package, Version> pairs
+    def solve(workspace, solution_constraints, bottom = ObjectiveFunction::MinusInfinity, &block)
       # generate constraints imposed by the dependency graph
       workspace.generate_gecode_wrapper_constraints
 

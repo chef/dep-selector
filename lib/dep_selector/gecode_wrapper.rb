@@ -55,7 +55,7 @@ module DepSelector
       Dep_gecode.GetPackageVersion(gecode_problem, package_id)
     end
     def is_package_disabled?(package_id)
-      Dep_gecode.GetPackageDisabledState(package_id);
+      Dep_gecode.GetPackageDisabledState(gecode_problem, package_id);
     end
     
     def get_package_afc(package_id) 
