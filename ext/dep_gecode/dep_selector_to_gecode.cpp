@@ -176,6 +176,7 @@ int VersionProblem::GetDisabledVariableCount()
 void VersionProblem::Print(std::ostream & out) 
 {
   out << "Version problem dump: " << cur_package << "/" << package_versions.size() << " packages used/allocated" << std::endl;
+  out << "Total Disabled variables: " << total_disabled.min() << " - " << total_disabled.max() << std::endl;
   for (int i = 0; i < cur_package; i++) {
     out << "\t";
     PrintPackageVar(out, i);
