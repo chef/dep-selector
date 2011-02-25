@@ -257,7 +257,7 @@ describe DepSelector::Selector do
                       })
     end
 
-    it "should find a solution regardless of the dependency graph having a packages with a dependency constrained to a range that includes no packages" do
+    it "should find a solution regardless of the dependency graph having a package with a dependency constrained to a range that includes no packages" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, simple_cookbook_version_constraint)
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
@@ -277,7 +277,7 @@ describe DepSelector::Selector do
                       })
     end
 
-    it "fails to find a solution when a solution constraint constraints a package to a range that includes no versions" do
+    it "fails to find a solution when a solution constraint constrains a package to a range that includes no versions" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
       selector = DepSelector::Selector.new(dep_graph)
