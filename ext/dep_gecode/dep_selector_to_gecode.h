@@ -1,5 +1,5 @@
-#ifndef dep_selector_to_gecode_h
-#define dep_selector_to_gecode_h
+#ifndef version_problem_oc_ih_h
+#define version_problem_oc_ih_h
 
 #include "dep_selector_to_gecode_interface.h"
 #include <iostream>	       
@@ -21,7 +21,7 @@ using namespace Gecode;
 // Add optimization functions
 // Allow non-contiguous ranges in package dependencies. 
 
-class VersionProblem : public Script
+class VersionProblem : public MinimizeSpace
 {
  public:
   static const int UNRESOLVED_VARIABLE;
@@ -42,9 +42,10 @@ class VersionProblem : public Script
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
   void Finalize();
   
-
+  virtual IntVar cost(void) const;
 
   int GetPackageVersion(int packageId);
+  bool GetPackageDisabledState(int packageId);
   int GetAFC(int packageId);
   int GetMax(int packageId);
   int GetMin(int packageId);
@@ -56,7 +57,6 @@ class VersionProblem : public Script
   void Print(std::ostream &out);
   void PrintPackageVar(std::ostream & out, int packageId) ;
 
-
   static VersionProblem *Solve(VersionProblem *problem);
 
  protected:
@@ -66,6 +66,8 @@ class VersionProblem : public Script
   //  std::vector<int> test;
   BoolVarArgs version_flags;
   IntVarArray package_versions;
+  BoolVarArray disabled_package_variables;
+  IntVar total_disabled;
 };
 
 class Solver {
@@ -73,8 +75,7 @@ class Solver {
   Solver(VersionProblem *s);
   VersionProblem GetNextSolution();
  private:
-  DFS<VersionProblem> solver;
+  Restart<VersionProblem> solver;
 };
-
 
 #endif dep_selector_to_gecode_h

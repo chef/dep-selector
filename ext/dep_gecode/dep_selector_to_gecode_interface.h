@@ -7,35 +7,35 @@ extern "C" {
 #endif __cplusplus
 
 #ifdef __cplusplus
-  class VersionProblemOCIH;
+  class VersionProblem;
 #else
-  typedef struct VersionProblemOCIH VersionProblemOCIH;
+  typedef struct VersionProblem VersionProblem;
 #endif
 
-  VersionProblemOCIH * VersionProblemCreate(int packageCount);
-  void VersionProblemDestroy(VersionProblemOCIH * vp);
+  VersionProblem * VersionProblemCreate(int packageCount);
+  void VersionProblemDestroy(VersionProblem * vp);
 
 
-  int VersionProblemSize(VersionProblemOCIH *p);
-  int VersionProblemPackageCount(VersionProblemOCIH *p);
+  int VersionProblemSize(VersionProblem *p);
+  int VersionProblemPackageCount(VersionProblem *p);
 
   // Return ID #
-  int AddPackage(VersionProblemOCIH *problem, int min, int max, int currentVersion);
+  int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
   // Add constraint for package pkg @ version, 
   // that dependentPackage is at version [minDependentVersion,maxDependentVersion]
   // Returns false if system becomes insoluble.
-  bool AddVersionConstraint(VersionProblemOCIH *problem, int packageId, int version, 
+  bool AddVersionConstraint(VersionProblem *problem, int packageId, int version, 
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 
-  int GetPackageVersion(VersionProblemOCIH *problem, int packageId);
-  int GetPackageAFC(VersionProblemOCIH *problem, int packageId);
-  int GetPackageMax(VersionProblemOCIH *problem, int packageId);
-  int GetPackageMin(VersionProblemOCIH *problem, int packageId);
+  int GetPackageVersion(VersionProblem *problem, int packageId);
+  int GetPackageAFC(VersionProblem *problem, int packageId);
+  int GetPackageMax(VersionProblem *problem, int packageId);
+  int GetPackageMin(VersionProblem *problem, int packageId);
 
-  void VersionProblemDump(VersionProblemOCIH * problem);
-  void VersionProblemPrintPackageVar(VersionProblemOCIH * problem, int packageId);
+  void VersionProblemDump(VersionProblem * problem);
+  void VersionProblemPrintPackageVar(VersionProblem * problem, int packageId);
 
-  VersionProblemOCIH * Solve(VersionProblemOCIH * problem);
+  VersionProblem * Solve(VersionProblem * problem);
 
 #ifdef __cplusplus
 }
