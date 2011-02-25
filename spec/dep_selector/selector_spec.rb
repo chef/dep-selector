@@ -220,18 +220,20 @@ describe DepSelector::Selector do
     it "and indicates which solution constraint makes the system unsatisfiable if there is no solution" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, simple_cookbook_version_constraint_2)
+      setup_constraint(dep_graph, padding_packages)
       selector = DepSelector::Selector.new(dep_graph)
       unsatisfiable_solution_constraints =
         setup_soln_constraints(dep_graph,
                                [
                                 ["A"],
-                                ["C", "= 3.0.0"]
+                                ["C", "= 3.0.0"],
+                                ["padding1"]
                                ])
       begin
         selector.find_solution(unsatisfiable_solution_constraints)
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
-        nse.unsatisfiable_constraint.should == unsatisfiable_solution_constraints.last
+        nse.unsatisfiable_constraint.should == unsatisfiable_solution_constraints[1]
       end
     end
 
