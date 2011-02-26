@@ -14,6 +14,7 @@
 
 using namespace Gecode;
 const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
+const int VersionProblem::MIN_TRUST_LEVEL = 0;
 const int VersionProblem::MAX_TRUST_LEVEL = 10;
 
 VersionProblem::VersionProblem(int packageCount)
@@ -98,7 +99,7 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
 void
 VersionProblem::MarkPackageSuspicious(int packageId, int trustLevel) 
 {
-  disabled_package_weights[packageId] = std::min(disabled_package_weights[packageId], trustLevel);
+  disabled_package_weights[packageId] = std::max(MIN_TRUST_LEVEL, std::min(disabled_package_weights[packageId], trustLevel));
 }
 
 void VersionProblem::Finalize() 

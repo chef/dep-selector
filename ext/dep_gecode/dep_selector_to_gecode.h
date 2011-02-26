@@ -25,6 +25,7 @@ class VersionProblem : public MinimizeSpace
 {
  public:
   static const int UNRESOLVED_VARIABLE;
+  static const int MIN_TRUST_LEVEL;  
   static const int MAX_TRUST_LEVEL;
 
   VersionProblem(int packageCount);
