@@ -25,7 +25,7 @@ module VersionConstraints
                             ["A", "= 1.0.0"],
                             ["B", "= 1.0.0"]
                            ],
-    :solution =>  nil
+    :solution =>  {'A'=>'1.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'}
   }
    
   Simple_cookbook_version_constraint_2 =

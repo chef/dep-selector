@@ -165,9 +165,13 @@ describe Dep_gecode do
     # solve and interrogate problem
     new_problem = Dep_gecode.Solve(@problem)
 
-    new_problem.should == nil
+    new_problem.should_not == nil
 
-    check_solution(new_problem, @pkg_name_to_id, @dep_graph, nil).should == true
+    Dep_gecode.VersionProblemDump(new_problem)
+
+    check_solution(new_problem, @pkg_name_to_id, @dep_graph, nil
+                   
+                   ).should == true
 
     Dep_gecode.VersionProblemDestroy(@problem);
   end
