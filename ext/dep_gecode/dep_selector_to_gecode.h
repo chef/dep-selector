@@ -25,6 +25,7 @@ class VersionProblem : public MinimizeSpace
 {
  public:
   static const int UNRESOLVED_VARIABLE;
+  static const int MAX_TRUST_LEVEL;
 
   VersionProblem(int packageCount);
   // Clone constructor; check gecode rules for this...
@@ -40,6 +41,14 @@ class VersionProblem : public MinimizeSpace
 
   virtual bool AddVersionConstraint(int packageId, int version, 
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
+
+  // We may wish to indicate that some packages have suspicious constraints, and when chosing packages to disable we 
+  // would disable them first. 
+  // Trust level 10 is fully trusted, while 0is completely untrusted.
+  // 0 makes it free to disable a package, while 10 is the default full trust.
+  void MarkPackageSuspicious(int packageId, int trustLevel);
+
+
   void Finalize();
   
   virtual IntVar cost(void) const;
@@ -61,6 +70,7 @@ class VersionProblem : public MinimizeSpace
   static VersionProblem *Solve(VersionProblem *problem);
 
  protected:
+  int size;
   int cur_package;
   bool CheckPackageId(int id);
   bool finalized;
@@ -69,6 +79,8 @@ class VersionProblem : public MinimizeSpace
   IntVarArray package_versions;
   BoolVarArray disabled_package_variables;
   IntVar total_disabled;
+
+  int * disabled_package_weights;
 };
 
 class Solver {

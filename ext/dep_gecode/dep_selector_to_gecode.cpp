@@ -10,21 +10,26 @@
 #include <iostream>
 #include <vector>
 
-#undef DEBUG
+#define DEBUG
 
 using namespace Gecode;
 const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
+const int VersionProblem::MAX_TRUST_LEVEL = 10;
 
 VersionProblem::VersionProblem(int packageCount)
-  : finalized(false), cur_package(0), package_versions(*this, packageCount), 
-    disabled_package_variables(*this, packageCount, 0, 1), total_disabled(*this, 0, packageCount)
+  : size(packageCount), finalized(false), cur_package(0), package_versions(*this, packageCount), 
+    disabled_package_variables(*this, packageCount, 0, 1), total_disabled(*this, 0, packageCount*MAX_TRUST_LEVEL),
+    disabled_package_weights(new int[packageCount])
 {
+  for (int i = 0; i < packageCount; i++) 
+    disabled_package_weights[i] = MAX_TRUST_LEVEL;  
 }
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
   : MinimizeSpace(share, s),
     finalized(s.finalized), cur_package(s.cur_package),
-    disabled_package_variables(s.disabled_package_variables), total_disabled(s.total_disabled)
+    disabled_package_variables(s.disabled_package_variables), total_disabled(s.total_disabled),
+    disabled_package_weights(NULL)
 {
   package_versions.update(*this, share, s.package_versions);
   disabled_package_variables.update(*this, share, s.disabled_package_variables);
@@ -39,12 +44,12 @@ Space* VersionProblem::copy(bool share)
 
 VersionProblem::~VersionProblem() 
 {
-
+  delete[] disabled_package_weights;
 }
 
 int VersionProblem::Size() 
 {
-  return package_versions.size();
+  return size;
 }
 
 int VersionProblem::PackageCount() 
@@ -55,12 +60,12 @@ int VersionProblem::PackageCount()
 int
 VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion) 
 {
-  if (cur_package == package_versions.size()) {
+  if (cur_package == size) {
     return -1;
   }
 
 #ifdef DEBUG
-  std::cout << cur_package << '/' << package_versions.size() << ":" << minVersion << ", " << maxVersion << ", " << currentVersion << std::endl;
+  std::cout << cur_package << '/' << size << ":" << minVersion << ", " << maxVersion << ", " << currentVersion << std::endl;
   std::cout.flush();    
 #endif // DEBUG
   int index = cur_package;
@@ -72,7 +77,7 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
 
 bool 
 VersionProblem::AddVersionConstraint(int packageId, int version, 
-							int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
+				     int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
 {
   BoolVar version_match(*this, 0, 1);
   BoolVar depend_match(*this, 0, 1);
@@ -90,6 +95,11 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
   rel(*this, version_match, BOT_IMP, predicated_depend_match, 1);  
 }
 
+void
+VersionProblem::MarkPackageSuspicious(int packageId, int trustLevel) 
+{
+  disabled_package_weights[packageId] = std::min(disabled_package_weights[packageId], trustLevel);
+}
 
 void VersionProblem::Finalize() 
 {
@@ -98,16 +108,25 @@ void VersionProblem::Finalize()
   std::cout.flush();
 #endif // DEBUG
   finalized = true;
+
   // Setup constraint for cost
-  linear(*this, disabled_package_variables, IRT_EQ, total_disabled);
+  //  linear(*this, disabled_package_weights, disabled_package_variables,  IRT_EQ, total_disabled);
+  IntArgs package_weights(size, disabled_package_weights);
+  //IntArgs package_weights = IntArgs::create(size, 1, 0);
+
+#ifdef DEBUG
+  std::cout << "Package weights " << package_weights << std::endl;
+#endif DEBUG
+  linear(*this, package_weights, disabled_package_variables,  IRT_EQ, total_disabled);
+  // linear(*this, disabled_package_variables,  IRT_EQ, total_disabled);
 
   // Assign a dummy variable to elements greater than actually used.
-  for (int i = cur_package; i < package_versions.size(); i++) {
+  for (int i = cur_package; i < size; i++) {
     package_versions[i] = IntVar(*this, -1, -1);
     disabled_package_variables[i] = BoolVar(*this, 1, 1);
   }
 #ifdef DEBUG
-  std::cout << "Branch Started" << std::endl;
+  std::cout << "Adding branching" << std::endl;
   std::cout.flush();
 #endif // DEBUG
   branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
@@ -176,7 +195,7 @@ int VersionProblem::GetDisabledVariableCount()
 // Utility
 void VersionProblem::Print(std::ostream & out) 
 {
-  out << "Version problem dump: " << cur_package << "/" << package_versions.size() << " packages used/allocated" << std::endl;
+  out << "Version problem dump: " << cur_package << "/" << size << " packages used/allocated" << std::endl;
   out << "Total Disabled variables: " << total_disabled.min() << " - " << total_disabled.max() << std::endl;
   for (int i = 0; i < cur_package; i++) {
     out << "\t";
@@ -204,7 +223,7 @@ void VersionProblem::PrintPackageVar(std::ostream & out, int packageId)
 
 bool VersionProblem::CheckPackageId(int id) 
 {
-  return (id < package_versions.size());
+  return (id < size);
 }
 
 VersionProblem * VersionProblem::Solve(VersionProblem * problem) 
@@ -212,14 +231,21 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   problem->Finalize();
   problem->status();
 #ifdef DEBUG
+  std::cout << "Before solve" << std::endl;
   problem->Print(std::cout);
 #endif //DEBUG
+
   Restart<VersionProblem> solver(problem);
   
   // std::cout << solver.statistics();
 
   if (VersionProblem * solution = solver.next())
     {
+#ifdef DEBUG
+      std::cout << "Solution:" << std::endl;
+      solution->Print(std::cout);
+#endif //DEBUG
+            
       return solution;
     }
   return 0;

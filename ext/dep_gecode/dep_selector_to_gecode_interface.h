@@ -27,6 +27,8 @@ extern "C" {
   bool AddVersionConstraint(VersionProblem *problem, int packageId, int version, 
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 
+  void MarkPackageSuspicious(VersionProblem *problem, int packageId, int trustLevel);
+
   int GetPackageVersion(VersionProblem *problem, int packageId);
   bool GetPackageDisabledState(VersionProblem *problem, int packageId);
 

@@ -75,11 +75,13 @@ module DepSelector
     end
 
     def package_disabled_count
+      raise "Gecode internal failure" if gecode_problem.nil?
       Dep_gecode.GetDisabledVariableCount(gecode_problem)
     end
 
     def solve()
       solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem))
+      raise "Gecode internal failure" if (solution.nil?)
       raise Exceptions::NoSolutionFound.new(solution) if solution.package_disabled_count > 0
       solution
     end
