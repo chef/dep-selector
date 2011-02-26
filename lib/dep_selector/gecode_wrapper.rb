@@ -50,6 +50,13 @@ module DepSelector
       min = min_dependent_version || NoMatchConstraint
       max = max_dependent_version || NoMatchConstraint
       Dep_gecode.AddVersionConstraint(gecode_problem, package_id, version, dependent_package_id, min, max)
+
+      # if the package was constrained to no versions, hint to the
+      # solver that in the event of failure, it should prefer to
+      # indicate constraints on dependent_package_id as the culprit
+      if min == NoMatchConstraint && max == NoMatchConstraint
+        Dep_gecode.MarkPackageSuspicious(gecode_problem, dependent_package_id, 1)
+      end
     end
     def get_package_version(package_id)
       Dep_gecode.GetPackageVersion(gecode_problem, package_id)

@@ -50,6 +50,22 @@ moderate_cookbook_version_constraint_2 =
    {"key"=>["F", "1.0"], "value"=>{}},
   ]
 
+moderate_cookbook_version_constraint_3 =
+  [{"key"=>["a", "1.0"], "value"=>{"c"=>"< 4.0"}},
+   {"key"=>["b", "1.0"], "value"=>{"c"=>"< 3.0"}},
+   {"key"=>["c", "2.0"], "value"=>{"d"=>"> 1.0", "f"=>nil}},
+   {"key"=>["c", "3.0"], "value"=>{"d"=>"> 2.0", "e"=>nil}},
+   {"key"=>["d", "1.1"], "value"=>{}},
+   {"key"=>["d", "2.1"], "value"=>{}},
+   {"key"=>["e", "1.0"], "value"=>{}},
+   {"key"=>["f", "1.0"], "value"=>{}},
+   {"key"=>["g", "1.0"], "value"=>{"d"=>"> 5.0"}},
+   {"key"=>["n", "1.1"], "value"=>{}},
+   {"key"=>["n", "1.2"], "value"=>{}},
+   {"key"=>["n", "1.10"], "value"=>{}},
+   {"key"=>["depends_on_nosuch", "1.0"], "value"=>{"nosuch"=>nil}}
+  ]
+
 padding_packages =
   [{"key"=>["padding1", "1.0"], "value"=>{}},
    {"key"=>["padding2", "1.0"], "value"=>{}}
@@ -440,6 +456,23 @@ describe DepSelector::Selector do
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
         nse.unsatisfiable_constraint.to_s.should == solution_constraints[1].to_s
+      end
+    end
+
+    it "should indicate that the problematic package is the dependency that is constrained to no versions" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, moderate_cookbook_version_constraint_3)
+      selector = DepSelector::Selector.new(dep_graph)
+      unsatisfiable_solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["g"]
+                               ])
+      begin
+        selector.find_solution(unsatisfiable_solution_constraints)
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.message.should == "Unable to satisfy constraints on package d due to solution constraint (g >= 0.0.0)"
       end
     end
 
