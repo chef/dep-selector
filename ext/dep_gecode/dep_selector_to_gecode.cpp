@@ -27,7 +27,7 @@ VersionProblem::VersionProblem(int packageCount)
 }
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
-  : MinimizeSpace(share, s),
+  : MinimizeSpace(share, s), size(s.size),
     finalized(s.finalized), cur_package(s.cur_package),
     disabled_package_variables(s.disabled_package_variables), total_disabled(s.total_disabled),
     disabled_package_weights(NULL)
