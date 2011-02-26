@@ -84,6 +84,13 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
   BoolVar depend_match(*this, 0, 1);
   BoolVar predicated_depend_match(*this, 0, 1);
 
+#ifdef DEBUG
+  std::cout << "Add VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId;
+  std::cout << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
+  std::cout.flush();
+#endif // DEBUG
+
+
   //version_flags << version_match;
   // Constrain pred to reify package @ version
   rel(*this, package_versions[packageId], IRT_EQ, version, version_match);
