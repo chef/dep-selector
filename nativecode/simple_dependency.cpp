@@ -13,7 +13,7 @@ using namespace Gecode;
 
 class SimpleDependency : public MinimizeScript {
 protected:
-  static const int PKG_COUNT = 10;
+  static const int PKG_COUNT = 11;
   
   IntVarArray package_versions;
   IntArgs disabled_package_weights; 
@@ -26,11 +26,36 @@ public:
     disabled_package_variables(*this, PKG_COUNT, 0, 1),
     total_disabled(*this, 0, 10*PKG_COUNT)  
   {
+    Problem2();
 
+    branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
+    branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
+    branch(*this, total_disabled, INT_VAL_MIN);
+  }
+
+  void Problem1() {
     // Add version constraints for pkg 0
-    AddVersionConstraint(0, 0, 1, 1, 5);
-    AddVersionConstraint(0, 1, 1, 2, 5);
-    //    AddVersionConstraint(0,
+    dom(*this, package_versions[0], -1, 0);
+    dom(*this, package_versions[1], -1, 0);
+    dom(*this, package_versions[2], -1, 0);
+    dom(*this, package_versions[3], -1, 1);
+    dom(*this, package_versions[4], -1, 0);
+    dom(*this, package_versions[5], -1, 0);
+    dom(*this, package_versions[6], -1, 2);
+    dom(*this, package_versions[7], -1, 0);
+    dom(*this, package_versions[8], -1, 0);
+    dom(*this, package_versions[9], -1, -1);
+    dom(*this, package_versions[10], 0, 0);
+
+    AddVersionConstraint(0, 0, 1, 0, 1);
+    AddVersionConstraint(2, 0, 1, 0, 0);
+    AddVersionConstraint(1, 0, 3, 0, 1);
+    AddVersionConstraint(1, 0, 4, 0, 0);
+    AddVersionConstraint(1, 1, 3, 1, 1);
+    AddVersionConstraint(1, 1, 5, 0, 0);
+    AddVersionConstraint(7, 0, 3, -2, -2);
+    AddVersionConstraint(8, 0, 9, -2, -2);
+    AddVersionConstraint(10, 0, 7, 0, 0);
  
     IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 10, 10, 10 );
 
@@ -40,11 +65,43 @@ public:
     std::cout << "Total disabled:             " << total_disabled << std::endl;
 
     linear(*this, disabled_package_variables, IRT_EQ, total_disabled);
-    
-    branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
-    branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MAX);
-    branch(*this, total_disabled, INT_VAL_MIN);
   }
+
+
+  void Problem2() {
+    // Add version constraints for pkg 0
+    dom(*this, package_versions[0], -1, 0);
+    dom(*this, package_versions[1], -1, 0);
+    dom(*this, package_versions[2], -1, 0);
+    dom(*this, package_versions[3], -1, 1);
+    dom(*this, package_versions[4], -1, 0);
+    dom(*this, package_versions[5], -1, 0);
+    dom(*this, package_versions[6], -1, 2);
+    dom(*this, package_versions[7], -1, 0);
+    dom(*this, package_versions[8], -1, 0);
+    dom(*this, package_versions[9], -1, -1);
+    dom(*this, package_versions[10], 0, 0);
+
+    AddVersionConstraint(0, 0, 1, 0, 1);
+    AddVersionConstraint(2, 0, 1, 0, 0);
+    AddVersionConstraint(1, 0, 3, 0, 1);
+    AddVersionConstraint(1, 0, 4, 0, 0);
+    AddVersionConstraint(1, 1, 3, 1, 1);
+    AddVersionConstraint(1, 1, 5, 0, 0);
+    AddVersionConstraint(7, 0, 3, -2, -2);
+    AddVersionConstraint(8, 0, 9, -2, -2);
+    AddVersionConstraint(10, 0, 7, 0, 0);
+ 
+    IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 10, 10, 10 );
+
+    std::cout << "Package versions:           " << package_versions << std::endl;
+    std::cout << "Disabled package variables: " << disabled_package_variables << std::endl;
+    std::cout << "Package weights             " << package_weights << std::endl;
+    std::cout << "Total disabled:             " << total_disabled << std::endl;
+
+    linear(*this, package_weights, disabled_package_variables, IRT_EQ, total_disabled);
+  }
+
 
   bool AddVersionConstraint(int packageId, int version, 
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
