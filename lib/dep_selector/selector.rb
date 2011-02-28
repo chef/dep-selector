@@ -72,10 +72,11 @@ module DepSelector
     def solve(workspace, solution_constraints, bottom = ObjectiveFunction::MinusInfinity, &block)
       # generate constraints imposed by the dependency graph
       workspace.generate_gecode_wrapper_constraints
+      workspace.each_package{|pkg| puts "package #{pkg.name}, id #{pkg.gecode_package_id}"}
 
       # create shadow package whose dependencies are the solution constraints
       soln_constraints_pkg_id = workspace.gecode_wrapper.add_package(0, 0, 0)
-
+      
       # generate constraints imposed by solution_constraints
       solution_constraints.each do |soln_constraint|
         # look up the package in the cloned dep_graph that corresponds to soln_constraint
