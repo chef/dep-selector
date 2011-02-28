@@ -26,7 +26,7 @@ public:
     disabled_package_variables(*this, PKG_COUNT, 0, 1),
     total_disabled(*this, 0, 10*PKG_COUNT)  
   {
-    Problem2();
+    Problem1();
 
     branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
@@ -34,6 +34,7 @@ public:
   }
 
   void Problem1() {
+    std::cout << "Setting up " << __FUNCTION__ << std::endl;
     // Add version constraints for pkg 0
     dom(*this, package_versions[0], -1, 0);
     dom(*this, package_versions[1], -1, 0);
@@ -69,6 +70,7 @@ public:
 
 
   void Problem2() {
+    std::cout << "Setting up " << __FUNCTION__ << std::endl;
     // Add version constraints for pkg 0
     dom(*this, package_versions[0], -1, 0);
     dom(*this, package_versions[1], -1, 0);
@@ -164,7 +166,8 @@ main(int argc, char* argv[]) {
   opt.solutions(0);
   opt.iterations(20000);
   opt.parse(argc,argv);
-  MaximizeScript::run<SimpleDependency,Restart,Options>(opt);
+  for (int i = 0; i < 1; i++) 
+    MinimizeScript::run<SimpleDependency,Restart,Options>(opt);
   return 0;
 }
 
