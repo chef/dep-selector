@@ -64,7 +64,7 @@ public:
     std::cout << "Package weights             " << package_weights << std::endl;
     std::cout << "Total disabled:             " << total_disabled << std::endl;
 
-    linear(*this, disabled_package_variables, IRT_EQ, total_disabled);
+    linear(*this, package_weights, disabled_package_variables, IRT_EQ, total_disabled);
   }
 
 
@@ -92,7 +92,7 @@ public:
     AddVersionConstraint(8, 0, 9, -2, -2);
     AddVersionConstraint(10, 0, 7, 0, 0);
  
-    IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 10, 10, 10 );
+    IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 5, 10, 10 );
 
     std::cout << "Package versions:           " << package_versions << std::endl;
     std::cout << "Disabled package variables: " << disabled_package_variables << std::endl;
