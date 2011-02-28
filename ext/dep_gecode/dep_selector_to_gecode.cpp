@@ -95,11 +95,14 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
   // Constrain pred to reify package @ version
   rel(*this, package_versions[packageId], IRT_EQ, version, version_match);
   // Add the predicated version constraints imposed on dependent package
+
+  // package_versions[dependendPackageId] in domain [minDependentVersion,maxDependentVersion] <=> depend_match
   dom(*this, package_versions[dependentPackageId], minDependentVersion, maxDependentVersion, depend_match);
 
   // disabled_package_variables[dependentPackageId] OR depend_match <=> predicated_depend_match
-  rel(*this, disabled_package_variables[dependentPackageId], BOT_OR, depend_match, predicated_depend_match);
+  // rel(*this, disabled_package_variables[dependentPackageId], BOT_OR, depend_match, version_match);
 
+  rel(*this, disabled_package_variables[dependentPackageId], BOT_OR, depend_match, predicated_depend_match);
   rel(*this, version_match, BOT_IMP, predicated_depend_match, 1);  
 }
 
