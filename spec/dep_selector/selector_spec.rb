@@ -472,7 +472,7 @@ describe DepSelector::Selector do
         selector.find_solution(unsatisfiable_solution_constraints)
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
-        nse.message.should == "Unable to satisfy constraints on package d due to solution constraint (g >= 0.0.0)"
+        nse.message.should == "Unable to satisfy constraints on package d due to solution constraint (g >= 0.0.0). Solution constraints that may result in a constraint on d: [(g = 1.0.0) -> (d > 5.0.0)]"
       end
     end
 
