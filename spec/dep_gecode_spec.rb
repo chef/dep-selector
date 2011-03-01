@@ -200,6 +200,54 @@ describe Dep_gecode do
     Dep_gecode.VersionProblemDestroy(@problem);
   end
 
+  it "should prefer to disable suspicious packages" do
+    # Note: this test is a lower-level version of the test in
+    # selector_spec titled "should indicate that the problematic
+    # package is the dependency that is constrained to no versions"
+    problem = Dep_gecode.VersionProblemCreate(11)
+
+    # setup dep graph
+    Dep_gecode.AddPackage(problem, -1, 0, 0);
+    Dep_gecode.AddPackage(problem, -1, 1, 0);
+    Dep_gecode.AddPackage(problem, -1, 0, 0);
+    Dep_gecode.AddPackage(problem, -1, 1, 0);
+    Dep_gecode.AddPackage(problem, -1, 0, 0);
+    Dep_gecode.AddPackage(problem, -1, 0, 0);
+    Dep_gecode.AddPackage(problem, -1, 2, 0);
+    Dep_gecode.AddPackage(problem, -1, 0, 0);
+    Dep_gecode.AddPackage(problem, -1, 0, 0);
+    Dep_gecode.AddPackage(problem, -1, -1, 0);
+    Dep_gecode.AddPackage(problem,  0, 0, 0);
+    Dep_gecode.AddVersionConstraint(problem, 0, 0, 1, 0, 1);
+    Dep_gecode.AddVersionConstraint(problem, 2, 0, 1, 0, 0);
+    Dep_gecode.AddVersionConstraint(problem, 1, 0, 3, 0, 1);
+    Dep_gecode.AddVersionConstraint(problem, 1, 0, 4, 0, 0);
+    Dep_gecode.AddVersionConstraint(problem, 1, 1, 3, 1, 1);
+    Dep_gecode.AddVersionConstraint(problem, 1, 1, 5, 0, 0);
+    Dep_gecode.AddVersionConstraint(problem, 7, 0, 3, -2, -2);
+    Dep_gecode.AddVersionConstraint(problem, 8, 0, 9, -2, -2);
+
+    # hint suspicious packages
+    Dep_gecode.MarkPackageSuspicious(problem, 3, 1)
+    Dep_gecode.MarkPackageSuspicious(problem, 9, 1)
+
+    # add solution constraints
+    Dep_gecode.AddVersionConstraint(problem, 10, 0, 7, 0, 0);
+
+    soln = Dep_gecode.Solve(problem)
+
+    # check that disabled packages are correct
+    expected_disabled_packages = [false, false, false, true, false, false, false, false, false, false, false].inject({}) do |acc, is_disabled|
+      acc["id #{acc.size}"] = is_disabled
+      acc
+    end
+    observed_disabled_packages = 0.upto(10).inject({}) do |acc, package_id|
+      acc["id #{package_id}"] = Dep_gecode.GetPackageDisabledState(soln, package_id)
+      acc
+    end
+    observed_disabled_packages.should == expected_disabled_packages
+  end
+  
 end
 
 
