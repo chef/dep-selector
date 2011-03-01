@@ -246,20 +246,26 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   problem->Print(std::cout);
 #endif //DEBUG
 
-  Restart<VersionProblem> solver(problem);
-  
-  // std::cout << solver.statistics();
+  BAB<VersionProblem> solver(problem);
 
-  if (VersionProblem * solution = solver.next())
+  VersionProblem *best_solution = NULL;
+  while (VersionProblem *solution = solver.next())
     {
+      if (best_solution != NULL) 
+	{
+	  delete best_solution;
+	}
+      best_solution = solution;
 #ifdef DEBUG
+      const Search::Statistics & stats = solver.statistics();
+      std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+      std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+      //      std::cout << stats << std::endl;
       std::cout << "Solution:" << std::endl;
       solution->Print(std::cout);
 #endif //DEBUG
-            
-      return solution;
     }
-  return 0;
+  return best_solution;
 }
 
 
