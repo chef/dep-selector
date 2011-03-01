@@ -28,16 +28,14 @@ public:
   {
     Problem2();
 
-    branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
+    branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, total_disabled, INT_VAL_MIN);
   }
 
-  void Problem1() {
-    std::cout << "Setting up " << __FUNCTION__ << std::endl;
-    // Add version constraints for pkg 0
+  void SetupDomain1() {
     dom(*this, package_versions[0], -1, 0);
-    dom(*this, package_versions[1], -1, 0);
+    dom(*this, package_versions[1], -1, 1);
     dom(*this, package_versions[2], -1, 0);
     dom(*this, package_versions[3], -1, 1);
     dom(*this, package_versions[4], -1, 0);
@@ -47,7 +45,9 @@ public:
     dom(*this, package_versions[8], -1, 0);
     dom(*this, package_versions[9], -1, -1);
     dom(*this, package_versions[10], 0, 0);
+  }
 
+  void SetupDependencies1() {
     AddVersionConstraint(0, 0, 1, 0, 1);
     AddVersionConstraint(2, 0, 1, 0, 0);
     AddVersionConstraint(1, 0, 3, 0, 1);
@@ -57,8 +57,15 @@ public:
     AddVersionConstraint(7, 0, 3, -2, -2);
     AddVersionConstraint(8, 0, 9, -2, -2);
     AddVersionConstraint(10, 0, 7, 0, 0);
+  }
+
+
+  void Problem1() {
+    std::cout << "Setting up " << __FUNCTION__ << std::endl;
+    SetupDomain1();
+    SetupDependencies1();
  
-    IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 10, 10, 10 );
+    IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 10, 10, 10, 10);
     linear(*this, package_weights, disabled_package_variables, IRT_EQ, total_disabled);
 
     std::cout << "Package versions:           " << package_versions << std::endl;
@@ -70,30 +77,12 @@ public:
 
   void Problem2() {
     std::cout << "Setting up " << __FUNCTION__ << std::endl;
-    // Add version constraints for pkg 0
-    dom(*this, package_versions[0], -1, 0);
-    dom(*this, package_versions[1], -1, 0);
-    dom(*this, package_versions[2], -1, 0);
-    dom(*this, package_versions[3], -1, 1);
-    dom(*this, package_versions[4], -1, 0);
-    dom(*this, package_versions[5], -1, 0);
-    dom(*this, package_versions[6], -1, 2);
-    dom(*this, package_versions[7], -1, 0);
-    dom(*this, package_versions[8], -1, 0);
-    dom(*this, package_versions[9], -1, -1);
-    dom(*this, package_versions[10], 0, 0);
-
-    AddVersionConstraint(0, 0, 1, 0, 1);
-    AddVersionConstraint(2, 0, 1, 0, 0);
-    AddVersionConstraint(1, 0, 3, 0, 1);
-    AddVersionConstraint(1, 0, 4, 0, 0);
-    AddVersionConstraint(1, 1, 3, 1, 1);
-    AddVersionConstraint(1, 1, 5, 0, 0);
-    AddVersionConstraint(7, 0, 3, -2, -2);
-    AddVersionConstraint(8, 0, 9, -2, -2);
-    AddVersionConstraint(10, 0, 7, 0, 0);
+    SetupDomain1();
+    SetupDependencies1();
  
-    IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 5, 10, 10 );
+    //    IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 5, 10, 10 );
+    //                                  0   1   2   3   4    5   6   7   8   9  10
+    IntArgs package_weights(PKG_COUNT, 10, 10, 10, 01, 10,  10, 10, 10, 10, 01, 10 );
     linear(*this, package_weights, disabled_package_variables, IRT_EQ, total_disabled);
 
     std::cout << "Package versions:           " << package_versions << std::endl;
@@ -165,7 +154,8 @@ main(int argc, char* argv[]) {
   opt.iterations(20000);
   opt.parse(argc,argv);
   for (int i = 0; i < 1; i++) 
-    MinimizeScript::run<SimpleDependency,Restart,Options>(opt);
+    //    MinimizeScript::run<SimpleDependency,Restart,Options>(opt);
+    MinimizeScript::run<SimpleDependency,BAB,Options>(opt);
   return 0;
 }
 
