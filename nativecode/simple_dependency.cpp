@@ -26,7 +26,7 @@ public:
     disabled_package_variables(*this, PKG_COUNT, 0, 1),
     total_disabled(*this, 0, 10*PKG_COUNT)  
   {
-    Problem1();
+    Problem2();
 
     branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
@@ -59,13 +59,12 @@ public:
     AddVersionConstraint(10, 0, 7, 0, 0);
  
     IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 10, 10, 10 );
+    linear(*this, package_weights, disabled_package_variables, IRT_EQ, total_disabled);
 
     std::cout << "Package versions:           " << package_versions << std::endl;
     std::cout << "Disabled package variables: " << disabled_package_variables << std::endl;
     std::cout << "Package weights             " << package_weights << std::endl;
     std::cout << "Total disabled:             " << total_disabled << std::endl;
-
-    linear(*this, package_weights, disabled_package_variables, IRT_EQ, total_disabled);
   }
 
 
@@ -95,13 +94,12 @@ public:
     AddVersionConstraint(10, 0, 7, 0, 0);
  
     IntArgs package_weights(PKG_COUNT, 10, 10, 10, 10, 10,  10, 10, 5, 10, 10 );
+    linear(*this, package_weights, disabled_package_variables, IRT_EQ, total_disabled);
 
     std::cout << "Package versions:           " << package_versions << std::endl;
     std::cout << "Disabled package variables: " << disabled_package_variables << std::endl;
     std::cout << "Package weights             " << package_weights << std::endl;
     std::cout << "Total disabled:             " << total_disabled << std::endl;
-
-    linear(*this, package_weights, disabled_package_variables, IRT_EQ, total_disabled);
   }
 
 
