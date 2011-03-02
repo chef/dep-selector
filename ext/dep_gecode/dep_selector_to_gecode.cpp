@@ -287,11 +287,12 @@ int VersionProblem::GetDisabledVariableCount()
 // Utility
 void VersionProblem::Print(std::ostream & out) 
 {
-  out << "Version problem dump: " << cur_package << "/" << size << " packages used/allocated" << std::endl;
-  out << "Total Disabled variables: " << total_disabled.min() << " - " << total_disabled.max() << std::endl;
-  out << "preferred_at_latest: " << preferred_at_latest << std::endl;
+  out << "Version problem dump:      " << cur_package << "/" << size << " packages used/allocated" << std::endl; 
+  out << "Disabled Variables:        " << disabled_package_variables << std::endl;
+  out << "Total Disabled variables:  " << total_disabled << std::endl;
+  out << "preferred_at_latest:       " << preferred_at_latest << std::endl;
   out << "total_preferred_at_latest: " << total_preferred_at_latest << std::endl;
-  
+
   for (int i = 0; i < cur_package; i++) {
     out << "\t";
     PrintPackageVar(out, i);
@@ -306,14 +307,8 @@ void VersionProblem::PrintPackageVar(std::ostream & out, int packageId)
 {
   // Hack Alert: we could have the package variable in one of two places, but we don't clearly distinguish where.
   IntVar & var = GetPackageVersionVar(packageId);
-  out << "PackageId: " << packageId <<  " Sltn: " << var.min() << " - " << var.max() << " afc: " << var.afc();
-  
-  out << " disabled: ";
-  if (disabled_package_variables[packageId].min() == disabled_package_variables[packageId].max()) {
-    out << disabled_package_variables[packageId].min();
-  } else {
-    out << disabled_package_variables[packageId].min() << " - " << disabled_package_variables[packageId].max();
-  }
+  out << "PackageId: " << packageId <<  " Sltn: " << var << " afc: " << var.afc();
+  out << " disabled: " << disabled_package_variables[packageId];
 }
 
 bool VersionProblem::CheckPackageId(int id) 
@@ -340,12 +335,13 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
 	  delete best_solution;
 	}
       best_solution = solution;
+      ++i;
 #ifdef DEBUG
+      std::cout << "Trial Solution #" << i << "===============================" << std::endl;
       const Search::Statistics & stats = solver.statistics();
       std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
       std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
       //      std::cout << stats << std::endl;
-      std::cout << "Solution:" << std::endl;
       solution->Print(std::cout);
 #endif //DEBUG
     }
