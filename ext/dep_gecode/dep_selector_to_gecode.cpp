@@ -74,7 +74,7 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
   }
 
 #ifdef DEBUG
-  std::cout << cur_package << '/' << size << ":" << minVersion << ", " << maxVersion << ", " << currentVersion << std::endl;
+  std::cout << "Adding package id " << cur_package << '/' << size << ": min = " << minVersion << ", max = " << maxVersion << ", current verison " << currentVersion << std::endl;
   std::cout.flush();    
 #endif // DEBUG
   int index = cur_package;
@@ -182,6 +182,8 @@ void VersionProblem::Finalize()
 // Our model requires us to have a series of objective functions where
 // each successive objective function is evaluated if and only if all
 // higher precedent objective functions are tied.
+//
+// [TODO: DESCRIBE WHAT THE ACTUAL SERIES OF OBJECTIVE FUNCTIONS IS]
 //
 // Lower precedent objective functions are modeled as the consequent
 // of an implication whose antecedent is the conjunction of all the
@@ -328,7 +330,7 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   problem->Print(std::cout);
 #endif //DEBUG
 
-  BAB<VersionProblem> solver(problem);
+  Restart<VersionProblem> solver(problem);
 
   VersionProblem *best_solution = NULL;
   while (VersionProblem *solution = solver.next())
