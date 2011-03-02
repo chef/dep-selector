@@ -21,7 +21,7 @@ using namespace Gecode;
 // Add optimization functions
 // Allow non-contiguous ranges in package dependencies. 
 
-class VersionProblem : public MinimizeSpace
+class VersionProblem : public Space
 {
  public:
   static const int UNRESOLVED_VARIABLE;
@@ -49,10 +49,13 @@ class VersionProblem : public MinimizeSpace
   // 0 makes it free to disable a package, while 10 is the default full trust.
   void MarkPackageSuspicious(int packageId, int trustLevel);
 
+  // Packages marked by this method are preferentially chosen at
+  // latest according to weights
+  void MarkPackagePreferredToBeAtLatest(int packageId, int weight);
 
   void Finalize();
   
-  virtual IntVar cost(void) const;
+  virtual void constrain(const Space & _best_known_solution);
 
   int GetPackageVersion(int packageId);
   bool GetPackageDisabledState(int packageId);
@@ -80,8 +83,13 @@ class VersionProblem : public MinimizeSpace
   IntVarArray package_versions;
   BoolVarArray disabled_package_variables;
   IntVar total_disabled;
+  BoolVarArray preferred_at_latest;
+  IntVar total_preferred_at_latest;
 
   int * disabled_package_weights;
+  int * preferred_at_latest_weights;
+
+  void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
 };
 
 class Solver {

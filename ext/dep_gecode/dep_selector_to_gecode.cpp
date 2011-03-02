@@ -20,25 +20,32 @@ const int VersionProblem::MAX_TRUST_LEVEL = 10;
 VersionProblem::VersionProblem(int packageCount)
   : size(packageCount), finalized(false), cur_package(0), package_versions(*this, packageCount), 
     disabled_package_variables(*this, packageCount, 0, 1), total_disabled(*this, 0, packageCount*MAX_TRUST_LEVEL),
-    disabled_package_weights(new int[packageCount])
+    disabled_package_weights(new int[packageCount]), preferred_at_latest(*this, packageCount, 0, 1),
+    total_preferred_at_latest(*this, 0, packageCount), preferred_at_latest_weights(new int[packageCount])
 {
-  for (int i = 0; i < packageCount; i++) 
-    disabled_package_weights[i] = MAX_TRUST_LEVEL;  
+  for (int i = 0; i < packageCount; i++)
+  {
+    disabled_package_weights[i] = MAX_TRUST_LEVEL;
+    preferred_at_latest_weights[i] = 0;
+  }
 }
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
-  : MinimizeSpace(share, s), size(s.size),
+  : Space(share, s), size(s.size),
     finalized(s.finalized), cur_package(s.cur_package),
     disabled_package_variables(s.disabled_package_variables), total_disabled(s.total_disabled),
-    disabled_package_weights(NULL)
+    disabled_package_weights(NULL), preferred_at_latest(s.preferred_at_latest),
+    total_preferred_at_latest(s.total_preferred_at_latest), preferred_at_latest_weights(NULL)
 {
   package_versions.update(*this, share, s.package_versions);
   disabled_package_variables.update(*this, share, s.disabled_package_variables);
   total_disabled.update(*this, share, s.total_disabled);
+  preferred_at_latest.update(*this, share, s.preferred_at_latest);
+  total_preferred_at_latest.update(*this, share, s.total_preferred_at_latest);
 }
 
 // Support for gecode
-Space* VersionProblem::copy(bool share) 
+Space* VersionProblem::copy(bool share)
 {
   return new VersionProblem(share,*this);
 }
@@ -46,6 +53,7 @@ Space* VersionProblem::copy(bool share)
 VersionProblem::~VersionProblem() 
 {
   delete[] disabled_package_weights;
+  delete[] preferred_at_latest_weights;
 }
 
 int VersionProblem::Size() 
@@ -73,6 +81,10 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
   cur_package++;
   //  IntVar version(*this, minVersion, maxVersion);
   package_versions[index] = IntVar(*this, minVersion, maxVersion);
+
+  // register the binding of package to version that corresponds to the package's latest
+  rel(*this, package_versions[index], IRT_EQ, maxVersion, preferred_at_latest[index]);
+
   return index;
 }
 
@@ -112,6 +124,12 @@ VersionProblem::MarkPackageSuspicious(int packageId, int trustLevel)
   disabled_package_weights[packageId] = std::max(MIN_TRUST_LEVEL, std::min(disabled_package_weights[packageId], trustLevel));
 }
 
+void
+VersionProblem::MarkPackagePreferredToBeAtLatest(int packageId, int weight)
+{
+  preferred_at_latest_weights[packageId] = weight;
+}
+
 void VersionProblem::Finalize() 
 {
 #ifdef DEBUG
@@ -122,14 +140,17 @@ void VersionProblem::Finalize()
 
   // Setup constraint for cost
   //  linear(*this, disabled_package_weights, disabled_package_variables,  IRT_EQ, total_disabled);
-  IntArgs package_weights(size, disabled_package_weights);
+  IntArgs disabled_package_weights_args(size, disabled_package_weights);
   //IntArgs package_weights = IntArgs::create(size, 1, 0);
 
 #ifdef DEBUG
-  std::cout << "Package weights " << package_weights << std::endl;
+  std::cout << "disabled_package_weights_args: " << disabled_package_weights_args << std::endl;
 #endif DEBUG
-  linear(*this, package_weights, disabled_package_variables,  IRT_EQ, total_disabled);
+  linear(*this, disabled_package_weights_args, disabled_package_variables,  IRT_EQ, total_disabled);
   // linear(*this, disabled_package_variables,  IRT_EQ, total_disabled);
+
+  IntArgs preferred_at_latest_weights_args(size, preferred_at_latest_weights);
+  linear(*this, preferred_at_latest_weights_args, preferred_at_latest, IRT_EQ, total_preferred_at_latest);
 
   // Assign a dummy variable to elements greater than actually used.
   for (int i = cur_package; i < size; i++) {
@@ -137,23 +158,81 @@ void VersionProblem::Finalize()
     disabled_package_variables[i] = BoolVar(*this, 1, 1);
   }
 #ifdef DEBUG
+  std::cout << "preferred_at_latest_weights_args: " << preferred_at_latest_weights_args << std::endl;
   std::cout << "Adding branching" << std::endl;
   std::cout.flush();
 #endif // DEBUG
   branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
   branch(*this, total_disabled, INT_VAL_MIN);
+  branch(*this, preferred_at_latest, INT_VAR_SIZE_MIN, INT_VAL_MAX);
+  branch(*this, total_preferred_at_latest, INT_VAL_MAX);
 #ifdef DEBUG
   std::cout << "Finalization Done" << std::endl;
   std::cout.flush();
 #endif // DEBUG
 }
 
-IntVar VersionProblem::cost(void) const {
-  return total_disabled;
+// _best_known_soln is the most recent satisfying assignment of
+// variables that Gecode has found. This method examines the solution
+// and adds additional constraints that are applied after restarting
+// the search, which means that the next time a solution that's found
+// must be strictly better than the current best known solution.
+//
+// Our model requires us to have a series of objective functions where
+// each successive objective function is evaluated if and only if all
+// higher precedent objective functions are tied.
+//
+// Lower precedent objective functions are modeled as the consequent
+// of an implication whose antecedent is the conjunction of all the
+// higher precedent objective functions being assigned to their best
+// known value; thus, the optimal value of an objection function
+// "activates" the next highest objective function. This has the
+// effect of isolating the logic of each objective function such that
+// it is only applied to the set of equally preferable solutions under
+// the higher precedent objective functions. The objective function
+// then applies its constraints, the solution space is restarted and
+// walks the space until it finds another, more constrained solution.
+void VersionProblem::constrain(const Space & _best_known_solution)
+{
+  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
+
+  // add first-level objective function minimization (failing packages, weighted)
+  // new constraint: total_disabled < best_known_total_disabled_value)
+  int best_known_total_disabled_value = best_known_solution.total_disabled.val();
+  rel(*this, total_disabled, IRT_LE, best_known_total_disabled_value);
+
+  // add second-level objective function maximization (preferred packages are at latest, weighted)
+  AddPackagesPreferredToBeAtLatestObjectiveFunction(best_known_solution);
+
+#ifdef DEBUG
+  std::cout << "best_known_total_disabled_value: " << best_known_total_disabled_value << std::endl;
+#endif
 }
 
+void VersionProblem::AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution)
+{
+  // Make sure we respect total_disabled first by only constraining on
+  // latestness of preferred packages if the solution's total_disabled
+  // is equivalent to the best known, which is what
+  // is_at_best_known_disabled_value represents.
 
+  // is_at_best_known_disabled_value <=> (total_disabled == best_known_total_disabled_value)
+  BoolVar is_at_best_known_disabled_value(*this, 0, 1);
+  rel(*this, total_disabled, IRT_EQ, best_known_solution.total_disabled.val(), is_at_best_known_disabled_value);
+
+  // is_better_total_preferred_at_latest <=> (total_preferred_at_latest > best_known_total_preferred_at_latest_value)
+  int best_known_total_preferred_at_latest_value = best_known_solution.total_preferred_at_latest.val();
+  BoolVar is_better_total_preferred_at_latest(*this, 0, 1);
+  rel(*this, total_preferred_at_latest, IRT_GR, best_known_total_preferred_at_latest_value, is_better_total_preferred_at_latest);
+
+  // new constraint: is_at_best_known_disabled_value -> is_better_total_preferred_at_latest
+  rel(*this, is_at_best_known_disabled_value, BOT_IMP, is_better_total_preferred_at_latest, 1);
+
+#ifdef DEBUG
+  std::cout << "best_known_total_preferred_at_latest_value: " << best_known_total_preferred_at_latest_value << std::endl;
+#endif
+}
 
 IntVar & VersionProblem::GetPackageVersionVar(int packageId)
 {
@@ -208,6 +287,9 @@ void VersionProblem::Print(std::ostream & out)
 {
   out << "Version problem dump: " << cur_package << "/" << size << " packages used/allocated" << std::endl;
   out << "Total Disabled variables: " << total_disabled.min() << " - " << total_disabled.max() << std::endl;
+  out << "preferred_at_latest: " << preferred_at_latest << std::endl;
+  out << "total_preferred_at_latest: " << total_preferred_at_latest << std::endl;
+  
   for (int i = 0; i < cur_package; i++) {
     out << "\t";
     PrintPackageVar(out, i);

@@ -28,6 +28,7 @@ extern "C" {
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 
   void MarkPackageSuspicious(VersionProblem *problem, int packageId, int trustLevel);
+  void MarkPackagePreferredToBeAtLatest(VersionProblem *problem, int packageId, int weight);
 
   int GetPackageVersion(VersionProblem *problem, int packageId);
   bool GetPackageDisabledState(VersionProblem *problem, int packageId);

@@ -266,7 +266,55 @@ describe Dep_gecode do
     end
     observed_disabled_packages.should == expected_disabled_packages
   end
-  
+
+  describe "maximization of latestness of solution constraints" do
+    before do
+      # setup dep graph
+      @problem = Dep_gecode.VersionProblemCreate(4)
+      @pkg_a = Dep_gecode.AddPackage(@problem, -1, 1, 0);
+      @pkg_b = Dep_gecode.AddPackage(@problem, -1, 1, 0);
+      @pkg_c = Dep_gecode.AddPackage(@problem, -1, 1, 0);
+      soln_constraints = Dep_gecode.AddPackage(@problem,  0, 0, 0);
+
+      Dep_gecode.AddVersionConstraint(@problem, @pkg_a, 1, @pkg_b, 0, 0);
+      Dep_gecode.AddVersionConstraint(@problem, @pkg_a, 1, @pkg_c, 0, 0);
+
+      Dep_gecode.AddVersionConstraint(@problem, soln_constraints, 0, @pkg_a, 0, 1);
+      Dep_gecode.AddVersionConstraint(@problem, soln_constraints, 0, @pkg_b, 0, 1);
+      Dep_gecode.AddVersionConstraint(@problem, soln_constraints, 0, @pkg_c, 0, 1);
+    end
+
+    # Note: this test is essentially a baseline for the one that
+    # follows to ensure that we get different behavior after calling
+    # MarkPackagePreferredToBeAtLatest
+    it "should not maximize latestness of solution constraints if they are not marked as such" do
+      soln = Dep_gecode.Solve(@problem)
+      Dep_gecode.VersionProblemDump(soln)
+
+      # since we haven't indicated that a, b, and c should be
+      # preferred to be latest and a was added first, it should find a
+      # satisfiable solution at a=1, b=0, c=0
+      Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 1
+      Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 0
+      Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 0
+    end
+
+    # Note: this is the actual test of latestness maximization
+    it "should maximize latestness of solution constraints marked with MarkPackagePreferredToBeAtLatest" do
+      Dep_gecode.MarkPackagePreferredToBeAtLatest(@problem, @pkg_a, 1);
+      Dep_gecode.MarkPackagePreferredToBeAtLatest(@problem, @pkg_b, 1);
+      Dep_gecode.MarkPackagePreferredToBeAtLatest(@problem, @pkg_c, 1);
+
+      # now, mark a, b, and c as preferred to be at latest and observe
+      # that a=0, b=1, and c=1 is chosen
+      soln = Dep_gecode.Solve(@problem)
+      Dep_gecode.VersionProblemDump(soln)
+      Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 0
+      Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 1
+      Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 1
+    end
+  end
+
 end
 
 

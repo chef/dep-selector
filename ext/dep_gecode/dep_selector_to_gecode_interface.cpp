@@ -64,6 +64,10 @@ void MarkPackageSuspicious(VersionProblem *problem, int packageId, int trustLeve
   problem->MarkPackageSuspicious(packageId, trustLevel);
 }
 
+void MarkPackagePreferredToBeAtLatest(VersionProblem *problem, int packageId, int weight)
+{
+  problem->MarkPackagePreferredToBeAtLatest(packageId, weight);
+}
 
 int GetPackageVersion(VersionProblem *problem, int packageId)
 {
