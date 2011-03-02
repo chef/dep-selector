@@ -203,13 +203,12 @@ void VersionProblem::constrain(const Space & _best_known_solution)
   // new constraint: total_disabled < best_known_total_disabled_value)
   int best_known_total_disabled_value = best_known_solution.total_disabled.val();
   rel(*this, total_disabled, IRT_LE, best_known_total_disabled_value);
+#ifdef DEBUG
+  std::cout << "Constrain: best_known_total_disabled_value: " << best_known_total_disabled_value << std::endl;
+#endif
 
   // add second-level objective function maximization (preferred packages are at latest, weighted)
   AddPackagesPreferredToBeAtLatestObjectiveFunction(best_known_solution);
-
-#ifdef DEBUG
-  std::cout << "best_known_total_disabled_value: " << best_known_total_disabled_value << std::endl;
-#endif
 }
 
 void VersionProblem::AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution)
@@ -232,7 +231,7 @@ void VersionProblem::AddPackagesPreferredToBeAtLatestObjectiveFunction(const Ver
   rel(*this, is_at_best_known_disabled_value, BOT_IMP, is_better_total_preferred_at_latest, 1);
 
 #ifdef DEBUG
-  std::cout << "best_known_total_preferred_at_latest_value: " << best_known_total_preferred_at_latest_value << std::endl;
+  std::cout << "Constrain: best_known_total_preferred_at_latest_value: " << best_known_total_preferred_at_latest_value << std::endl;
 #endif
 }
 
@@ -326,7 +325,7 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
 #endif //DEBUG
 
   Restart<VersionProblem> solver(problem);
-
+  int i = 0;
   VersionProblem *best_solution = NULL;
   while (VersionProblem *solution = solver.next())
     {
