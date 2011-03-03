@@ -83,8 +83,9 @@ class VersionProblem : public Space
   IntVarArray package_versions;
   BoolVarArray disabled_package_variables;
   IntVar total_disabled;
-  BoolVarArray preferred_at_latest;
+  BoolVarArray at_latest;
   IntVar total_preferred_at_latest;
+  IntVar total_not_preferred_at_latest;
 
   IntVar aggregate_cost;
 

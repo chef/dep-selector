@@ -289,8 +289,10 @@ describe Dep_gecode do
     # MarkPackagePreferredToBeAtLatest
     it "should not maximize latestness of solution constraints if they are not marked as such" do
       soln = Dep_gecode.Solve(@problem)
+      soln.should_not == nil
+      
       Dep_gecode.VersionProblemDump(soln)
-
+      
       # since we haven't indicated that a, b, and c should be
       # preferred to be latest and a was added first, it should find a
       # satisfiable solution at a=1, b=0, c=0
@@ -308,6 +310,8 @@ describe Dep_gecode do
       # now, mark a, b, and c as preferred to be at latest and observe
       # that a=0, b=1, and c=1 is chosen
       soln = Dep_gecode.Solve(@problem)
+      soln.should_not == nil
+
       Dep_gecode.VersionProblemDump(soln)
       Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 0
       Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 1
