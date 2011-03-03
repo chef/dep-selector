@@ -84,9 +84,6 @@ module DepSelector
       Dep_gecode.GetPackageDisabledState(gecode_problem, package_id);
     end
     
-    def get_package_afc(package_id) 
-      Dep_gecode.GetPackageAFC(gecode_problem, package_id)
-    end
     def get_package_max(package_id) 
       Dep_gecode.GetPackageMax(gecode_problem, package_id)
     end

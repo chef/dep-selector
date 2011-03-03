@@ -79,11 +79,6 @@ bool GetPackageDisabledState(VersionProblem *problem, int packageId)
   problem->GetPackageDisabledState(packageId);
 }
 
-int GetPackageAFC(VersionProblem *problem, int packageId)
-{
-  problem->GetAFC(packageId);
-}
-
 int GetPackageMax(VersionProblem *problem, int packageId)
 {
   problem->GetMax(packageId);

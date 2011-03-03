@@ -399,11 +399,6 @@ bool VersionProblem::GetPackageDisabledState(int packageId)
   return disabled_package_variables[packageId].val() == 1;
 }
 
-int VersionProblem::GetAFC(int packageId)
-{
-  return GetPackageVersionVar(packageId).afc();
-}  
-
 int VersionProblem::GetMax(int packageId)
 {
   return GetPackageVersionVar(packageId).max();

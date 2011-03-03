@@ -60,7 +60,6 @@ class VersionProblem : public Space
 
   int GetPackageVersion(int packageId);
   bool GetPackageDisabledState(int packageId);
-  int GetAFC(int packageId);
   int GetMax(int packageId);
   int GetMin(int packageId);
   int GetDisabledVariableCount();

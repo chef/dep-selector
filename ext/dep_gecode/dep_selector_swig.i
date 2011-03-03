@@ -25,7 +25,6 @@ void MarkPackagePreferredToBeAtLatest(VersionProblem *problem, int packageId, in
 int GetPackageVersion(VersionProblem *problem, int packageId);
 bool GetPackageDisabledState(VersionProblem *problem, int packageId);
 
-int GetPackageAFC(VersionProblem *problem, int packageId);
 int GetPackageMax(VersionProblem *problem, int packageId);
 int GetPackageMin(VersionProblem *problem, int packageId);
 
