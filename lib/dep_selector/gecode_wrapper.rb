@@ -50,10 +50,21 @@ module DepSelector
       min = min_dependent_version || NoMatchConstraint
       max = max_dependent_version || NoMatchConstraint
       Dep_gecode.AddVersionConstraint(gecode_problem, package_id, version, dependent_package_id, min, max)
+
+      # if the package was constrained to no versions, hint to the
+      # solver that in the event of failure, it should prefer to
+      # indicate constraints on dependent_package_id as the culprit
+      if min == NoMatchConstraint && max == NoMatchConstraint
+        Dep_gecode.MarkPackageSuspicious(gecode_problem, dependent_package_id, 1)
+      end
     end
     def get_package_version(package_id)
       Dep_gecode.GetPackageVersion(gecode_problem, package_id)
     end
+    def is_package_disabled?(package_id)
+      Dep_gecode.GetPackageDisabledState(gecode_problem, package_id);
+    end
+    
     def get_package_afc(package_id) 
       Dep_gecode.GetPackageAFC(gecode_problem, package_id)
     end
@@ -70,12 +81,16 @@ module DepSelector
       Dep_gecode.VersionProblemPrintPackageVar(gecode_problem, package_id)
     end
 
+    def package_disabled_count
+      raise "Gecode internal failure" if gecode_problem.nil?
+      Dep_gecode.GetDisabledVariableCount(gecode_problem)
+    end
+
     def solve()
-      solution = Dep_gecode.Solve(gecode_problem)
-      # TODO: communicate solution stats here (most constrained var,
-      # etc.) here. Maybe needs to be a different exception.
-      raise Exceptions::NoSolutionFound.new(gecode_problem) unless solution
-      GecodeWrapper.new(solution)
+      solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem))
+      raise "Gecode internal failure" if (solution.nil?)
+      raise Exceptions::NoSolutionFound.new(solution) if solution.package_disabled_count > 0
+      solution
     end
 
   end

@@ -4,6 +4,7 @@
 
 #include "dep_selector_to_gecode_interface.h"
 #include "dep_selector_to_gecode.h"
+//#include "version_problem_oc_ih.h"
 
 //
 // TODO:
@@ -58,9 +59,20 @@ bool AddVersionConstraint(VersionProblem *problem, int packageId, int version,
   problem->AddVersionConstraint(packageId, version, dependentPackageId, minDependentVersion, maxDependentVersion);
 }
 
+void MarkPackageSuspicious(VersionProblem *problem, int packageId, int trustLevel) 
+{
+  problem->MarkPackageSuspicious(packageId, trustLevel);
+}
+
+
 int GetPackageVersion(VersionProblem *problem, int packageId)
 {
   problem->GetPackageVersion(packageId);
+}
+
+bool GetPackageDisabledState(VersionProblem *problem, int packageId)
+{
+  problem->GetPackageDisabledState(packageId);
 }
 
 int GetPackageAFC(VersionProblem *problem, int packageId)
@@ -77,6 +89,12 @@ int GetPackageMin(VersionProblem *problem, int packageId)
 {
   problem->GetMin(packageId);
 }
+
+int GetDisabledVariableCount(VersionProblem *problem)
+{
+  problem->GetDisabledVariableCount();
+}
+
 
 VersionProblem * Solve(VersionProblem * problem)  {
   return VersionProblem::Solve(problem);

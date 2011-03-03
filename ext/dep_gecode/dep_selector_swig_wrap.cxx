@@ -1855,6 +1855,43 @@ fail:
 
 
 SWIGINTERN VALUE
+_wrap_MarkPackageSuspicious(int argc, VALUE *argv, VALUE self) {
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  
+  if ((argc < 3) || (argc > 3)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 3)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MarkPackageSuspicious" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  ecode2 = SWIG_AsVal_int(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "MarkPackageSuspicious" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  ecode3 = SWIG_AsVal_int(argv[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "MarkPackageSuspicious" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = static_cast< int >(val3);
+  MarkPackageSuspicious(arg1,arg2,arg3);
+  return Qnil;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
 _wrap_GetPackageVersion(int argc, VALUE *argv, VALUE self) {
   VersionProblem *arg1 = (VersionProblem *) 0 ;
   int arg2 ;
@@ -1880,6 +1917,38 @@ _wrap_GetPackageVersion(int argc, VALUE *argv, VALUE self) {
   arg2 = static_cast< int >(val2);
   result = (int)GetPackageVersion(arg1,arg2);
   vresult = SWIG_From_int(static_cast< int >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_GetPackageDisabledState(int argc, VALUE *argv, VALUE self) {
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  int arg2 ;
+  bool result;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetPackageDisabledState" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  ecode2 = SWIG_AsVal_int(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetPackageDisabledState" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  result = (bool)GetPackageDisabledState(arg1,arg2);
+  vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
   return Qnil;
@@ -1975,6 +2044,30 @@ _wrap_GetPackageMin(int argc, VALUE *argv, VALUE self) {
   } 
   arg2 = static_cast< int >(val2);
   result = (int)GetPackageMin(arg1,arg2);
+  vresult = SWIG_From_int(static_cast< int >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_GetDisabledVariableCount(int argc, VALUE *argv, VALUE self) {
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  int result;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 1) || (argc > 1)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetDisabledVariableCount" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  result = (int)GetDisabledVariableCount(arg1);
   vresult = SWIG_From_int(static_cast< int >(result));
   return vresult;
 fail:
@@ -2328,10 +2421,13 @@ SWIGEXPORT void Init_dep_gecode(void) {
   rb_define_module_function(mDep_gecode, "VersionProblemPackageCount", VALUEFUNC(_wrap_VersionProblemPackageCount), -1);
   rb_define_module_function(mDep_gecode, "AddPackage", VALUEFUNC(_wrap_AddPackage), -1);
   rb_define_module_function(mDep_gecode, "AddVersionConstraint", VALUEFUNC(_wrap_AddVersionConstraint), -1);
+  rb_define_module_function(mDep_gecode, "MarkPackageSuspicious", VALUEFUNC(_wrap_MarkPackageSuspicious), -1);
   rb_define_module_function(mDep_gecode, "GetPackageVersion", VALUEFUNC(_wrap_GetPackageVersion), -1);
+  rb_define_module_function(mDep_gecode, "GetPackageDisabledState", VALUEFUNC(_wrap_GetPackageDisabledState), -1);
   rb_define_module_function(mDep_gecode, "GetPackageAFC", VALUEFUNC(_wrap_GetPackageAFC), -1);
   rb_define_module_function(mDep_gecode, "GetPackageMax", VALUEFUNC(_wrap_GetPackageMax), -1);
   rb_define_module_function(mDep_gecode, "GetPackageMin", VALUEFUNC(_wrap_GetPackageMin), -1);
+  rb_define_module_function(mDep_gecode, "GetDisabledVariableCount", VALUEFUNC(_wrap_GetDisabledVariableCount), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemDump", VALUEFUNC(_wrap_VersionProblemDump), -1);
   rb_define_module_function(mDep_gecode, "VersionProblemPrintPackageVar", VALUEFUNC(_wrap_VersionProblemPrintPackageVar), -1);
   rb_define_module_function(mDep_gecode, "Solve", VALUEFUNC(_wrap_Solve), -1);

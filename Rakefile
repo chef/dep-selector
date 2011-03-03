@@ -23,7 +23,6 @@ spec = Gem::Specification.new do |s|
   s.authors = ["Christopher Walters", "Mark Anderson"]
   s.email = ["cw@opscode.com", "mark@opscode.com"]
 #  s.homepage = HOMEPAGE
-  s.add_dependency "gecoder-with-gecode", "= 1.0.0"
   s.require_path = 'lib'
   s.autorequire = GEM
   s.files = Dir.glob("lib/**/*") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
