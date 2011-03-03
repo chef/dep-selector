@@ -213,7 +213,7 @@ void VersionProblem::Finalize()
     disabled_package_variables[i] = BoolVar(*this, 1, 1);
   }
 
-#define USE_DUMB_BRANCHING
+  //#define USE_DUMB_BRANCHING
 #ifdef USE_DUMB_BRANCHING
 #  ifdef DEBUG
   std::cout << "Adding branching (POOR)" << std::endl;
