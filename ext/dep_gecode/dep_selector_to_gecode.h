@@ -27,6 +27,7 @@ class VersionProblem : public Space
   static const int UNRESOLVED_VARIABLE;
   static const int MIN_TRUST_LEVEL;  
   static const int MAX_TRUST_LEVEL;
+  static const int MAX_PREFERRED_WEIGHT;
 
   VersionProblem(int packageCount);
   // Clone constructor; check gecode rules for this...
