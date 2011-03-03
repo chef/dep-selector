@@ -97,86 +97,9 @@ unsatisfiable_circular_dependency_graph =
    *padding_packages
   ]
 
-def compute_edit_distance(soln, current_versions)
-  current_versions.inject(0) do |acc, curr_version|
-    # TODO [cw,2010/11/21]: This edit distance only increases when a
-    # package that is currently deployed is changed, not when a new
-    # dependency is added. I think there is an argument to be made
-    # that also including new packages is worthy of an edit distance
-    # bump, since the interpretation can be that any difference in
-    # code that is run (not just changing existing code) could be
-    # considered "infrastructure instability". And by that same
-    # reasoning, perhaps removal of packages should increase the edit
-    # distance, as well. This needs to be considered.
-    pkg_name, curr_version = curr_version
-    if soln.has_key?(pkg_name)
-      putative_version = soln[pkg_name]
-#      puts "Package #{pkg_name}: current = #{curr_version} (#{curr_version.class}), soln assignment = #{putative_version} (#{putative_version.class})#{putative_version == curr_version ? "" : " (changing)"}"
-      acc -= 1 unless putative_version == curr_version
-      end
-    acc
-  end
-end
-
-def compute_latest_version_count(soln, latest_versions)
-  latest_versions.inject(0) do |acc, version|
-    pkg_name, latest_version = version
-    if soln.has_key?(pkg_name) 
-      trial_version = soln[pkg_name]
-#      puts "Package #{pkg_name}: latest = #{latest_version} (#{latest_version.class}), soln assignment = #{trial_version} (#{trial_version.class})#{trial_version == latest_version ? "" : " (NOT latest)"}"
-      acc -= 1 unless trial_version == latest_version
-    end
-    acc
-  end
-end
-
-def create_latest_version_objective_function(dep_graph)
-  # determine latest versions from dep_graph
-  latest_versions = {}
-  dep_graph.each_package do |pkg|
-    latest_version_id =  pkg.densely_packed_versions.range.last
-#    pp :name=>pkg.name, :latest_version_id=>latest_version_id, :latest_version_string=>pkg.densely_packed_versions.sorted_elements[latest_version_id]
-    latest_versions[pkg.name] = pkg.densely_packed_versions.sorted_elements[latest_version_id]
-  end
-  
-  lambda do |soln|
-    compute_latest_version_count(soln, latest_versions)
-  end
-end
-
-def create_minimum_churn_objective_function(dep_graph, current_versions)
-  real_current_versions = current_versions.inject({}) do |acc, curr_version|
-    acc[curr_version.first] = DepSelector::Version.new(curr_version.last)
-    acc
-  end
-
-lambda do |soln|
-    compute_edit_distance(soln, real_current_versions)
-  end
-end
-
-# This method composes the latest_version and minimum_churn objective
-# functions.
-def create_latest_version_minimum_churn_objective_function(dep_graph, current_versions)
-  latest_version_objective_function = create_latest_version_objective_function(dep_graph)
-  minimum_churn_objective_function = create_minimum_churn_objective_function(dep_graph, current_versions)
-  lambda do |soln|
-    latest_weight = latest_version_objective_function.call(soln)
-    churn_weight = minimum_churn_objective_function.call(soln)
-    [latest_weight, churn_weight]    
-  end
-end
-
-# Used to compare the above composite objective function
-class Array
-  def > (b)
-    (self <=> b) > 0
-  end
-end
-
 describe DepSelector::Selector do
   
-  describe "solves without an objective function" do
+  describe "find_solution" do
 
     it "a simple set of constraints and includes transitive dependencies" do
       dep_graph = DepSelector::DependencyGraph.new
@@ -293,7 +216,7 @@ describe DepSelector::Selector do
                       })
     end
 
-    it "fails to find a solution when a solution constraint constrains a package to a range that includes no versions" do
+    it "should fail to find a solution when a solution constraint constrains a package to a range that includes no versions" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
       selector = DepSelector::Selector.new(dep_graph)
@@ -310,7 +233,7 @@ describe DepSelector::Selector do
       end
     end
 
-    it "fails to find a solution when a solution constraint's dependency is constrained to a range that includes no packages" do
+    it "should fail to find a solution when a solution constraint's dependency is constrained to a range that includes no packages" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
       selector = DepSelector::Selector.new(dep_graph)
@@ -329,7 +252,7 @@ describe DepSelector::Selector do
       end
     end
 
-    it "fails to find a solution when a solution constraint's transitive dependency is constrained to a range that includes no packages" do
+    it "should fail to find a solution when a solution constraint's transitive dependency is constrained to a range that includes no packages" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
       selector = DepSelector::Selector.new(dep_graph)

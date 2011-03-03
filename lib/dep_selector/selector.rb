@@ -24,15 +24,10 @@ module DepSelector
     # DependencyGraph. If one cannot be found, the constraints are
     # added one at a time until the first unsatisfiable constraint is
     # detected.
-    #
-    # If a block is passed, it is used as the objective function. It
-    # must take an argument that represents a solution and must
-    # produce an object comparable with Float, where greater than
-    # represents a better solution for the domain.
-    def find_solution(solution_constraints, bottom = ObjectiveFunction::MinusInfinity,  &block)
+    def find_solution(solution_constraints)
       begin
         # first, try to solve the whole set of constraints
-        solve(dep_graph.clone, solution_constraints, bottom, &block)
+        solve(dep_graph.clone, solution_constraints)
       rescue Exceptions::NoSolutionFound
         # since we're here, solving the whole system failed, so add
         # the solution_constraints one-by-one and try to solve in
@@ -48,7 +43,7 @@ module DepSelector
         solution_constraints.each_index do |idx|
           workspace = dep_graph.clone
           begin
-            solve(workspace, solution_constraints[0..idx], bottom, &block)
+            solve(workspace, solution_constraints[0..idx])
           rescue Exceptions::NoSolutionFound => nsf
             # pick the first package whose constraints had to be
             # disabled in order to find a solution and generate
@@ -69,7 +64,7 @@ module DepSelector
     # Given a workspace (a clone of the dependency graph) and an array
     # of SolutionConstraints, this method attempts to find a
     # satisfiable set of <Package, Version> pairs
-    def solve(workspace, solution_constraints, bottom = ObjectiveFunction::MinusInfinity, &block)
+    def solve(workspace, solution_constraints)
       # generate constraints imposed by the dependency graph
       workspace.generate_gecode_wrapper_constraints
       workspace.each_package{|pkg| puts "package #{pkg.name}, id #{pkg.gecode_package_id}"}
@@ -106,20 +101,8 @@ module DepSelector
         end
       end
 
-      # if a block was specified, use that as the objective function;
-      # otherwise, just find any solution
-      if block_given?
-        raise NotImplemented, "Objective function functionality has been temporarily removed while we move to the GecodeWrapper interface to gecode"
-        objective_function = ObjectiveFunction.new(bottom, &block)
-        workspace.each_solution do |soln|
-          trimmed_soln = trim_solution(solution_constraints, soln)
-          objective_function.consider(trimmed_soln)
-        end
-        objective_function.best_solution
-      else
-        soln = workspace.gecode_wrapper.solve
-        trim_solution(solution_constraints, soln, workspace)
-      end
+      soln = workspace.gecode_wrapper.solve
+      trim_solution(solution_constraints, soln, workspace)
     end
 
     def trim_solution(soln_constraints, soln, workspace)
