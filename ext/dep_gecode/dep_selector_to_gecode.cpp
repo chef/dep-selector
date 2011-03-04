@@ -456,7 +456,7 @@ bool VersionProblem::CheckPackageId(int id)
 // significant element to generate a borrow. 
 // 
 void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best) {
-  BoolVarArray borrow(*this, current.size()+1, 0, 0);
+  BoolVarArray borrow(*this, current.size()+1, 0, 1);
 
   // No borrows can happen at the least significant element.
   rel(*this, borrow[0], IRT_EQ, 0);
@@ -468,7 +468,8 @@ void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArg
     IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
     // (delta < 0) <=> borrow[i+1]
     rel(*this, delta, IRT_LE, 0, borrow[i+1]);
-    PrintVarAligned("Constrain: less than ", best_val);
+    PrintVarAligned("Constrain: borrow[i+1], delta", borrow[i+1], delta);
+    PrintVarAligned("Constrain: current[i] best_val ", current[i], best_val);
   }
 
   // must borrow off past the most significant element.
@@ -513,7 +514,15 @@ template <class T> void PrintVarAligned(const char * message, T & var)
 {
 #ifdef DEBUG
   std::cout.width(40);
-  std::cout << message << var << std::endl;
+  std::cout << std::left << message << var << std::endl;
+  std::cout.width(0);
+#endif
+}
+template <class S, class T> void PrintVarAligned(const char * message, S & var1, T & var2) 
+{
+#ifdef DEBUG
+  std::cout.width(40);
+  std::cout << std::left << message << var1 << " " << var2 << std::endl;
   std::cout.width(0);
 #endif
 }

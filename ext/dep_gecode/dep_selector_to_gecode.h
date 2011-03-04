@@ -98,6 +98,7 @@ class VersionProblem : public Space
 };
 
 template<class T> void PrintVarAligned(const char * message, T & var);
+template<class S, class T> void PrintVarAligned(const char * message, S & var1, T & var2);
 
 class Solver {
  public:
