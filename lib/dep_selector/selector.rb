@@ -23,8 +23,19 @@ module DepSelector
     # assignment of PackageVersions that is compatible with the
     # DependencyGraph. If one cannot be found, the constraints are
     # added one at a time until the first unsatisfiable constraint is
-    # detected.
-    def find_solution(solution_constraints)
+    # detected. Once the unsatisfiable solution constraint is
+    # identified, required non-existent packages and the most
+    # constrained packages are identified and thrown in a
+    # NoSolutionExists exception.
+    #
+    # If valid_packages is non-nil, it is considered the authoritative
+    # list of packages that exist; otherwise, Package#valid? is
+    # used. This is useful if the dependency graph represents an
+    # already filtered set of packages so that a package may actually
+    # exist but be added to the dependency graph with no versions, in
+    # which case Package#valid? would return false even though we
+    # don't want to report that the package is non-existent.
+    def find_solution(solution_constraints, valid_packages = nil)
       begin
         # first, try to solve the whole set of constraints
         solve(dep_graph.clone, solution_constraints)
@@ -45,15 +56,43 @@ module DepSelector
           begin
             solve(workspace, solution_constraints[0..idx])
           rescue Exceptions::NoSolutionFound => nsf
-            # pick the first package whose constraints had to be
-            # disabled in order to find a solution and generate
-            # feedback for it
-            most_constrained_package =
-              workspace.packages.find do |name, pkg|
-                nsf.unsatisfiable_problem.is_package_disabled?(pkg.gecode_package_id)
-            end.last
-            feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx, most_constrained_package)
-            raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx])
+            disabled_packages = 
+              workspace.packages.inject([]) do |acc, elt|
+                pkg = elt.last
+                acc << pkg if nsf.unsatisfiable_problem.is_package_disabled?(pkg.gecode_package_id)
+                acc
+              end
+            # disambiguate between packages disabled becuase they
+            # don't exist and those that have otherwise problematic
+            # constraints
+            disabled_non_existent_packages = []
+            disabled_most_constrained_packages = []
+            disabled_packages.each do |disabled_pkg|
+              disabled_collection =
+                if (valid_packages ? valid_packages.include?(disabled_pkg) : disabled_pkg.valid?)
+                  disabled_most_constrained_packages
+                else
+                  disabled_non_existent_packages
+                end
+              disabled_collection << disabled_pkg
+            end
+
+            # Pick the first non-existent package that was required or
+            # the package whose constraints had to be disabled in
+            # order to find a solution and generate feedback for
+            # it. We only report feedback for one package, because it
+            # is in fact actionable and dispalying feedback for every
+            # disabled package would probably be too long. The full
+            # set of disabled packages is accessible in the
+            # NoSolutionExists exception.
+            disabled_package_to_report_on = disabled_non_existent_packages.first ||
+                                            disabled_most_constrained_packages.first
+            feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx,
+                                                    disabled_package_to_report_on)
+
+            raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx],
+                                                   disabled_non_existent_packages,
+                                                   disabled_most_constrained_packages)
           end
         end
       end

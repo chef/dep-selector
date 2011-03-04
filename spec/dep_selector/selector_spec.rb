@@ -172,7 +172,9 @@ describe DepSelector::Selector do
         selector.find_solution(unsatisfiable_solution_constraints)
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
-        nse.unsatisfiable_constraint.should == unsatisfiable_solution_constraints[1]
+        nse.unsatisfiable_solution_constraint.should == unsatisfiable_solution_constraints[1]
+        nse.disabled_non_existent_packages.should == []
+        nse.disabled_most_constrained_packages.should == [dep_graph.package('C')]
       end
     end
 
@@ -248,7 +250,9 @@ describe DepSelector::Selector do
         selector.find_solution(unsatisfiable_solution_constraints)
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
-        nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
+        nse.unsatisfiable_solution_constraint.should == unsatisfiable_solution_constraints[1]
+        nse.disabled_non_existent_packages.should == []
+        nse.disabled_most_constrained_packages.should == [dep_graph.package('A')]
       end
     end
 
@@ -267,7 +271,9 @@ describe DepSelector::Selector do
         selector.find_solution(unsatisfiable_solution_constraints)
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
-        nse.unsatisfiable_constraint.to_s.should == unsatisfiable_solution_constraints[1].to_s
+        nse.unsatisfiable_solution_constraint.should == unsatisfiable_solution_constraints[1]
+        nse.disabled_non_existent_packages.should == []
+        nse.disabled_most_constrained_packages.should == [dep_graph.package('A')]
       end
     end
 
@@ -323,7 +329,30 @@ describe DepSelector::Selector do
         selector.find_solution(solution_constraints)
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
-        nse.unsatisfiable_constraint.to_s.should == solution_constraints[1].to_s
+        nse.unsatisfiable_solution_constraint.should == solution_constraints[1]
+        nse.disabled_non_existent_packages.should == [dep_graph.package('nosuch')]
+        nse.disabled_most_constrained_packages.should == []
+      end
+    end
+
+    it "should respect the authoritative list of extant packages in the case of failure" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependency_on_non_existent_package)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["depends_on_nosuch"],
+                                ["padding2"]
+                               ])
+      begin
+        selector.find_solution(solution_constraints, [dep_graph.package('nosuch')])
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.unsatisfiable_solution_constraint.should == solution_constraints[1]
+        nse.disabled_non_existent_packages.should == []
+        nse.disabled_most_constrained_packages.should == [dep_graph.package('nosuch')]
       end
     end
 
@@ -342,7 +371,9 @@ describe DepSelector::Selector do
         selector.find_solution(solution_constraints)
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
-        nse.unsatisfiable_constraint.to_s.should == solution_constraints[1].to_s
+        nse.unsatisfiable_solution_constraint.should == solution_constraints[1]
+        nse.disabled_non_existent_packages.should == [dep_graph.package('nosuch')]
+        nse.disabled_most_constrained_packages.should == []
       end
     end
 
@@ -378,7 +409,9 @@ describe DepSelector::Selector do
         selector.find_solution(solution_constraints)
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
-        nse.unsatisfiable_constraint.to_s.should == solution_constraints[1].to_s
+        nse.unsatisfiable_solution_constraint.should == solution_constraints[1]
+        nse.disabled_non_existent_packages.should == []
+        nse.disabled_most_constrained_packages.should == [dep_graph.package('B')]
       end
     end
 
@@ -396,6 +429,8 @@ describe DepSelector::Selector do
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::NoSolutionExists => nse
         nse.message.should == "Unable to satisfy constraints on package d due to solution constraint (g >= 0.0.0). Solution constraints that may result in a constraint on d: [(g = 1.0.0) -> (d > 5.0.0)]"
+        nse.disabled_non_existent_packages.should == []
+        nse.disabled_most_constrained_packages.should == [dep_graph.package('d')]
       end
     end
 
