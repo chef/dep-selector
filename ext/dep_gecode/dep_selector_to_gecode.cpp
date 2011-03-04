@@ -270,7 +270,6 @@ void VersionProblem::Finalize()
 // the higher precedent objective functions. The objective function
 // then applies its constraints, the solution space is restarted and
 // walks the space until it finds another, more constrained solution.
-#undef DISABLED
 #ifdef DISABLED
 void VersionProblem::constrain(const Space & _best_known_solution)
 {
@@ -289,61 +288,7 @@ void VersionProblem::constrain(const Space & _best_known_solution)
   // add second-level objective function maximization (preferred packages are at latest, weighted)
   AddPackagesPreferredToBeAtLatestObjectiveFunction(best_known_solution);
 }
-
 #endif // DISABLED
-
-#define AGGREGATE_COST
-#ifdef AGGREGATE_COST
-void VersionProblem::constrain(const Space & _best_known_solution)
-{
-  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
-
-  int best_known_aggregate_cost_value = best_known_solution.aggregate_cost.val();
-  rel(*this, aggregate_cost, IRT_LE, best_known_aggregate_cost_value);
-
-#ifdef DEBUG
-  std::cout.width(40);
-  std::cout << "Constrain: best_known_aggregate_cost_value: " << best_known_aggregate_cost_value << std::endl;
-  std::cout.width(0);
-#endif
-}
-#endif // AGGREGATE_COST
-
-#ifdef AT_PREFERRED_LATEST_COST
-void VersionProblem::constrain(const Space & _best_known_solution)
-{
-  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
-  
-  int best_known_total_preferred_at_latest_value = best_known_solution.total_preferred_at_latest.val();
-  BoolVar is_better_total_preferred_at_latest(*this, 0, 1);
-  rel(*this, total_preferred_at_latest, IRT_GR, best_known_total_preferred_at_latest_value);
-
-#ifdef DEBUG
-  std::cout.width(40);
-  std::cout << "Constrain: best_known_total_preferred_at_latest_value: " << best_known_total_preferred_at_latest_value << std::endl;
-  std::cout.width(0);
-#endif
-}
-
-#endif // AT_PREFERRED_LATEST_COST
-
-#ifdef TOTAL_DISABLED_COST
-void VersionProblem::constrain(const Space & _best_known_solution)
-{
-  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
-
-  // add first-level objective function minimization (failing packages, weighted)
-  // new constraint: total_disabled < best_known_total_disabled_value)
-  int best_known_total_disabled_value = best_known_solution.total_disabled.val();
-  rel(*this, total_disabled, IRT_LE, best_known_total_disabled_value);
-#ifdef DEBUG
-  std::cout.width(40);
-  std::cout << "Constrain: total_disabled: " << total_disabled << std::endl;
-  std::cout.width(0);
-#endif
-}
-
-#endif // AT_PREFERRED_LATEST_COST
 
 void VersionProblem::AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution)
 {
@@ -374,6 +319,62 @@ void VersionProblem::AddPackagesPreferredToBeAtLatestObjectiveFunction(const Ver
   std::cout << "Constrain: best_known_total_preferred_at_latest_value: " << best_known_total_preferred_at_latest_value << std::endl;
 #endif
 }
+
+#ifdef AGGREGATE_COST
+void VersionProblem::constrain(const Space & _best_known_solution)
+{
+  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
+
+  int best_known_aggregate_cost_value = best_known_solution.aggregate_cost.val();
+  rel(*this, aggregate_cost, IRT_LE, best_known_aggregate_cost_value);
+  PrintVarAligned("Constrain: best_known_aggregate_cost_value: ", best_known_aggregate_cost_value);
+}
+#endif // AGGREGATE_COST
+
+#ifdef AT_PREFERRED_LATEST_COST
+void VersionProblem::constrain(const Space & _best_known_solution)
+{
+  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
+  
+  int best_known_total_preferred_at_latest_value = best_known_solution.total_preferred_at_latest.val();
+  BoolVar is_better_total_preferred_at_latest(*this, 0, 1);
+  rel(*this, total_preferred_at_latest, IRT_GR, best_known_total_preferred_at_latest_value);
+  PrintVarAligned("Constrain: best_known_total_preferred_at_latest_value: ", best_known_total_preferred_at_latest_value);
+}
+
+#endif // AT_PREFERRED_LATEST_COST
+
+#ifdef TOTAL_DISABLED_COST
+void VersionProblem::constrain(const Space & _best_known_solution)
+{
+  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
+
+  // add first-level objective function minimization (failing packages, weighted)
+  // new constraint: total_disabled < best_known_total_disabled_value)
+  int best_known_total_disabled_value = best_known_solution.total_disabled.val();
+  rel(*this, total_disabled, IRT_LE, best_known_total_disabled_value);
+  PrintVarAligned("Constrain: total_disabled: ", total_disabled);
+}
+#endif // AT_PREFERRED_LATEST_COST
+
+#define VECTOR_CONSTRAIN
+#ifdef VECTOR_CONSTRAIN
+void VersionProblem::constrain(const Space & _best_known_solution)
+{
+  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
+
+  IntVarArgs current(3);
+  IntVarArgs best(3);
+  current[0] = total_not_preferred_at_latest;
+  current[1] = total_preferred_at_latest;
+  current[2] = total_disabled;
+  best[0] = best_known_solution.total_not_preferred_at_latest;
+  best[1] = best_known_solution.total_preferred_at_latest;
+  best[2] = best_known_solution.total_disabled;
+  
+  ConstrainVectorLessThanBest(current, best);
+}
+#endif // VECTOR_CONSTRAIN
 
 IntVar & VersionProblem::GetPackageVersionVar(int packageId)
 {
@@ -449,6 +450,31 @@ bool VersionProblem::CheckPackageId(int id)
   return (id < size);
 }
 
+// We want to sort vectors 
+// This constrains current to be less than best by a process analogous to subtraction
+// we compute current - best, pairwise with borrows from less significant elements. We require it to be less than zero by requiring the most 
+// significant element to generate a borrow. 
+// 
+void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best) {
+  BoolVarArray borrow(*this, current.size()+1, 0, 0);
+
+  // No borrows can happen at the least significant element.
+  rel(*this, borrow[0], IRT_EQ, 0);
+
+  for (int i = 0; i < current.size(); i++) {
+    // If best+borrow is greater than current (equivalently current-(best+borrow) is < 0) then a more significant element 
+    // must have decreased, so we propagate a borrow to the next most significant element.
+    int best_val = best[i].val();
+    IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
+    // (delta < 0) <=> borrow[i+1]
+    rel(*this, delta, IRT_LE, 0, borrow[i+1]);
+    PrintVarAligned("Constrain: less than ", best_val);
+  }
+
+  // must borrow off past the most significant element.
+  rel(*this, borrow[current.size()], IRT_EQ, 1);
+}
+
 VersionProblem * VersionProblem::Solve(VersionProblem * problem) 
 {
   problem->Finalize();
@@ -480,10 +506,19 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   return best_solution;
 }
 
-
 //
+// Debug output
 // 
-//
+template <class T> void PrintVarAligned(const char * message, T & var) 
+{
+#ifdef DEBUG
+  std::cout.width(40);
+  std::cout << message << var << std::endl;
+  std::cout.width(0);
+#endif
+}
+
+//template void PrintVarAligned<int>(const char * message, int & var);
 
 
 

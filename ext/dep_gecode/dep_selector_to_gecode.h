@@ -72,6 +72,7 @@ class VersionProblem : public Space
   void PrintPackageVar(std::ostream & out, int packageId) ;
 
   static VersionProblem *Solve(VersionProblem *problem);
+ 
 
  protected:
   int size;
@@ -93,7 +94,10 @@ class VersionProblem : public Space
   int * preferred_at_latest_weights;
 
   void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
+  void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
 };
+
+template<class T> void PrintVarAligned(const char * message, T & var);
 
 class Solver {
  public:
