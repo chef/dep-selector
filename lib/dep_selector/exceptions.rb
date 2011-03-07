@@ -29,16 +29,14 @@ module DepSelector
                   :disabled_non_existent_packages,
                   :disabled_most_constrained_packages
       def initialize(message, unsatisfiable_solution_constraint,
-                     disabled_non_existent_packages,
-                     disabled_most_constrained_packages)
+                     disabled_non_existent_packages = [],
+                     disabled_most_constrained_packages = [])
         @message = message
         @unsatisfiable_solution_constraint = unsatisfiable_solution_constraint
         @disabled_non_existent_packages = disabled_non_existent_packages
         @disabled_most_constrained_packages = disabled_most_constrained_packages
       end
     end
-
-    class InvalidSolutionConstraint < ArgumentError ; end
 
     # This exception is thrown by gecode_wrapper and only used
     # internally

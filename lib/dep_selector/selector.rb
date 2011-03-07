@@ -57,7 +57,7 @@ module DepSelector
     def find_solution(solution_constraints, valid_packages = nil)
       begin
         # first, try to solve the whole set of constraints
-        solve(dep_graph.clone, solution_constraints)
+        solve(dep_graph.clone, solution_constraints, valid_packages)
       rescue Exceptions::NoSolutionFound
         # since we're here, solving the whole system failed, so add
         # the solution_constraints one-by-one and try to solve in
@@ -73,7 +73,7 @@ module DepSelector
         solution_constraints.each_index do |idx|
           workspace = dep_graph.clone
           begin
-            solve(workspace, solution_constraints[0..idx])
+            solve(workspace, solution_constraints[0..idx], valid_packages)
           rescue Exceptions::NoSolutionFound => nsf
             disabled_packages = 
               workspace.packages.inject([]) do |acc, elt|
@@ -88,7 +88,7 @@ module DepSelector
             disabled_most_constrained_packages = []
             disabled_packages.each do |disabled_pkg|
               disabled_collection =
-                if (valid_packages ? valid_packages.include?(disabled_pkg) : disabled_pkg.valid?)
+                if disabled_pkg.valid? || (valid_packages && valid_packages.include?(disabled_pkg))
                   disabled_most_constrained_packages
                 else
                   disabled_non_existent_packages
@@ -121,11 +121,15 @@ module DepSelector
 
     # Given a workspace (a clone of the dependency graph) and an array
     # of SolutionConstraints, this method attempts to find a
-    # satisfiable set of <Package, Version> pairs
-    def solve(workspace, solution_constraints)
+    # satisfiable set of <Package, Version> pairs.
+    #
+    # If a solution constraint refers to a package that isn't valid
+    # (if valid_packages is non-nil, it is considered the
+    # authoritative list; otherwise, Package#valid? is used), it
+    # raises NoSolutionExists.
+    def solve(workspace, solution_constraints, valid_packages)
       # generate constraints imposed by the dependency graph
       workspace.generate_gecode_wrapper_constraints
-      workspace.each_package{|pkg| puts "package #{pkg.name}, id #{pkg.gecode_package_id}"}
 
       # create shadow package whose dependencies are the solution constraints
       soln_constraints_pkg_id = workspace.gecode_wrapper.add_package(0, 0, 0)
@@ -136,18 +140,17 @@ module DepSelector
         pkg_name = soln_constraint.package.name
         pkg = workspace.package(pkg_name)
         constraint = soln_constraint.constraint
-        unless pkg.valid?
-          raise Exceptions::InvalidSolutionConstraint.new("Solution constraint (#{pkg_name} #{constraint.to_s}) specifies a package that does not exist in the dependency graph")
+        unless pkg.valid? || (valid_packages && valid_packages.include?(pkg))
+          raise Exceptions::NoSolutionExists.new("Solution constraint (#{pkg_name} #{constraint.to_s}) specifies a package that does not exist in the dependency graph", soln_constraint)
         end
         if pkg[constraint].empty?
-          raise Exceptions::InvalidSolutionConstraint.new("Solution constraint (#{pkg_name} #{constraint.to_s}) does not match any versions")
+          raise Exceptions::NoSolutionExists.new("Solution constraint (#{pkg_name} #{constraint.to_s}) does not match any versions", soln_constraint)
         end
 
         pkg_id = pkg.gecode_package_id
-        # package 0 is created in
-        # workspace.generate_gecode_wrapper_constraints and represents
-        # a "ghost" package that is automatically bound to version 0
-        # and whose dependencies are the solution constraints.
+        # package 0 is created in workspace.generate_gecode_wrapper_constraints
+        # and represents a "ghost" package that is automatically bound to
+        # version 0 and whose dependencies are the solution constraints.
         if constraint
           acceptable_versions = pkg.densely_packed_versions[constraint]
           workspace.gecode_wrapper.add_version_constraint(soln_constraints_pkg_id, 0, pkg_id, acceptable_versions.min, acceptable_versions.max)

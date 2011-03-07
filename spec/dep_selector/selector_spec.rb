@@ -221,17 +221,21 @@ describe DepSelector::Selector do
     it "should fail to find a solution when a solution constraint constrains a package to a range that includes no versions" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependencies_whose_constraints_match_no_versions)
+      setup_constraint(dep_graph, padding_packages)
       selector = DepSelector::Selector.new(dep_graph)
       unsatisfiable_solution_constraints =
         setup_soln_constraints(dep_graph,
                                [
-                                ["A", "> 1.0"]
+                                ["padding1"],
+                                ["A", "> 1.0"],
+                                ["padding2"],
                                ])
       begin
         selector.find_solution(unsatisfiable_solution_constraints)
         fail "Should have failed to find a solution"
-      rescue DepSelector::Exceptions::InvalidSolutionConstraint => nse
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
         nse.message.should == "Solution constraint (A > 1.0.0) does not match any versions"
+        nse.unsatisfiable_solution_constraint.should == unsatisfiable_solution_constraints[1]
       end
     end
 
@@ -300,17 +304,21 @@ describe DepSelector::Selector do
     it "should fail to find a solution if a non-existent package is in the solution constraints" do
       dep_graph = DepSelector::DependencyGraph.new
       setup_constraint(dep_graph, dependency_on_non_existent_package)
+      setup_constraint(dep_graph, padding_packages)
       selector = DepSelector::Selector.new(dep_graph)
       solution_constraints =
         setup_soln_constraints(dep_graph,
                                [
-                                ["nosuch"]
+                                ["padding1"],
+                                ["nosuch"],
+                                ["padding2"],
                                ])
       begin
         selector.find_solution(solution_constraints)
         fail "Should have failed to find a solution"
-      rescue DepSelector::Exceptions::InvalidSolutionConstraint => nse
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
         nse.message.should == "Solution constraint (nosuch >= 0.0.0) specifies a package that does not exist in the dependency graph"
+        nse.unsatisfiable_solution_constraint.should == solution_constraints[1]
       end
     end
 
@@ -332,6 +340,26 @@ describe DepSelector::Selector do
         nse.unsatisfiable_solution_constraint.should == solution_constraints[1]
         nse.disabled_non_existent_packages.should == [dep_graph.package('nosuch')]
         nse.disabled_most_constrained_packages.should == []
+      end
+    end
+
+    it "should respect the authoritative list of extant packages if there is a solution constraint that refers to a package that has no registered versions (which would otherwise be considered non-existent)" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, dependency_on_non_existent_package)
+      selector = DepSelector::Selector.new(dep_graph)
+      solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["padding1"],
+                                ["nosuch"],
+                                ["padding2"]
+                               ])
+      begin
+        selector.find_solution(solution_constraints, [dep_graph.package('nosuch')])
+        fail "Should have failed to find a solution"
+      rescue DepSelector::Exceptions::NoSolutionExists => nse
+        nse.message.should == "Solution constraint (nosuch >= 0.0.0) does not match any versions"
+        nse.unsatisfiable_solution_constraint.should == solution_constraints[1]
       end
     end
 
