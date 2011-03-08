@@ -11,14 +11,15 @@
 #include <vector>
 
 #define DEBUG
+//#define USE_DUMB_BRANCHING
 #define VECTOR_CONSTRAIN
-#undef COMPUTE_LINEAR_AGGREGATE
+#define COMPUTE_LINEAR_AGGREGATE
 
 using namespace Gecode;
 const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
 const int VersionProblem::MIN_TRUST_LEVEL = 0;
 const int VersionProblem::MAX_TRUST_LEVEL = 10;
-const int VersionProblem::MAX_PREFERRED_WEIGHT = 1;
+const int VersionProblem::MAX_PREFERRED_WEIGHT = 10;
 
 VersionProblem::VersionProblem(int packageCount)
   : size(packageCount), finalized(false), cur_package(0), package_versions(*this, packageCount), 
@@ -27,7 +28,7 @@ VersionProblem::VersionProblem(int packageCount)
     // These domains could be narrowed a bit; check later
     total_preferred_at_latest(*this, -packageCount*MAX_PREFERRED_WEIGHT, packageCount*MAX_PREFERRED_WEIGHT), total_not_preferred_at_latest(*this, -packageCount, packageCount), 
     preferred_at_latest_weights(new int[packageCount]),
-    aggregate_cost(*this, -packageCount, packageCount*packageCount*MAX_TRUST_LEVEL)
+    aggregate_cost(*this, INT_MIN/2, INT_MAX/2) //-packageCount*packageCount*MAX_TRUST_LEVEL*MAX_PREFERRED_WEIGHT, packageCount*packageCount*MAX_TRUST_LEVEL*MAX_PREFERRED_WEIGHT)
 {
   for (int i = 0; i < packageCount; i++)
   {
@@ -216,7 +217,6 @@ void VersionProblem::Finalize()
     disabled_package_variables[i] = BoolVar(*this, 1, 1);
   }
 
-  //#define USE_DUMB_BRANCHING
 #ifdef USE_DUMB_BRANCHING
 #  ifdef DEBUG
   std::cout << "Adding branching (POOR)" << std::endl;
@@ -482,6 +482,13 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
       solution->Print(std::cout);
 #endif //DEBUG
     }
+
+#ifdef DEBUG
+  std::cout << "Solution completed: " << (best_solution ? "Found solution" : "No solution found") << std::endl;
+  std::cout << "======================================================================" << std::endl;
+  std::cout.flush();
+#endif // DEBUG
+
   return best_solution;
 }
 
