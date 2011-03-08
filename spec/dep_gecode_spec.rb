@@ -92,7 +92,8 @@ end
 
 def check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
   if (problem.nil?)
-    return expected_solution.nil?
+    expected_solution.should be_nil
+    return
   end
 
   passed = true;
@@ -101,10 +102,12 @@ def check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
     package_version = Dep_gecode.GetPackageVersion(problem,package_id)
     version_text = package.densely_packed_versions.sorted_elements[package_version]
     expected_version = expected_solution.nil? ? "NA" : expected_solution[package.name]
-    pass = (version_text.to_s==expected_version.to_s)
-    passed &= pass
+    if (expected_version == "disabled") 
+      Dep_gecode.GetPackageDisabledState(problem,package_id).should be_true
+    else 
+      version_text.to_s.should == expected_version.to_s
+    end
   end
-  return passed
 end
 
 
@@ -116,7 +119,7 @@ def print_bindings(problem, vars)
 end
 
 describe Dep_gecode do
-  
+ 
   it "Can be created and destroyed" do
     problem = Dep_gecode.VersionProblemCreate(1) 
     Dep_gecode.VersionProblemDestroy(problem)
@@ -129,7 +132,6 @@ describe Dep_gecode do
     packageId = Dep_gecode.AddPackage(problem, 0, 2, 8)
     packageId.should == 0
     Dep_gecode.GetPackageVersion(problem, packageId).should == -(2**31)
-    Dep_gecode.GetPackageAFC(problem,packageId).should == 0
     Dep_gecode.GetPackageMax(problem,packageId).should == 2
     Dep_gecode.GetPackageMin(problem,packageId).should == 0
     Dep_gecode.VersionProblemSize(problem).should == 2
@@ -137,7 +139,6 @@ describe Dep_gecode do
     packageId = Dep_gecode.AddPackage(problem, 1, 6, 8)
     packageId.should == 1
     Dep_gecode.GetPackageVersion(problem, packageId).should == -(2**31)
-    Dep_gecode.GetPackageAFC(problem,packageId).should == 0
     Dep_gecode.GetPackageMax(problem,packageId).should == 6
     Dep_gecode.GetPackageMin(problem,packageId).should == 1
     Dep_gecode.VersionProblemSize(problem).should == 2
@@ -165,7 +166,7 @@ describe Dep_gecode do
 
 #    print_human_readable_solution(new_problem, @pkg_name_to_id, @dep_graph)
     check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
-                   {'A'=>'2.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'}).should == true
+                   {'A'=>'2.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'})
 
     Dep_gecode.VersionProblemDestroy(@problem);
     Dep_gecode.VersionProblemDestroy(new_problem);
@@ -173,7 +174,7 @@ describe Dep_gecode do
     # TODO: check problem's bindings
   end
 
-  it "fails to solve a simple, unsatisfiable set of constraints" do
+   it "fails to solve a simple, unsatisfiable set of constraints" do
     # solution constraints: [(A=1.0.0),(B=1.0.0)], which is not satisfiable
     solution_constraints = [
                             ["A", "= 1.0.0"],
@@ -188,38 +189,38 @@ describe Dep_gecode do
 
     Dep_gecode.VersionProblemDump(new_problem)
 
-    check_solution(new_problem, @pkg_name_to_id, @dep_graph, nil
-                   
-                   ).should == true
+    check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
+                   {'A'=>'1.0.0', 'B'=>'disabled', 'C'=>'1.0.0'}
+                   )
 
     Dep_gecode.VersionProblemDestroy(@problem);
   end
 
   # Friendlier, more abstracted tests
-  it VersionConstraints::SimpleProblem_2_insoluble[:desc] do
-    problem_system = VersionConstraints::SimpleProblem_2_insoluble
+  # it VersionConstraints::SimpleProblem_2_insoluble[:desc] do
+  #   problem_system = VersionConstraints::SimpleProblem_2_insoluble
    
-    setup_soln_constraints_for_dep_gecode(problem_system[:runlist_constraint], @problem, @pkg_name_to_id, @dep_graph)
+  #   setup_soln_constraints_for_dep_gecode(problem_system[:runlist_constraint], @problem, @pkg_name_to_id, @dep_graph)
 
-    # solve and interrogate problem
-    new_problem = Dep_gecode.Solve(@problem)
-    check_solution(new_problem, @pkg_name_to_id, @dep_graph, problem_system[:solution]).should == true
-    Dep_gecode.VersionProblemDestroy(@problem);
-  end
+  #   # solve and interrogate problem
+  #   new_problem = Dep_gecode.Solve(@problem)
+  #   check_solution(new_problem, @pkg_name_to_id, @dep_graph, problem_system[:solution]).should == true
+  #   Dep_gecode.VersionProblemDestroy(@problem);
+  # end
 
   it VersionConstraints::SimpleProblem_3_soluble[:desc] do
-    @problem_system = VersionConstraints::SimpleProblem_3_soluble
-    @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(@problem_system[:version_constraint])
+      @problem_system = VersionConstraints::SimpleProblem_3_soluble
+      @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(@problem_system[:version_constraint])
 
     setup_soln_constraints_for_dep_gecode(@problem_system[:runlist_constraint], @problem, @pkg_name_to_id, @dep_graph)
 
     # solve and interrogate problem
     new_problem = Dep_gecode.Solve(@problem)
-    check_solution(new_problem, @pkg_name_to_id, @dep_graph, @problem_system[:solution]).should == true
+    check_solution(new_problem, @pkg_name_to_id, @dep_graph, @problem_system[:solution])
     Dep_gecode.VersionProblemDestroy(@problem);
   end
 
-  it "should prefer to disable suspicious packages" do
+   it "should prefer to disable suspicious packages" do
     # Note: this test is a lower-level version of the test in
     # selector_spec titled "should indicate that the problematic
     # package is the dependency that is constrained to no versions"
@@ -266,7 +267,7 @@ describe Dep_gecode do
     end
     observed_disabled_packages.should == expected_disabled_packages
   end
-
+ 
   describe "maximization of latestness of solution constraints" do
     before do
       # setup dep graph
