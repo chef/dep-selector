@@ -285,10 +285,9 @@ describe Dep_gecode do
       Dep_gecode.AddVersionConstraint(@problem, soln_constraints, 0, @pkg_c, 0, 1);
     end
 
-    # Note: this test is essentially a baseline for the one that
-    # follows to ensure that we get different behavior after calling
-    # MarkPackagePreferredToBeAtLatest
-    it "should not maximize latestness of solution constraints if they are not marked as such" do
+    it "should maximize latestness of solution constraints not marked with MarkPackagePreferredToBeAtLatest" do
+      Dep_gecode.MarkPackagePreferredToBeAtLatest(@problem, @pkg_a, 10);
+
       soln = Dep_gecode.Solve(@problem)
       soln.should_not == nil
       
@@ -301,9 +300,23 @@ describe Dep_gecode do
       Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 0
       Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 0
     end
+    it "Should select lastest if we don't mark any at all" do
+
+      soln = Dep_gecode.Solve(@problem)
+      soln.should_not == nil
+      
+      Dep_gecode.VersionProblemDump(soln)
+      
+      # since we haven't indicated that a, b, and c should be
+      # preferred to be latest and a was added first, it should find a
+      # satisfiable solution at a=1, b=0, c=0
+      Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 0
+      Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 1
+      Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 1
+    end
 
     # Note: this is the actual test of latestness maximization
-    it "should maximize latestness of solution constraints marked with MarkPackagePreferredToBeAtLatest" do
+    it "If everything is marked with MarkPackagePreferredToBeAtLatest should act the same as if nothing were due to the default latestness objective function" do
       Dep_gecode.MarkPackagePreferredToBeAtLatest(@problem, @pkg_a, 1);
       Dep_gecode.MarkPackagePreferredToBeAtLatest(@problem, @pkg_b, 1);
       Dep_gecode.MarkPackagePreferredToBeAtLatest(@problem, @pkg_c, 1);
