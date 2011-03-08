@@ -98,13 +98,18 @@ module DepSelector
     end
 
     def package_disabled_count
-      raise "Gecode internal failure" if gecode_problem.nil?
+      raise "Gecode internal failure (package disabled count)" if gecode_problem.nil?
       Dep_gecode.GetDisabledVariableCount(gecode_problem)
+    end
+
+    def mark_preferred_to_be_at_latest(package_id, weight)
+      raise "Gecode internal failure (mark_preferred)" if gecode_problem.nil?
+      Dep_gecode.MarkPackagePreferredToBeAtLatest(gecode_problem, package_id, weight);
     end
 
     def solve()
       solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem))
-      raise "Gecode internal failure" if (solution.nil?)
+      raise "Gecode internal failure (no solution found)" if (solution.nil?)
       raise Exceptions::NoSolutionFound.new(solution) if solution.package_disabled_count > 0
       solution
     end
