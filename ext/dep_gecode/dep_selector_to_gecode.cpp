@@ -11,6 +11,8 @@
 #include <vector>
 
 #define DEBUG
+#define VECTOR_CONSTRAIN
+#undef COMPUTE_LINEAR_AGGREGATE
 
 using namespace Gecode;
 const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
@@ -183,8 +185,8 @@ void VersionProblem::Finalize()
   std::cout << "total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
 #endif DEBUG
 
+#ifdef COMPUTE_LINEAR_AGGREGATE
   // Set up the aggregate cost function
- 
   IntVar total_not_preferred_at_latest_normalized = expr(*this, total_not_preferred_at_latest - total_not_preferred_at_latest.min());
   int total_not_preferred_at_latest_range = total_not_preferred_at_latest.size();
   IntVar total_preferred_at_latest_normalized = expr(*this, total_preferred_at_latest - total_preferred_at_latest.min());
@@ -205,6 +207,7 @@ void VersionProblem::Finalize()
   std::cout << "aggregate_cost:                       " << aggregate_cost << std::endl;
   std::cout.flush();
 #endif DEBUG
+#endif // COMPUTE_LINEAR_AGGREGATE
 
   // Cleanup
   // Assign a dummy variable to elements greater than actually used.
@@ -226,7 +229,9 @@ void VersionProblem::Finalize()
   branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MIN);
   branch(*this, total_preferred_at_latest, INT_VAL_MIN);
   branch(*this, total_not_preferred_at_latest, INT_VAL_MIN);
+#ifdef COMPUTE_LINEAR_AGGREGATE
   branch(*this, aggregate_cost, INT_VAL_MAX);
+#endif // COMPUTE_LINEAR_AGGREGATE
 #else // USE_DUMB_BRANCHING
 #  ifdef DEBUG
   std::cout << "Adding branching (BEST)" << std::endl;
@@ -239,7 +244,9 @@ void VersionProblem::Finalize()
   branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MAX);
   branch(*this, total_preferred_at_latest, INT_VAL_MAX);
   branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
+#ifdef COMPUTE_LINEAR_AGGREGATE
   branch(*this, aggregate_cost, INT_VAL_MIN);
+#endif // COMPUTE_LINEAR_AGGREGATE
 #endif // USE_DUMB_BRANCHING
 
 #ifdef DEBUG
@@ -247,6 +254,52 @@ void VersionProblem::Finalize()
   std::cout.flush();
 #endif // DEBUG
 }
+
+////////////////////////////////////////////////////////////////////////
+// A general note about constrain functions
+////////////////////////////////////////////////////////////////////////
+//
+// Constrain functions take a space ('best_known_solution') that is has an assignment of variables
+// and operate in the context of a fresh space, not yet fully assigned. Their purpose is to add
+// constraints such that the assignments in the fresh space will either yield a better solution, or
+// none at all if the best_known_solution is the best possible.
+// 
+
+#ifdef TOTAL_DISABLED_COST
+//
+// Very simple constraint function that only minimizes total disabled packages. This is left here
+// for debugging purposes. Turn this on to test that the basic system can be solved.
+//
+void VersionProblem::constrain(const Space & _best_known_solution)
+{
+  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
+
+  // add first-level objective function minimization (failing packages, weighted)
+  // new constraint: total_disabled < best_known_total_disabled_value)
+  int best_known_total_disabled_value = best_known_solution.total_disabled.val();
+  rel(*this, total_disabled, IRT_LE, best_known_total_disabled_value);
+  PrintVarAligned("Constrain: total_disabled: ", total_disabled);
+}
+#endif // TOTAL_DISABLED_COST
+
+#ifdef AGGREGATE_COST
+//
+// The aggregate cost function combines multiple cost functions as a linear combination to produce a single value
+// The weightings are chosen so that a more important cost function is never outweighed by a change in the lower order functions
+// This works, but suffers from problems with integer range; combining 3 cost functions with a range of 1000 requires 1E9 distinct values
+// Since the number of packages drives the range of cost functions this puts a limit on the number of packages and number of cost functions.
+// 
+void VersionProblem::constrain(const Space & _best_known_solution)
+{
+  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
+
+  int best_known_aggregate_cost_value = best_known_solution.aggregate_cost.val();
+  rel(*this, aggregate_cost, IRT_LE, best_known_aggregate_cost_value);
+  PrintVarAligned("Constrain: best_known_aggregate_cost_value: ", best_known_aggregate_cost_value);
+}
+#endif // AGGREGATE_COST
+
+
 
 // _best_known_soln is the most recent satisfying assignment of
 // variables that Gecode has found. This method examines the solution
@@ -270,95 +323,18 @@ void VersionProblem::Finalize()
 // the higher precedent objective functions. The objective function
 // then applies its constraints, the solution space is restarted and
 // walks the space until it finds another, more constrained solution.
-#ifdef DISABLED
-void VersionProblem::constrain(const Space & _best_known_solution)
-{
-  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
 
-  // add first-level objective function minimization (failing packages, weighted)
-  // new constraint: total_disabled < best_known_total_disabled_value)
-  int best_known_total_disabled_value = best_known_solution.total_disabled.val();
-  rel(*this, total_disabled, IRT_LE, best_known_total_disabled_value);
-#ifdef DEBUG
-  std::cout.width(40);
-  std::cout << "Constrain: best_known_total_disabled_value: " << best_known_total_disabled_value << std::endl;
-  std::cout.width(0);
-#endif
-
-  // add second-level objective function maximization (preferred packages are at latest, weighted)
-  AddPackagesPreferredToBeAtLatestObjectiveFunction(best_known_solution);
-}
-#endif // DISABLED
-
-void VersionProblem::AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution)
-{
-  // Make sure we respect total_disabled first by only constraining on
-  // latestness of preferred packages if the solution's total_disabled
-  // is equivalent to the best known, which is what
-  // is_at_best_known_disabled_value represents.
-
-  // is_at_best_known_disabled_value <=> (total_disabled == best_known_total_disabled_value)
-  BoolVar is_at_best_known_disabled_value(*this, 0, 1);
-  rel(*this, total_disabled, IRT_EQ, best_known_solution.total_disabled.val(), is_at_best_known_disabled_value);
-//rel(*this, total_disabled, IRT_EQ, 0, is_at_best_known_disabled_value);
-
-  // is_better_total_preferred_at_latest <=> (total_preferred_at_latest > best_known_total_preferred_at_latest_value)
-  int best_known_total_preferred_at_latest_value = best_known_solution.total_preferred_at_latest.val();
-  BoolVar is_better_total_preferred_at_latest(*this, 0, 1);
-  rel(*this, total_preferred_at_latest, IRT_GR, best_known_total_preferred_at_latest_value, is_better_total_preferred_at_latest);
-
-  // new constraint: is_at_best_known_disabled_value -> is_better_total_preferred_at_latest
-  rel(*this, is_at_best_known_disabled_value, BOT_IMP, is_better_total_preferred_at_latest, 1);
-  // BoolVar x(*this, 0, 1);
-  // rel(*this, is_at_best_known_disabled_value, BOT_AND, is_better_total_preferred_at_latest, x);
-  // BoolVar not_best(*this, 0, 1);
-  // rel(*this, is_at_best_known_disabled_value, IRT_EQ, 0, not_best);
-  // rel(*this, not_best, BOT_OR, x, 1);
-
-#ifdef DEBUG
-  std::cout << "Constrain: best_known_total_preferred_at_latest_value: " << best_known_total_preferred_at_latest_value << std::endl;
-#endif
-}
-
-#ifdef AGGREGATE_COST
-void VersionProblem::constrain(const Space & _best_known_solution)
-{
-  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
-
-  int best_known_aggregate_cost_value = best_known_solution.aggregate_cost.val();
-  rel(*this, aggregate_cost, IRT_LE, best_known_aggregate_cost_value);
-  PrintVarAligned("Constrain: best_known_aggregate_cost_value: ", best_known_aggregate_cost_value);
-}
-#endif // AGGREGATE_COST
-
-#ifdef AT_PREFERRED_LATEST_COST
-void VersionProblem::constrain(const Space & _best_known_solution)
-{
-  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
-  
-  int best_known_total_preferred_at_latest_value = best_known_solution.total_preferred_at_latest.val();
-  BoolVar is_better_total_preferred_at_latest(*this, 0, 1);
-  rel(*this, total_preferred_at_latest, IRT_GR, best_known_total_preferred_at_latest_value);
-  PrintVarAligned("Constrain: best_known_total_preferred_at_latest_value: ", best_known_total_preferred_at_latest_value);
-}
-
-#endif // AT_PREFERRED_LATEST_COST
-
-#ifdef TOTAL_DISABLED_COST
-void VersionProblem::constrain(const Space & _best_known_solution)
-{
-  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
-
-  // add first-level objective function minimization (failing packages, weighted)
-  // new constraint: total_disabled < best_known_total_disabled_value)
-  int best_known_total_disabled_value = best_known_solution.total_disabled.val();
-  rel(*this, total_disabled, IRT_LE, best_known_total_disabled_value);
-  PrintVarAligned("Constrain: total_disabled: ", total_disabled);
-}
-#endif // AT_PREFERRED_LATEST_COST
-
-#define VECTOR_CONSTRAIN
 #ifdef VECTOR_CONSTRAIN
+// 
+// The vector constrain function assembles multiple cost functions into a vector cost, and then
+// constrains the vector cost to be less than the vector cost of the current best_known_solution.
+// The less than operation here is a pairwise comparison in order of decreasing precedence; only if
+// higher precedence elements are tied will the lower precedence elements be consulted. The elements 
+// are in increasing order of precedence. 
+//
+// In this case the lowest precedence cost is total_not_preferred_at_latest, followed by total_preferred_at_latest
+// and finally total_disabled.
+//
 void VersionProblem::constrain(const Space & _best_known_solution)
 {
   const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
@@ -428,7 +404,9 @@ void VersionProblem::Print(std::ostream & out)
   out << "at_latest:                     " << at_latest << std::endl;
   out << "total_preferred_at_latest:     " << total_preferred_at_latest << std::endl;
   out << "total_not_preferred_at_latest: " << total_not_preferred_at_latest << std::endl;
+#ifdef COMPUTE_LINEAR_AGGREGATE
   out << "aggregate_cost:                " << aggregate_cost << std::endl;
+#endif // COMPUTE_LINEAR_AGGREGATE
   for (int i = 0; i < cur_package; i++) {
     out << "\t";
     PrintPackageVar(out, i);
