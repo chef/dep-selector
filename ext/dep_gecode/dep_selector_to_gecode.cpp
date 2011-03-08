@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 
-#define DEBUG
+//#define DEBUG
 //#define USE_DUMB_BRANCHING
 #define VECTOR_CONSTRAIN
 #define COMPUTE_LINEAR_AGGREGATE
