@@ -12,5 +12,6 @@ have_library('gecodesearch')
 have_library('gecodeint')
 have_library('gecodekernel')
 have_library('gecodesupport')
+have_library('gecodeminimodel')
 
 create_makefile('dep_gecode')

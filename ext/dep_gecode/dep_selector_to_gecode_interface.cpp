@@ -64,6 +64,10 @@ void MarkPackageSuspicious(VersionProblem *problem, int packageId, int trustLeve
   problem->MarkPackageSuspicious(packageId, trustLevel);
 }
 
+void MarkPackagePreferredToBeAtLatest(VersionProblem *problem, int packageId, int weight)
+{
+  problem->MarkPackagePreferredToBeAtLatest(packageId, weight);
+}
 
 int GetPackageVersion(VersionProblem *problem, int packageId)
 {
@@ -73,11 +77,6 @@ int GetPackageVersion(VersionProblem *problem, int packageId)
 bool GetPackageDisabledState(VersionProblem *problem, int packageId)
 {
   problem->GetPackageDisabledState(packageId);
-}
-
-int GetPackageAFC(VersionProblem *problem, int packageId)
-{
-  problem->GetAFC(packageId);
 }
 
 int GetPackageMax(VersionProblem *problem, int packageId)

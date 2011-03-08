@@ -21,12 +21,13 @@ using namespace Gecode;
 // Add optimization functions
 // Allow non-contiguous ranges in package dependencies. 
 
-class VersionProblem : public MinimizeSpace
+class VersionProblem : public Space
 {
  public:
   static const int UNRESOLVED_VARIABLE;
   static const int MIN_TRUST_LEVEL;  
   static const int MAX_TRUST_LEVEL;
+  static const int MAX_PREFERRED_WEIGHT;
 
   VersionProblem(int packageCount);
   // Clone constructor; check gecode rules for this...
@@ -49,14 +50,16 @@ class VersionProblem : public MinimizeSpace
   // 0 makes it free to disable a package, while 10 is the default full trust.
   void MarkPackageSuspicious(int packageId, int trustLevel);
 
+  // Packages marked by this method are preferentially chosen at
+  // latest according to weights
+  void MarkPackagePreferredToBeAtLatest(int packageId, int weight);
 
   void Finalize();
   
-  virtual IntVar cost(void) const;
+  virtual void constrain(const Space & _best_known_solution);
 
   int GetPackageVersion(int packageId);
   bool GetPackageDisabledState(int packageId);
-  int GetAFC(int packageId);
   int GetMax(int packageId);
   int GetMin(int packageId);
   int GetDisabledVariableCount();
@@ -69,6 +72,7 @@ class VersionProblem : public MinimizeSpace
   void PrintPackageVar(std::ostream & out, int packageId) ;
 
   static VersionProblem *Solve(VersionProblem *problem);
+ 
 
  protected:
   int size;
@@ -80,9 +84,21 @@ class VersionProblem : public MinimizeSpace
   IntVarArray package_versions;
   BoolVarArray disabled_package_variables;
   IntVar total_disabled;
+  BoolVarArray at_latest;
+  IntVar total_preferred_at_latest;
+  IntVar total_not_preferred_at_latest;
+
+  IntVar aggregate_cost;
 
   int * disabled_package_weights;
+  int * preferred_at_latest_weights;
+
+  void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
+  void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
 };
+
+template<class T> void PrintVarAligned(const char * message, T & var);
+template<class S, class T> void PrintVarAligned(const char * message, S & var1, T & var2);
 
 class Solver {
  public:
