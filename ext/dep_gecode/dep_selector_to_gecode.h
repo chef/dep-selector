@@ -46,9 +46,9 @@ class VersionProblem : public Space
 
   // We may wish to indicate that some packages have suspicious constraints, and when chosing packages to disable we 
   // would disable them first. 
-  // Trust level 10 is fully trusted, while 0is completely untrusted.
-  // 0 makes it free to disable a package, while 10 is the default full trust.
-  void MarkPackageSuspicious(int packageId, int trustLevel);
+  void MarkPackageSuspicious(int packageId);
+
+  void MarkPackageRequired(int packageId); 
 
   // Packages marked by this method are preferentially chosen at
   // latest according to weights
@@ -84,6 +84,11 @@ class VersionProblem : public Space
   IntVarArray package_versions;
   BoolVarArray disabled_package_variables;
   IntVar total_disabled;
+
+  IntVar total_required_disabled;
+  IntVar total_induced_disabled;
+  IntVar total_suspicious_disabled;
+
   BoolVarArray at_latest;
   IntVar total_preferred_at_latest;
   IntVar total_not_preferred_at_latest;
@@ -92,6 +97,8 @@ class VersionProblem : public Space
 
   int * disabled_package_weights;
   int * preferred_at_latest_weights;
+  int * is_required;
+  int * is_suspicious;
 
   void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);

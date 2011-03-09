@@ -1858,16 +1858,13 @@ SWIGINTERN VALUE
 _wrap_MarkPackageSuspicious(int argc, VALUE *argv, VALUE self) {
   VersionProblem *arg1 = (VersionProblem *) 0 ;
   int arg2 ;
-  int arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int val2 ;
   int ecode2 = 0 ;
-  int val3 ;
-  int ecode3 = 0 ;
   
-  if ((argc < 3) || (argc > 3)) {
-    rb_raise(rb_eArgError, "wrong # of arguments(%d for 3)",argc); SWIG_fail;
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
   }
   res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
@@ -1879,12 +1876,36 @@ _wrap_MarkPackageSuspicious(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "MarkPackageSuspicious" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  ecode3 = SWIG_AsVal_int(argv[2], &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "MarkPackageSuspicious" "', argument " "3"" of type '" "int""'");
+  MarkPackageSuspicious(arg1,arg2);
+  return Qnil;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_MarkPackageRequired(int argc, VALUE *argv, VALUE self) {
+  VersionProblem *arg1 = (VersionProblem *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_VersionProblem, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MarkPackageRequired" "', argument " "1"" of type '" "VersionProblem *""'"); 
+  }
+  arg1 = reinterpret_cast< VersionProblem * >(argp1);
+  ecode2 = SWIG_AsVal_int(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "MarkPackageRequired" "', argument " "2"" of type '" "int""'");
   } 
-  arg3 = static_cast< int >(val3);
-  MarkPackageSuspicious(arg1,arg2,arg3);
+  arg2 = static_cast< int >(val2);
+  MarkPackageRequired(arg1,arg2);
   return Qnil;
 fail:
   return Qnil;
@@ -2427,6 +2448,7 @@ SWIGEXPORT void Init_dep_gecode(void) {
   rb_define_module_function(mDep_gecode, "AddPackage", VALUEFUNC(_wrap_AddPackage), -1);
   rb_define_module_function(mDep_gecode, "AddVersionConstraint", VALUEFUNC(_wrap_AddVersionConstraint), -1);
   rb_define_module_function(mDep_gecode, "MarkPackageSuspicious", VALUEFUNC(_wrap_MarkPackageSuspicious), -1);
+  rb_define_module_function(mDep_gecode, "MarkPackageRequired", VALUEFUNC(_wrap_MarkPackageRequired), -1);
   rb_define_module_function(mDep_gecode, "MarkPackagePreferredToBeAtLatest", VALUEFUNC(_wrap_MarkPackagePreferredToBeAtLatest), -1);
   rb_define_module_function(mDep_gecode, "GetPackageVersion", VALUEFUNC(_wrap_GetPackageVersion), -1);
   rb_define_module_function(mDep_gecode, "GetPackageDisabledState", VALUEFUNC(_wrap_GetPackageDisabledState), -1);

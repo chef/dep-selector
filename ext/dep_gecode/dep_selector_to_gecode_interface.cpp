@@ -59,14 +59,19 @@ bool AddVersionConstraint(VersionProblem *problem, int packageId, int version,
   problem->AddVersionConstraint(packageId, version, dependentPackageId, minDependentVersion, maxDependentVersion);
 }
 
-void MarkPackageSuspicious(VersionProblem *problem, int packageId, int trustLevel) 
+void MarkPackageSuspicious(VersionProblem *problem, int packageId) 
 {
-  problem->MarkPackageSuspicious(packageId, trustLevel);
+  problem->MarkPackageSuspicious(packageId);
 }
 
 void MarkPackagePreferredToBeAtLatest(VersionProblem *problem, int packageId, int weight)
 {
   problem->MarkPackagePreferredToBeAtLatest(packageId, weight);
+}
+
+void MarkPackageRequired(VersionProblem *problem, int packageId)
+{
+  problem->MarkPackageRequired(packageId);
 }
 
 int GetPackageVersion(VersionProblem *problem, int packageId)

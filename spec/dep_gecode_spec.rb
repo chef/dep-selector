@@ -248,8 +248,8 @@ describe Dep_gecode do
     Dep_gecode.AddVersionConstraint(problem, 8, 0, 9, -2, -2);
 
     # hint suspicious packages
-    Dep_gecode.MarkPackageSuspicious(problem, 3, 1)
-    Dep_gecode.MarkPackageSuspicious(problem, 9, 1)
+    Dep_gecode.MarkPackageSuspicious(problem, 3)
+    Dep_gecode.MarkPackageSuspicious(problem, 9)
 
     # add solution constraints
     Dep_gecode.AddVersionConstraint(problem, 10, 0, 7, 0, 0);

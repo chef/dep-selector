@@ -74,7 +74,7 @@ module DepSelector
       # solver that in the event of failure, it should prefer to
       # indicate constraints on dependent_package_id as the culprit
       if min == NoMatchConstraint && max == NoMatchConstraint
-        Dep_gecode.MarkPackageSuspicious(gecode_problem, dependent_package_id, 1)
+        Dep_gecode.MarkPackageSuspicious(gecode_problem, dependent_package_id)
       end
     end
     def get_package_version(package_id)
