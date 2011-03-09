@@ -74,7 +74,7 @@ module DepSelector
       # solver that in the event of failure, it should prefer to
       # indicate constraints on dependent_package_id as the culprit
       if min == NoMatchConstraint && max == NoMatchConstraint
-        Dep_gecode.MarkPackageSuspicious(gecode_problem, dependent_package_id, 1)
+        Dep_gecode.MarkPackageSuspicious(gecode_problem, dependent_package_id)
       end
     end
     def get_package_version(package_id)
@@ -100,6 +100,11 @@ module DepSelector
     def package_disabled_count
       raise "Gecode internal failure (package disabled count)" if gecode_problem.nil?
       Dep_gecode.GetDisabledVariableCount(gecode_problem)
+    end
+
+    def mark_required(package_id)
+      raise "Gecode internal failure (mark_required)" if gecode_problem.nil?
+      Dep_gecode.MarkPackageRequired(gecode_problem, package_id);
     end
 
     def mark_preferred_to_be_at_latest(package_id, weight)
