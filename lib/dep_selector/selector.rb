@@ -149,6 +149,7 @@ module DepSelector
 
         pkg_id = pkg.gecode_package_id
         workspace.gecode_wrapper.mark_preferred_to_be_at_latest(pkg_id, 10)
+        workspace.gecode_wrapper.mark_required(pkg_id)
         # package 0 is created in workspace.generate_gecode_wrapper_constraints
         # and represents a "ghost" package that is automatically bound to
         # version 0 and whose dependencies are the solution constraints.
