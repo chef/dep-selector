@@ -102,6 +102,11 @@ module DepSelector
       Dep_gecode.GetDisabledVariableCount(gecode_problem)
     end
 
+    def mark_required(package_id)
+      raise "Gecode internal failure (mark_required)" if gecode_problem.nil?
+      Dep_gecode.MarkPackageRequired(gecode_problem, package_id);
+    end
+
     def mark_preferred_to_be_at_latest(package_id, weight)
       raise "Gecode internal failure (mark_preferred)" if gecode_problem.nil?
       Dep_gecode.MarkPackagePreferredToBeAtLatest(gecode_problem, package_id, weight);
