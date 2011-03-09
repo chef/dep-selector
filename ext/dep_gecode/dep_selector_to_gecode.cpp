@@ -501,8 +501,8 @@ void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArg
     IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
     // (delta < 0) <=> borrow[i+1]
     rel(*this, delta, IRT_LE, 0, borrow[i+1]);
-    PrintVarAligned("Constrain: borrow[i+1], delta", borrow[i+1], delta);
-    PrintVarAligned("Constrain: current[i] best_val ", current[i], best_val);
+    std::cout << "ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
+    std::cout << "ConstrainVector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
   }
 
   // must borrow off past the most significant element.
