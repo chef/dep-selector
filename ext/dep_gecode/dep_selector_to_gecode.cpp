@@ -31,7 +31,7 @@ VersionProblem::VersionProblem(int packageCount)
     // These domains could be narrowed a bit; check later
     total_preferred_at_latest(*this, -packageCount*MAX_PREFERRED_WEIGHT, packageCount*MAX_PREFERRED_WEIGHT), 
     total_not_preferred_at_latest(*this, -packageCount, packageCount), 
-    preferred_at_latest_weights(new int[packageCount]),
+    preferred_at_latest_weights(new int[packageCount])
 {
   for (int i = 0; i < packageCount; i++)
   {
@@ -51,7 +51,7 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
     at_latest(s.at_latest),
     total_preferred_at_latest(s.total_preferred_at_latest), 
     total_not_preferred_at_latest(s.total_preferred_at_latest), 
-    preferred_at_latest_weights(NULL),
+    preferred_at_latest_weights(NULL)
 {
   package_versions.update(*this, share, s.package_versions);
   disabled_package_variables.update(*this, share, s.disabled_package_variables);
