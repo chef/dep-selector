@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 
-#define DEBUG
+//#define DEBUG
 //#define USE_DUMB_BRANCHING
 #define VECTOR_CONSTRAIN
 #define COMPUTE_LINEAR_AGGREGATE
@@ -501,8 +501,10 @@ void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArg
     IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
     // (delta < 0) <=> borrow[i+1]
     rel(*this, delta, IRT_LE, 0, borrow[i+1]);
+#ifdef DEBUG
     std::cout << "ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
     std::cout << "ConstrainVector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
+#endif //DEBUG
   }
 
   // must borrow off past the most significant element.
