@@ -47,11 +47,15 @@ module DepSelector
     # constrained packages are identified and thrown in a
     # NoSolutionExists exception.
     #
-    # If valid_packages is non-nil, it is considered the authoritative
-    # list of packages that exist; otherwise, Package#valid? is
-    # used. This is useful if the dependency graph represents an
-    # already filtered set of packages so that a package may actually
-    # exist but be added to the dependency graph with no versions, in
+    # If a solution constraint refers to a package that doesn't exist
+    # or the constraint matches no versions, it is considered
+    # invalid. All invalid solution constraints are collected and
+    # raised in an InvalidSolutionConstraints exception. If
+    # valid_packages is non-nil, it is considered the authoritative
+    # list of extant Packages; otherwise, Package#valid? is used. This
+    # is useful if the dependency graph represents an already filtered
+    # set of packages such that a Package actually exists in your
+    # domain but is added to the dependency graph with no versions, in
     # which case Package#valid? would return false even though we
     # don't want to report that the package is non-existent.
     def find_solution(solution_constraints, valid_packages = nil)
@@ -96,14 +100,14 @@ module DepSelector
               disabled_collection << disabled_pkg
             end
 
-            # Pick the first non-existent package that was required or
-            # the package whose constraints had to be disabled in
-            # order to find a solution and generate feedback for
-            # it. We only report feedback for one package, because it
-            # is in fact actionable and dispalying feedback for every
-            # disabled package would probably be too long. The full
-            # set of disabled packages is accessible in the
-            # NoSolutionExists exception.
+            # Pick the first non-existent or most-constrained package
+            # that was required or the package whose constraints had
+            # to be disabled in order to find a solution and generate
+            # feedback for it. We only report feedback for one
+            # package, because it is in fact actionable and dispalying
+            # feedback for every disabled package would probably be
+            # too long. The full set of disabled packages is
+            # accessible in the NoSolutionExists exception.
             disabled_package_to_report_on = disabled_non_existent_packages.first ||
                                             disabled_most_constrained_packages.first
             feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx,
@@ -122,17 +126,28 @@ module DepSelector
     # Given a workspace (a clone of the dependency graph) and an array
     # of SolutionConstraints, this method attempts to find a
     # satisfiable set of <Package, Version> pairs.
-    #
-    # If a solution constraint refers to a package that isn't valid
-    # (if valid_packages is non-nil, it is considered the
-    # authoritative list; otherwise, Package#valid? is used), it
-    # raises NoSolutionExists.
     def solve(workspace, solution_constraints, valid_packages)
       # generate constraints imposed by the dependency graph
       workspace.generate_gecode_wrapper_constraints
 
+      # validate solution_constraints and generate its constraints
+      process_soln_constraints(workspace, solution_constraints, valid_packages)
+
+      # solve and trim the solution down to only the 
+      soln = workspace.gecode_wrapper.solve
+      trim_solution(solution_constraints, soln, workspace)
+    end
+
+    # This method validates SolutionConstraints and adds their
+    # corresponding constraints to the workspace.
+    def process_soln_constraints(workspace, solution_constraints, valid_packages)
+      gecode = workspace.gecode_wrapper
+
       # create shadow package whose dependencies are the solution constraints
-      soln_constraints_pkg_id = workspace.gecode_wrapper.add_package(0, 0, 0)
+      soln_constraints_pkg_id = gecode.add_package(0, 0, 0)
+
+      soln_constraints_on_non_existent_packages = []
+      soln_constraints_that_match_no_versions = []
       
       # generate constraints imposed by solution_constraints
       solution_constraints.each do |soln_constraint|
@@ -140,34 +155,41 @@ module DepSelector
         pkg_name = soln_constraint.package.name
         pkg = workspace.package(pkg_name)
         constraint = soln_constraint.constraint
+
+        # record invalid solution constraints and raise an exception
+        # afterwards
         unless pkg.valid? || (valid_packages && valid_packages.include?(pkg))
-          raise Exceptions::NoSolutionExists.new("Solution constraint (#{pkg_name} #{constraint.to_s}) specifies a package that does not exist in the dependency graph", soln_constraint)
+          soln_constraints_on_non_existent_packages << soln_constraint
+          next
         end
         if pkg[constraint].empty?
-          raise Exceptions::NoSolutionExists.new("Solution constraint (#{pkg_name} #{constraint.to_s}) does not match any versions", soln_constraint)
+          soln_constraints_that_match_no_versions << soln_constraint
+          next
         end
 
         pkg_id = pkg.gecode_package_id
-        workspace.gecode_wrapper.mark_preferred_to_be_at_latest(pkg_id, 10)
-        workspace.gecode_wrapper.mark_required(pkg_id)
-        # package 0 is created in workspace.generate_gecode_wrapper_constraints
-        # and represents a "ghost" package that is automatically bound to
-        # version 0 and whose dependencies are the solution constraints.
+        gecode.mark_preferred_to_be_at_latest(pkg_id, 10)
+        gecode.mark_required(pkg_id)
+
         if constraint
           acceptable_versions = pkg.densely_packed_versions[constraint]
-          workspace.gecode_wrapper.add_version_constraint(soln_constraints_pkg_id, 0, pkg_id, acceptable_versions.min, acceptable_versions.max)
+          gecode.add_version_constraint(soln_constraints_pkg_id, 0, pkg_id, acceptable_versions.min, acceptable_versions.max)
         else
           # this restricts the domain of the variable to >= 0, which
           # means -1, the shadow package, cannot be assigned, meaning
           # the package must be bound to an actual version
-          workspace.gecode_wrapper.add_version_constraint(soln_constraints_pkg_id, 0, pkg_id, 0, pkg.densely_packed_versions.range.max)
+          gecode.add_version_constraint(soln_constraints_pkg_id, 0, pkg_id, 0, pkg.densely_packed_versions.range.max)
         end
       end
 
-      soln = workspace.gecode_wrapper.solve
-      trim_solution(solution_constraints, soln, workspace)
+      if soln_constraints_on_non_existent_packages.any? || soln_constraints_that_match_no_versions.any?
+        raise Exceptions::InvalidSolutionConstraints.new(soln_constraints_on_non_existent_packages,
+                                                         soln_constraints_that_match_no_versions)
+      end
     end
 
+    # Given an assignment of versions to packages, filter down to only
+    # the required assignments 
     def trim_solution(soln_constraints, soln, workspace)
       trimmed_soln = {}
       soln_constraints.each do |soln_constraint|

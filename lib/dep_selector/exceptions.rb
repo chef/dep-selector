@@ -47,6 +47,19 @@ module DepSelector
       end
     end
 
+    # This exception is thrown during Selector#find_solution if any of
+    # the solution constraints make finding solution impossible. The
+    # two cases are if a solution constraint references a package that
+    # doesn't exist or if the constraint on an extant package matches
+    # no versions.
+    class InvalidSolutionConstraints < ArgumentError
+      attr_reader :non_existent_packages, :constrained_to_no_versions
+      def initialize(non_existent_packages, constrained_to_no_versions)
+        @non_existent_packages = non_existent_packages
+        @constrained_to_no_versions = constrained_to_no_versions
+      end
+    end
+
     class InvalidVersion < ArgumentError ; end
     class InvalidVersionConstraint < ArgumentError; end
 
