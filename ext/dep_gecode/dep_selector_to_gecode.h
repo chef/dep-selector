@@ -93,8 +93,6 @@ class VersionProblem : public Space
   IntVar total_preferred_at_latest;
   IntVar total_not_preferred_at_latest;
 
-  IntVar aggregate_cost;
-
   int * disabled_package_weights;
   int * preferred_at_latest_weights;
   int * is_required;

@@ -13,7 +13,6 @@
 //#define DEBUG
 //#define USE_DUMB_BRANCHING
 #define VECTOR_CONSTRAIN
-#define COMPUTE_LINEAR_AGGREGATE
 
 using namespace Gecode;
 const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
@@ -33,7 +32,6 @@ VersionProblem::VersionProblem(int packageCount)
     total_preferred_at_latest(*this, -packageCount*MAX_PREFERRED_WEIGHT, packageCount*MAX_PREFERRED_WEIGHT), 
     total_not_preferred_at_latest(*this, -packageCount, packageCount), 
     preferred_at_latest_weights(new int[packageCount]),
-    aggregate_cost(*this, INT_MIN/2, INT_MAX/2) //-packageCount*packageCount*MAX_TRUST_LEVEL*MAX_PREFERRED_WEIGHT, packageCount*packageCount*MAX_TRUST_LEVEL*MAX_PREFERRED_WEIGHT)
 {
   for (int i = 0; i < packageCount; i++)
   {
@@ -54,7 +52,6 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
     total_preferred_at_latest(s.total_preferred_at_latest), 
     total_not_preferred_at_latest(s.total_preferred_at_latest), 
     preferred_at_latest_weights(NULL),
-    aggregate_cost(s.aggregate_cost)
 {
   package_versions.update(*this, share, s.package_versions);
   disabled_package_variables.update(*this, share, s.disabled_package_variables);
@@ -65,7 +62,6 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
   at_latest.update(*this, share, s.at_latest);
   total_preferred_at_latest.update(*this, share, s.total_preferred_at_latest);
   total_not_preferred_at_latest.update(*this, share, s.total_not_preferred_at_latest);
-  aggregate_cost.update(*this, share, s.aggregate_cost);
 }
 
 // Support for gecode
@@ -228,30 +224,6 @@ void VersionProblem::Finalize()
   std::cout << "total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
 #endif DEBUG
 
-#ifdef COMPUTE_LINEAR_AGGREGATE
-  // Set up the aggregate cost function
-  IntVar total_not_preferred_at_latest_normalized = expr(*this, total_not_preferred_at_latest - total_not_preferred_at_latest.min());
-  int total_not_preferred_at_latest_range = total_not_preferred_at_latest.size();
-  IntVar total_preferred_at_latest_normalized = expr(*this, total_preferred_at_latest - total_preferred_at_latest.min());
-  int total_preferred_at_latest_range = total_preferred_at_latest.size();
-  IntVar total_disabled_normalized = expr(*this, total_disabled - total_disabled.min());
-
-  IntArgs aggregate_cost_weights(3, total_not_preferred_at_latest_range*total_preferred_at_latest_range, total_not_preferred_at_latest_range, 1);  
-  //IntArgs aggregate_cost_weights(3, 1, 0, 0);
-  IntVarArgs aggregate_vector(3);
-  aggregate_vector[0] = IntVar(total_disabled); 
-  aggregate_vector[1] = IntVar(total_preferred_at_latest);
-  aggregate_vector[2] = IntVar(total_not_preferred_at_latest);
-
-  linear(*this, aggregate_cost_weights, aggregate_vector, IRT_EQ, aggregate_cost);
-#ifdef DEBUG
-  std::cout << "aggregate_cost_weights:               " << aggregate_cost_weights << std::endl;
-  std::cout << "aggregate_vector:                     " << aggregate_vector << std::endl;
-  std::cout << "aggregate_cost:                       " << aggregate_cost << std::endl;
-  std::cout.flush();
-#endif DEBUG
-#endif // COMPUTE_LINEAR_AGGREGATE
-
   // Cleanup
   // Assign a dummy variable to elements greater than actually used.
   for (int i = cur_package; i < size; i++) {
@@ -274,9 +246,6 @@ void VersionProblem::Finalize()
   branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MIN);
   branch(*this, total_preferred_at_latest, INT_VAL_MIN);
   branch(*this, total_not_preferred_at_latest, INT_VAL_MIN);
-#ifdef COMPUTE_LINEAR_AGGREGATE
-  branch(*this, aggregate_cost, INT_VAL_MAX);
-#endif // COMPUTE_LINEAR_AGGREGATE
 #else // USE_DUMB_BRANCHING
 #  ifdef DEBUG
   std::cout << "Adding branching (BEST)" << std::endl;
@@ -292,9 +261,6 @@ void VersionProblem::Finalize()
   branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MAX);
   branch(*this, total_preferred_at_latest, INT_VAL_MAX);
   branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
-#ifdef COMPUTE_LINEAR_AGGREGATE
-  branch(*this, aggregate_cost, INT_VAL_MIN);
-#endif // COMPUTE_LINEAR_AGGREGATE
 #endif // USE_DUMB_BRANCHING
 
 #ifdef DEBUG
@@ -329,25 +295,6 @@ void VersionProblem::constrain(const Space & _best_known_solution)
   PrintVarAligned("Constrain: total_disabled: ", total_disabled);
 }
 #endif // TOTAL_DISABLED_COST
-
-#ifdef AGGREGATE_COST
-//
-// The aggregate cost function combines multiple cost functions as a linear combination to produce a single value
-// The weightings are chosen so that a more important cost function is never outweighed by a change in the lower order functions
-// This works, but suffers from problems with integer range; combining 3 cost functions with a range of 1000 requires 1E9 distinct values
-// Since the number of packages drives the range of cost functions this puts a limit on the number of packages and number of cost functions.
-// 
-void VersionProblem::constrain(const Space & _best_known_solution)
-{
-  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
-
-  int best_known_aggregate_cost_value = best_known_solution.aggregate_cost.val();
-  rel(*this, aggregate_cost, IRT_LE, best_known_aggregate_cost_value);
-  PrintVarAligned("Constrain: best_known_aggregate_cost_value: ", best_known_aggregate_cost_value);
-}
-#endif // AGGREGATE_COST
-
-
 
 // _best_known_soln is the most recent satisfying assignment of
 // variables that Gecode has found. This method examines the solution
@@ -459,9 +406,6 @@ void VersionProblem::Print(std::ostream & out)
   out << "at_latest:                              " << at_latest << std::endl;
   out << "total_preferred_at_latest:              " << total_preferred_at_latest << std::endl;
   out << "total_not_preferred_at_latest:          " << total_not_preferred_at_latest << std::endl;
-#ifdef COMPUTE_LINEAR_AGGREGATE
-  out << "aggregate_cost:                         " << aggregate_cost << std::endl;
-#endif // COMPUTE_LINEAR_AGGREGATE
   for (int i = 0; i < cur_package; i++) {
     out << "\t";
     PrintPackageVar(out, i);
