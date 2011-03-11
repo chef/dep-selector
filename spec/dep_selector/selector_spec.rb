@@ -435,6 +435,26 @@ describe DepSelector::Selector do
       end
     end
 
+    it "solves moderately complex dependency graph #3" do
+      dep_graph = DepSelector::DependencyGraph.new
+      setup_constraint(dep_graph, moderate_cookbook_version_constraint_3)
+      selector = DepSelector::Selector.new(dep_graph)
+      unsatisfiable_solution_constraints =
+        setup_soln_constraints(dep_graph,
+                               [
+                                ["b", "= 1.0"],
+                                ["a", "= 1.0"],
+                               ])
+      soln = selector.find_solution(unsatisfiable_solution_constraints)
+
+      verify_solution(soln,
+                      { "a" => "1.0.0",
+                        "b" => "1.0.0",
+                        "c" => "2.0.0",
+                        "d" => "2.1.0",
+                        "f" => "1.0.0",
+                      })
+    end
   end
 
   # TODO [cw,2011/2/4]: Add a test for a set of solution constraints
