@@ -26,7 +26,7 @@ require 'dep_selector/gecode_wrapper'
 module DepSelector
   class DependencyGraph
 
-    attr_reader :packages, :gecode_wrapper
+    attr_reader :packages
 
     def initialize
       @packages = {}
@@ -40,6 +40,11 @@ module DepSelector
       packages.each do |name, pkg|
         yield pkg
       end
+    end
+
+    def gecode_wrapper
+      raise "Must invoke generate_gecode_wrapper_constraints before attempting to access gecode_wrapper" unless @gecode_wrapper
+      @gecode_wrapper
     end
 
     # Note: only invoke this method once all Packages and
