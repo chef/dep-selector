@@ -26,7 +26,7 @@ require 'dep_selector/gecode_wrapper'
 module DepSelector
   class DependencyGraph
 
-    attr_reader :packages, :gecode_wrapper
+    attr_reader :packages
 
     def initialize
       @packages = {}
@@ -42,13 +42,27 @@ module DepSelector
       end
     end
 
-    def generate_gecode_wrapper_constraints
+    def gecode_wrapper
+      raise "Must invoke generate_gecode_wrapper_constraints before attempting to access gecode_wrapper" unless @gecode_wrapper
+      @gecode_wrapper
+    end
+
+    # Note: only invoke this method once all Packages and
+    # PackageVersions have been added.
+    def generate_gecode_wrapper_constraints(packages_to_include_in_solve=nil)
       unless @gecode_wrapper
+        packages_in_solve =
+          if packages_to_include_in_solve
+            packages_to_include_in_solve
+          else
+            packages.map{ |name, pkg| pkg }
+          end
+
         # In addition to all the packages that the user specified,
         # there is a "ghost" package that contains the solution
         # constraints. See Selector#solve for more information.
-        @gecode_wrapper = GecodeWrapper.new(packages.size + 1)
-        each_package{ |pkg| pkg.generate_gecode_wrapper_constraints }
+        @gecode_wrapper = GecodeWrapper.new(packages_in_solve.size + 1)
+        packages_in_solve.each{ |pkg| pkg.generate_gecode_wrapper_constraints }
       end
     end
 
