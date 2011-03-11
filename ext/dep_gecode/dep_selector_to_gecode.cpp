@@ -1,3 +1,22 @@
+//
+// Author:: Christopher Walters (<cw@opscode.com>)
+// Author:: Mark Anderson (<mark@opscode.com>)
+// Copyright:: Copyright (c) 2010-2011 Opscode, Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 #include <gecode/driver.hh>
 #include <gecode/int.hh>
 #include <gecode/minimodel.hh>
@@ -13,7 +32,6 @@
 //#define DEBUG
 //#define USE_DUMB_BRANCHING
 #define VECTOR_CONSTRAIN
-#define COMPUTE_LINEAR_AGGREGATE
 
 using namespace Gecode;
 const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
@@ -32,8 +50,7 @@ VersionProblem::VersionProblem(int packageCount)
     // These domains could be narrowed a bit; check later
     total_preferred_at_latest(*this, -packageCount*MAX_PREFERRED_WEIGHT, packageCount*MAX_PREFERRED_WEIGHT), 
     total_not_preferred_at_latest(*this, -packageCount, packageCount), 
-    preferred_at_latest_weights(new int[packageCount]),
-    aggregate_cost(*this, INT_MIN/2, INT_MAX/2) //-packageCount*packageCount*MAX_TRUST_LEVEL*MAX_PREFERRED_WEIGHT, packageCount*packageCount*MAX_TRUST_LEVEL*MAX_PREFERRED_WEIGHT)
+    preferred_at_latest_weights(new int[packageCount])
 {
   for (int i = 0; i < packageCount; i++)
   {
@@ -53,8 +70,7 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
     at_latest(s.at_latest),
     total_preferred_at_latest(s.total_preferred_at_latest), 
     total_not_preferred_at_latest(s.total_preferred_at_latest), 
-    preferred_at_latest_weights(NULL),
-    aggregate_cost(s.aggregate_cost)
+    preferred_at_latest_weights(NULL)
 {
   package_versions.update(*this, share, s.package_versions);
   disabled_package_variables.update(*this, share, s.disabled_package_variables);
@@ -65,7 +81,6 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
   at_latest.update(*this, share, s.at_latest);
   total_preferred_at_latest.update(*this, share, s.total_preferred_at_latest);
   total_not_preferred_at_latest.update(*this, share, s.total_not_preferred_at_latest);
-  aggregate_cost.update(*this, share, s.aggregate_cost);
 }
 
 // Support for gecode
@@ -228,30 +243,6 @@ void VersionProblem::Finalize()
   std::cout << "total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
 #endif DEBUG
 
-#ifdef COMPUTE_LINEAR_AGGREGATE
-  // Set up the aggregate cost function
-  IntVar total_not_preferred_at_latest_normalized = expr(*this, total_not_preferred_at_latest - total_not_preferred_at_latest.min());
-  int total_not_preferred_at_latest_range = total_not_preferred_at_latest.size();
-  IntVar total_preferred_at_latest_normalized = expr(*this, total_preferred_at_latest - total_preferred_at_latest.min());
-  int total_preferred_at_latest_range = total_preferred_at_latest.size();
-  IntVar total_disabled_normalized = expr(*this, total_disabled - total_disabled.min());
-
-  IntArgs aggregate_cost_weights(3, total_not_preferred_at_latest_range*total_preferred_at_latest_range, total_not_preferred_at_latest_range, 1);  
-  //IntArgs aggregate_cost_weights(3, 1, 0, 0);
-  IntVarArgs aggregate_vector(3);
-  aggregate_vector[0] = IntVar(total_disabled); 
-  aggregate_vector[1] = IntVar(total_preferred_at_latest);
-  aggregate_vector[2] = IntVar(total_not_preferred_at_latest);
-
-  linear(*this, aggregate_cost_weights, aggregate_vector, IRT_EQ, aggregate_cost);
-#ifdef DEBUG
-  std::cout << "aggregate_cost_weights:               " << aggregate_cost_weights << std::endl;
-  std::cout << "aggregate_vector:                     " << aggregate_vector << std::endl;
-  std::cout << "aggregate_cost:                       " << aggregate_cost << std::endl;
-  std::cout.flush();
-#endif DEBUG
-#endif // COMPUTE_LINEAR_AGGREGATE
-
   // Cleanup
   // Assign a dummy variable to elements greater than actually used.
   for (int i = cur_package; i < size; i++) {
@@ -274,9 +265,6 @@ void VersionProblem::Finalize()
   branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MIN);
   branch(*this, total_preferred_at_latest, INT_VAL_MIN);
   branch(*this, total_not_preferred_at_latest, INT_VAL_MIN);
-#ifdef COMPUTE_LINEAR_AGGREGATE
-  branch(*this, aggregate_cost, INT_VAL_MAX);
-#endif // COMPUTE_LINEAR_AGGREGATE
 #else // USE_DUMB_BRANCHING
 #  ifdef DEBUG
   std::cout << "Adding branching (BEST)" << std::endl;
@@ -292,9 +280,6 @@ void VersionProblem::Finalize()
   branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MAX);
   branch(*this, total_preferred_at_latest, INT_VAL_MAX);
   branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
-#ifdef COMPUTE_LINEAR_AGGREGATE
-  branch(*this, aggregate_cost, INT_VAL_MIN);
-#endif // COMPUTE_LINEAR_AGGREGATE
 #endif // USE_DUMB_BRANCHING
 
 #ifdef DEBUG
@@ -329,25 +314,6 @@ void VersionProblem::constrain(const Space & _best_known_solution)
   PrintVarAligned("Constrain: total_disabled: ", total_disabled);
 }
 #endif // TOTAL_DISABLED_COST
-
-#ifdef AGGREGATE_COST
-//
-// The aggregate cost function combines multiple cost functions as a linear combination to produce a single value
-// The weightings are chosen so that a more important cost function is never outweighed by a change in the lower order functions
-// This works, but suffers from problems with integer range; combining 3 cost functions with a range of 1000 requires 1E9 distinct values
-// Since the number of packages drives the range of cost functions this puts a limit on the number of packages and number of cost functions.
-// 
-void VersionProblem::constrain(const Space & _best_known_solution)
-{
-  const VersionProblem& best_known_solution = static_cast<const VersionProblem &>(_best_known_solution);
-
-  int best_known_aggregate_cost_value = best_known_solution.aggregate_cost.val();
-  rel(*this, aggregate_cost, IRT_LE, best_known_aggregate_cost_value);
-  PrintVarAligned("Constrain: best_known_aggregate_cost_value: ", best_known_aggregate_cost_value);
-}
-#endif // AGGREGATE_COST
-
-
 
 // _best_known_soln is the most recent satisfying assignment of
 // variables that Gecode has found. This method examines the solution
@@ -389,20 +355,21 @@ void VersionProblem::constrain(const Space & _best_known_solution)
 
   IntVarArgs current(5);
   IntVarArgs best(5);
-  current[0] = total_not_preferred_at_latest;
-  current[1] = total_preferred_at_latest;
-  current[2] = total_suspicious_disabled;
-  current[3] = total_induced_disabled;
-  current[4] = total_required_disabled;
-  best[0] = best_known_solution.total_not_preferred_at_latest;
-  best[1] = best_known_solution.total_preferred_at_latest;
-  best[2] = best_known_solution.total_suspicious_disabled;
-  best[3] = best_known_solution.total_induced_disabled;
-  best[4] = best_known_solution.total_required_disabled;
-  
+  BuildCostVector(current);
+  best_known_solution.BuildCostVector(best);
   ConstrainVectorLessThanBest(current, best);
 }
 #endif // VECTOR_CONSTRAIN
+
+void VersionProblem::BuildCostVector(IntVarArgs & costVector) const {
+  costVector[0] = total_not_preferred_at_latest;
+  costVector[1] = total_preferred_at_latest;
+  costVector[2] = total_suspicious_disabled;
+  costVector[3] = total_induced_disabled;
+  costVector[4] = total_required_disabled;
+}
+
+
 
 IntVar & VersionProblem::GetPackageVersionVar(int packageId)
 {
@@ -459,9 +426,6 @@ void VersionProblem::Print(std::ostream & out)
   out << "at_latest:                              " << at_latest << std::endl;
   out << "total_preferred_at_latest:              " << total_preferred_at_latest << std::endl;
   out << "total_not_preferred_at_latest:          " << total_not_preferred_at_latest << std::endl;
-#ifdef COMPUTE_LINEAR_AGGREGATE
-  out << "aggregate_cost:                         " << aggregate_cost << std::endl;
-#endif // COMPUTE_LINEAR_AGGREGATE
   for (int i = 0; i < cur_package; i++) {
     out << "\t";
     PrintPackageVar(out, i);
@@ -519,32 +483,44 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   std::cout << "Before solve" << std::endl;
   problem->Print(std::cout);
 #endif //DEBUG
-
-  Restart<VersionProblem> solver(problem);
   int i = 0;
-  VersionProblem *best_solution = NULL;
-  while (VersionProblem *solution = solver.next())
-    {
-      if (best_solution != NULL) 
-	{
-	  delete best_solution;
-	}
-      best_solution = solution;
-      ++i;
-#ifdef DEBUG
-      std::cout << "Trial Solution #" << i << "===============================" << std::endl;
-      const Search::Statistics & stats = solver.statistics();
-      std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-      std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
-      solution->Print(std::cout);
-#endif //DEBUG
-    }
 
+  Gecode::Support::Timer timer;
+  VersionProblem *best_solution = NULL;
+  timer.start();
+
+  for (int k = 0; k < 1; k++)
+    {
+
+    Restart<VersionProblem> solver(problem);
+    best_solution = NULL;
+   
+    while (VersionProblem *solution = solver.next())
+      {
+	if (best_solution != NULL) 
+	  {
+	    delete best_solution;
+	  }
+	best_solution = solution;
+	++i;
 #ifdef DEBUG
+	std::cout << "Trial Solution #" << i << "===============================" << std::endl;
+	const Search::Statistics & stats = solver.statistics();
+	std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+	std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+	solution->Print(std::cout);
+#endif //DEBUG
+      }
+
+  }
+
+  double elapsed_time = timer.stop();
+#ifdef DEBUG_LITE
   std::cout << "Solution completed: " << (best_solution ? "Found solution" : "No solution found") << std::endl;
+  std::cout << "Solution consumed: " << elapsed_time << " ms " << i << " steps" << std::endl;
   std::cout << "======================================================================" << std::endl;
   std::cout.flush();
-#endif // DEBUG
+#endif // DEBUG_LITE
 
   return best_solution;
 }

@@ -1,5 +1,24 @@
-#ifndef version_problem_oc_ih_h
-#define version_problem_oc_ih_h
+//
+// Author:: Christopher Walters (<cw@opscode.com>)
+// Author:: Mark Anderson (<mark@opscode.com>)
+// Copyright:: Copyright (c) 2010-2011 Opscode, Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+#ifndef dep_selector_to_gecode_h
+#define dep_selector_to_gecode_h
 
 #include "dep_selector_to_gecode_interface.h"
 #include <iostream>	       
@@ -93,8 +112,6 @@ class VersionProblem : public Space
   IntVar total_preferred_at_latest;
   IntVar total_not_preferred_at_latest;
 
-  IntVar aggregate_cost;
-
   int * disabled_package_weights;
   int * preferred_at_latest_weights;
   int * is_required;
@@ -102,6 +119,7 @@ class VersionProblem : public Space
 
   void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
+  void BuildCostVector(IntVarArgs & costVector) const;
 };
 
 template<class T> void PrintVarAligned(const char * message, T & var);

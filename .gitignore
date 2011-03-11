@@ -1,2 +1,8 @@
 *.o
 *.gem
+*.dSym
+*.log
+*.bundle
+tmp
+save
+ext/dep_gecode/Makefile
