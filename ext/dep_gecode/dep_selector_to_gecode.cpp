@@ -370,6 +370,16 @@ void VersionProblem::constrain(const Space & _best_known_solution)
 }
 #endif // VECTOR_CONSTRAIN
 
+void VersionProblem::BuildCostVector(IntVarArgs & costVector) const {
+  costVector[0] = total_not_preferred_at_latest;
+  costVector[1] = total_preferred_at_latest;
+  costVector[2] = total_suspicious_disabled;
+  costVector[3] = total_induced_disabled;
+  costVector[4] = total_required_disabled;
+}
+
+
+
 IntVar & VersionProblem::GetPackageVersionVar(int packageId)
 {
   if (packageId < cur_package) {

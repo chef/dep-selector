@@ -119,6 +119,7 @@ class VersionProblem : public Space
 
   void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
+  void BuildCostVector(IntVarArgs & costVector) const;
 };
 
 template<class T> void PrintVarAligned(const char * message, T & var);
