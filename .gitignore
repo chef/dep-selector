@@ -1,2 +1,6 @@
 *.o
 *.gem
+save
+*.dSym
+*.log
+tmp
