@@ -111,4 +111,4 @@ def run_test_simple_ugly
 
 end
 
-1.times { run_test_simple_ugly }
+10.times { run_test_simple_ugly }
