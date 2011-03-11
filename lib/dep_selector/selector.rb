@@ -59,9 +59,14 @@ module DepSelector
     # which case Package#valid? would return false even though we
     # don't want to report that the package is non-existent.
     def find_solution(solution_constraints, valid_packages = nil)
+      # this is a performance optimization so that packages that are
+      # completely unreachable by the solution constraints don't get
+      # added to the CSP
+      packages_to_include_in_solve = trim_unreachable_packages(dep_graph, solution_constraints)
+
       begin
         # first, try to solve the whole set of constraints
-        solve(dep_graph.clone, solution_constraints, valid_packages)
+        solve(dep_graph.clone, solution_constraints, valid_packages, packages_to_include_in_solve)
       rescue Exceptions::NoSolutionFound
         # since we're here, solving the whole system failed, so add
         # the solution_constraints one-by-one and try to solve in
@@ -77,11 +82,11 @@ module DepSelector
         solution_constraints.each_index do |idx|
           workspace = dep_graph.clone
           begin
-            solve(workspace, solution_constraints[0..idx], valid_packages)
+            solve(workspace, solution_constraints[0..idx], valid_packages, packages_to_include_in_solve)
           rescue Exceptions::NoSolutionFound => nsf
-            disabled_packages = 
-              workspace.packages.inject([]) do |acc, elt|
-                pkg = elt.last
+            disabled_packages =
+              packages_to_include_in_solve.inject([]) do |acc, elt|
+                pkg = workspace.package(elt.name)
                 acc << pkg if nsf.unsatisfiable_problem.is_package_disabled?(pkg.gecode_package_id)
                 acc
               end
@@ -126,9 +131,12 @@ module DepSelector
     # Given a workspace (a clone of the dependency graph) and an array
     # of SolutionConstraints, this method attempts to find a
     # satisfiable set of <Package, Version> pairs.
-    def solve(workspace, solution_constraints, valid_packages)
-      # generate constraints imposed by the dependency graph
-      workspace.generate_gecode_wrapper_constraints
+    def solve(workspace, solution_constraints, valid_packages, packages_to_include_in_solve)
+      # map packages in packages_to_include_in_solve into
+      # corresponding workspace packages and generate constraints
+      # imposed by the dependency graph
+      packages_in_solve = packages_to_include_in_solve.map{|pkg| workspace.package(pkg.name)}
+      workspace.generate_gecode_wrapper_constraints(packages_in_solve)
 
       # validate solution_constraints and generate its constraints
       process_soln_constraints(workspace, solution_constraints, valid_packages)
@@ -214,6 +222,37 @@ module DepSelector
       pkg_version.dependencies.each do |pkg_dep|
         expand_package(trimmed_soln, pkg_dep.package, soln)
       end
+    end
+
+    # Given a workspace and solution constraints, this method returns
+    # an array that includes only packages that can be induced by the
+    # solution constraints.
+    def trim_unreachable_packages(workspace, soln_constraints)
+      reachable_packages = []
+      soln_constraints.each do |soln_constraint|
+        find_reachable_packages(workspace,
+                                soln_constraint.package,
+                                soln_constraint.constraint,
+                                reachable_packages)
+      end
+
+      reachable_packages
+    end
+
+    def find_reachable_packages(workspace, curr_pkg, version_constraint, reachable_packages)
+      # don't follow circular paths or duplicate work
+      return if reachable_packages.include?(curr_pkg)
+
+      reachable_packages << curr_pkg
+
+      # determine all versions of curr_pkg that match
+      # version_constraint and recurse into them
+      curr_pkg[version_constraint].each do |curr_pkg_ver|
+        curr_pkg_ver.dependencies.each do |dep|
+          find_reachable_packages(workspace, dep.package, dep.constraint, reachable_packages)
+        end
+      end
+
     end
 
   end
