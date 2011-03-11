@@ -240,14 +240,19 @@ module DepSelector
     end
 
     def find_reachable_packages(workspace, curr_pkg, version_constraint, reachable_packages)
+      # TODO [cw, 2011/3/11]: if we really want to minimize the number
+      # of packages we add to reachable_packages, we should go back to
+      # expanding only the versions of curr_pkg that meet
+      # version_constraint and modify the early exit in this method to
+      # trigger on PackageVersions, not just Package.
+
       # don't follow circular paths or duplicate work
       return if reachable_packages.include?(curr_pkg)
 
+      # add curr_pkg to reachable_packages and expand its versions'
+      # dependencies
       reachable_packages << curr_pkg
-
-      # determine all versions of curr_pkg that match
-      # version_constraint and recurse into them
-      curr_pkg[version_constraint].each do |curr_pkg_ver|
+      curr_pkg.versions.each do |curr_pkg_ver|
         curr_pkg_ver.dependencies.each do |dep|
           find_reachable_packages(workspace, dep.package, dep.constraint, reachable_packages)
         end
