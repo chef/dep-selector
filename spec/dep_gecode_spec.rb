@@ -187,8 +187,6 @@ describe Dep_gecode do
 
     new_problem.should_not == nil
 
-    Dep_gecode.VersionProblemDump(new_problem)
-
     check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
                    {'A'=>'1.0.0', 'B'=>'disabled', 'C'=>'1.0.0'}
                    )
@@ -291,8 +289,6 @@ describe Dep_gecode do
       soln = Dep_gecode.Solve(@problem)
       soln.should_not == nil
       
-      Dep_gecode.VersionProblemDump(soln)
-      
       # since we haven't indicated that a, b, and c should be
       # preferred to be latest and a was added first, it should find a
       # satisfiable solution at a=1, b=0, c=0
@@ -304,8 +300,6 @@ describe Dep_gecode do
 
       soln = Dep_gecode.Solve(@problem)
       soln.should_not == nil
-      
-      Dep_gecode.VersionProblemDump(soln)
       
       # since we haven't indicated that a, b, and c should be
       # preferred to be latest and a was added first, it should find a
@@ -326,7 +320,6 @@ describe Dep_gecode do
       soln = Dep_gecode.Solve(@problem)
       soln.should_not == nil
 
-      Dep_gecode.VersionProblemDump(soln)
       Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 0
       Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 1
       Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 1

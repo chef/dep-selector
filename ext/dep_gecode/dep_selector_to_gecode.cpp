@@ -515,7 +515,6 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   }
 
   double elapsed_time = timer.stop();
-#define DEBUG_LITE
 #ifdef DEBUG_LITE
   std::cout << "Solution completed: " << (best_solution ? "Found solution" : "No solution found") << std::endl;
   std::cout << "Solution consumed: " << elapsed_time << " ms " << i << " steps" << std::endl;
