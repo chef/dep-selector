@@ -355,17 +355,8 @@ void VersionProblem::constrain(const Space & _best_known_solution)
 
   IntVarArgs current(5);
   IntVarArgs best(5);
-  current[0] = total_not_preferred_at_latest;
-  current[1] = total_preferred_at_latest;
-  current[2] = total_suspicious_disabled;
-  current[3] = total_induced_disabled;
-  current[4] = total_required_disabled;
-  best[0] = best_known_solution.total_not_preferred_at_latest;
-  best[1] = best_known_solution.total_preferred_at_latest;
-  best[2] = best_known_solution.total_suspicious_disabled;
-  best[3] = best_known_solution.total_induced_disabled;
-  best[4] = best_known_solution.total_required_disabled;
-  
+  BuildCostVector(current);
+  best_known_solution.BuildCostVector(best);
   ConstrainVectorLessThanBest(current, best);
 }
 #endif // VECTOR_CONSTRAIN
