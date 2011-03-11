@@ -87,7 +87,7 @@ end
 # end
 
 def run_test_simple_ugly 
-  rep_count = 10
+  rep_count = 500
   dep_graph = DepSelector::DependencyGraph.new
   
   ugly_constraint = build_ugly_constraint(Base_Constraint, rep_count)
@@ -95,7 +95,7 @@ def run_test_simple_ugly
   setup_constraint(dep_graph, ugly_constraint)
   selector = DepSelector::Selector.new(dep_graph)
 
-  run_list_length = 4
+  run_list_length = 500
   run_list = 0.upto(run_list_length-2).inject([["A_001"]]) { |acc, arr| acc << [acc.last.first.next] }
 
 #  pp :run_list=>run_list
@@ -107,8 +107,9 @@ def run_test_simple_ugly
                            )
   soln = selector.find_solution(solution_constraints)
   
-  puts soln
+#  puts soln
 
 end
+require 'benchmark'
 
-10.times { run_test_simple_ugly }
+puts Benchmark.measure { 5.times { run_test_simple_ugly } }

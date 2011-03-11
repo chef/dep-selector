@@ -483,32 +483,45 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   std::cout << "Before solve" << std::endl;
   problem->Print(std::cout);
 #endif //DEBUG
-
-  Restart<VersionProblem> solver(problem);
   int i = 0;
-  VersionProblem *best_solution = NULL;
-  while (VersionProblem *solution = solver.next())
-    {
-      if (best_solution != NULL) 
-	{
-	  delete best_solution;
-	}
-      best_solution = solution;
-      ++i;
-#ifdef DEBUG
-      std::cout << "Trial Solution #" << i << "===============================" << std::endl;
-      const Search::Statistics & stats = solver.statistics();
-      std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-      std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
-      solution->Print(std::cout);
-#endif //DEBUG
-    }
 
+  Gecode::Support::Timer timer;
+  VersionProblem *best_solution = NULL;
+  timer.start();
+
+  for (int k = 0; k < 1; k++)
+    {
+
+    Restart<VersionProblem> solver(problem);
+    best_solution = NULL;
+   
+    while (VersionProblem *solution = solver.next())
+      {
+	if (best_solution != NULL) 
+	  {
+	    delete best_solution;
+	  }
+	best_solution = solution;
+	++i;
 #ifdef DEBUG
+	std::cout << "Trial Solution #" << i << "===============================" << std::endl;
+	const Search::Statistics & stats = solver.statistics();
+	std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+	std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+	solution->Print(std::cout);
+#endif //DEBUG
+      }
+
+  }
+
+  double elapsed_time = timer.stop();
+#define DEBUG_LITE
+#ifdef DEBUG_LITE
   std::cout << "Solution completed: " << (best_solution ? "Found solution" : "No solution found") << std::endl;
+  std::cout << "Solution consumed: " << elapsed_time << " ms " << i << " steps" << std::endl;
   std::cout << "======================================================================" << std::endl;
   std::cout.flush();
-#endif // DEBUG
+#endif // DEBUG_LITE
 
   return best_solution;
 }
