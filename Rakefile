@@ -18,7 +18,9 @@
 #
 
 require 'rubygems'
+# TODO: Think about bundler
 require 'rake'
+require 'jeweler'
 
 require 'rake/extensiontask'
 
@@ -44,7 +46,7 @@ spec = Gem::Specification.new do |s|
 #  s.homepage = HOMEPAGE
   s.require_path = 'lib'
   s.autorequire = GEM
-  s.files = Dir.glob("lib/**/*") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
+  s.files = Dir.glob("lib/**/*.{rb}") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
   s.extensions = FileList["ext/**/extconf.rb"]
 end
 
