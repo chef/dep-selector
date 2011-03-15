@@ -43,9 +43,8 @@ spec = Gem::Specification.new do |s|
   s.description = s.summary
   s.authors = ["Christopher Walters", "Mark Anderson"]
   s.email = ["cw@opscode.com", "mark@opscode.com"]
-#  s.homepage = HOMEPAGE
+  s.homepage = %q{http://github.com/algorist/dep_selector}
   s.require_path = 'lib'
-  s.autorequire = GEM
   s.requirements << 'gecode, version 3.5 or greater'
   s.requirements << 'g++'
   s.files = Dir.glob("lib/**/*.{rb}") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
