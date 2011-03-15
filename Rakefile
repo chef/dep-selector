@@ -46,6 +46,8 @@ spec = Gem::Specification.new do |s|
 #  s.homepage = HOMEPAGE
   s.require_path = 'lib'
   s.autorequire = GEM
+  s.requirements << 'gecode, version 3.5 or greater'
+  s.requirements << 'g++'
   s.files = Dir.glob("lib/**/*.{rb}") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
   s.extensions = FileList["ext/**/extconf.rb"]
 end
