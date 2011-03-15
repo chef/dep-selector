@@ -41,6 +41,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = false
   s.summary = SUMMARY
   s.description = s.summary
+  s.license = 'Apache v2'
   s.authors = ["Christopher Walters", "Mark Anderson"]
   s.email = ["cw@opscode.com", "mark@opscode.com"]
   s.homepage = %q{http://github.com/algorist/dep_selector}
