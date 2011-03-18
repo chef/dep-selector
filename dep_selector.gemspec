@@ -1,6 +1,9 @@
+$:.unshift(File.expand_path("../lib", __FILE__))
+require 'dep_selector/dep_selector_version'
+
 Gem::Specification.new do |s|
   s.name = "dep_selector"
-  s.version = "0.0.1"
+  s.version = DepSelector::VERSION
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = false
   s.summary = "Given packages, versions, and a dependency graph, find a valid assignment of package versions"

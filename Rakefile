@@ -18,45 +18,46 @@
 #
 
 require 'rubygems'
-# TODO: Think about bundler
 require 'rake'
-require 'jeweler'
-
-require 'rake/extensiontask'
 
 require 'rake/gempackagetask'
 require 'rubygems/specification'
 require 'date'
 
-spec = eval(File.read('dep_selector.gemspec'))
+gemspec = eval(File.read('dep_selector.gemspec'))
 
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
-end
+Rake::GemPackageTask.new(gemspec).define
 
 desc "install the gem locally"
 task :install => :package do
-  sh %{gem install pkg/#{GEM}-#{GEM_VERSION}}
+  sh %{gem install pkg/#{gemspec.name}-#{gemspec.version}}
 end
 
-Rake::ExtensionTask.new('dep_gecode', spec)
+begin
+  require 'rake/extensiontask'
+  Rake::ExtensionTask.new('dep_gecode', gemspec)
+rescue LoadError
+  desc "Disabled: install rake-compiler to enable this"
+  task :compile do
+    abort "rake-compiler is not avabilable. (sudo) gem install rake-compiler"
+  end
+end
 
 begin
-  require 'spec/rake/spectask'
-  Spec::Rake::SpecTask.new(:spec) do |spec|
-    spec.libs << 'lib' << 'spec'
-    spec.spec_opts = ['--options', "\"#{File.dirname(__FILE__)}/spec/spec.opts\""]
-    spec.spec_files = FileList['spec/**/*_spec.rb']
+  require 'rspec/core/rake_task'
+
+  RSpec::Core::RakeTask.new(:spec) do |spec|
+    spec.rspec_opts = ['--options', "\"#{File.dirname(__FILE__)}/spec/spec.opts\""]
+    spec.pattern = 'spec/**/*_spec.rb'
   end
 
-  Spec::Rake::SpecTask.new(:rcov) do |spec|
-    spec.libs << 'lib' << 'spec'
+  RSpec::Core::RakeTask.new(:rcov) do |spec|
     spec.pattern = 'spec/**/*_spec.rb'
     spec.rcov = true
   end
 rescue LoadError
   task :spec do
-    abort "Rspec is not available. (sudo) gem install rspec to run unit tests"
+    abort "RSpec is not available. (sudo) gem install rspec to run unit tests"
   end
 end
 

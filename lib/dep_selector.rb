@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+require 'dep_selector/dep_selector_version'
+
 require 'dep_selector/selector'
 require 'dep_selector/dependency_graph'
 require 'dep_selector/package'
