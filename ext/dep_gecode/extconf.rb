@@ -27,10 +27,34 @@ $LIBS << " -lstdc++"
 
 #$CFLAGS << "-g"
 
-have_library('gecodesearch')
-have_library('gecodeint')
-have_library('gecodekernel')
-have_library('gecodesupport')
-have_library('gecodeminimodel')
+gecode_installed =
+  have_library('gecodesearch') &&
+  have_library('gecodeint') &&
+  have_library('gecodekernel') &&
+  have_library('gecodesupport') &&
+  have_library('gecodeminimodel')
+
+unless gecode_installed
+  STDERR.puts <<EOS
+=========================================================================================
+Gecode >3.5 must be installed (http://www.gecode.org/).
+
+OSX:
+  brew install gecode
+
+For convenience, we have built Gecode for Debian/Ubuntu (<release> is lucid or maverick):
+  Add the following two lines to /etc/apt/sources.list.d/opscode.list:
+    deb http://apt.opscode.com <release> main
+    deb-src http://apt.opscode.com <release> main
+  Then run:
+    curl http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -
+    sudo apt-get update
+    sudo apt-get install libgecode-dev
+
+Other distributions can build from source.
+=========================================================================================
+EOS
+  raise "Gecode not installed"
+end
 
 create_makefile('dep_gecode')
