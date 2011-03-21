@@ -133,4 +133,4 @@ class Solver {
   Restart<VersionProblem> solver;
 };
 
-#endif dep_selector_to_gecode_h
+#endif // dep_selector_to_gecode_h
