@@ -213,7 +213,7 @@ void VersionProblem::Finalize()
   linear(*this, disabled_package_variables,  IRT_EQ, total_disabled);
 #ifdef DEBUG
   std::cout << "total_disabled:                       " << total_disabled << std::endl;
-#endif DEBUG
+#endif // DEBUG
 
   // Setup computation for total_preferred_at_latest
   // We wish to maximize the total number of packages at their latest versions in the preferred tier of packages
@@ -226,7 +226,7 @@ void VersionProblem::Finalize()
 #ifdef DEBUG
   std::cout << "preferred_at_latest_weights_args:     " << preferred_at_latest_weights_args << std::endl;
   std::cout << "total_preferred_at_latest:            " << total_preferred_at_latest << std::endl;
-#endif DEBUG
+#endif // DEBUG
 
   // Setup computation for remaining variables
   // We wish to maximize the total number of packages at their latest version in the non-preferred tier of packages
@@ -241,7 +241,7 @@ void VersionProblem::Finalize()
 #ifdef DEBUG
   std::cout << "not_preferred_at_latest_weights_args: " << not_preferred_at_latest_weights_args << std::endl;
   std::cout << "total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
-#endif DEBUG
+#endif // DEBUG
 
   // Cleanup
   // Assign a dummy variable to elements greater than actually used.

@@ -23,13 +23,13 @@
 // Conceptual Api
 #ifdef __cplusplus
 extern "C" {
-#endif __cplusplus
+#endif // __cplusplus
 
 #ifdef __cplusplus
   class VersionProblem;
 #else
   typedef struct VersionProblem VersionProblem;
-#endif
+#endif // __cplusplus
 
   VersionProblem * VersionProblemCreate(int packageCount);
   void VersionProblemDestroy(VersionProblem * vp);
@@ -65,6 +65,6 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-#endif __cplusplus
+#endif // __cplusplus
 
 #endif // dep_selector_to_gecode_interface_h
