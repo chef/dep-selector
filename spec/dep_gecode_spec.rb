@@ -153,6 +153,10 @@ describe Dep_gecode do
     @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(VersionConstraints::Simple_cookbook_version_constraint)
   end
 
+  after do
+    Dep_gecode.VersionProblemDestroy(@problem)
+  end
+
   it "solves a simple set of constraints" do
     # solution constraints: [A,(B=0)], which is satisfiable as A=1, B=0
     solution_constraints = [
@@ -168,10 +172,7 @@ describe Dep_gecode do
     check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
                    {'A'=>'2.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'})
 
-    Dep_gecode.VersionProblemDestroy(@problem);
     Dep_gecode.VersionProblemDestroy(new_problem);
-
-    # TODO: check problem's bindings
   end
 
    it "fails to solve a simple, unsatisfiable set of constraints" do
@@ -191,7 +192,7 @@ describe Dep_gecode do
                    {'A'=>'1.0.0', 'B'=>'disabled', 'C'=>'1.0.0'}
                    )
 
-    Dep_gecode.VersionProblemDestroy(@problem);
+    Dep_gecode.VersionProblemDestroy(new_problem);
   end
 
   # Friendlier, more abstracted tests
@@ -207,15 +208,16 @@ describe Dep_gecode do
   # end
 
   it VersionConstraints::SimpleProblem_3_soluble[:desc] do
-      @problem_system = VersionConstraints::SimpleProblem_3_soluble
-      @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(@problem_system[:version_constraint])
+    @problem_system = VersionConstraints::SimpleProblem_3_soluble
+    @problem, @dep_graph, @pkg_name_to_id = setup_problem_for_dep_gecode(@problem_system[:version_constraint])
 
     setup_soln_constraints_for_dep_gecode(@problem_system[:runlist_constraint], @problem, @pkg_name_to_id, @dep_graph)
 
     # solve and interrogate problem
     new_problem = Dep_gecode.Solve(@problem)
     check_solution(new_problem, @pkg_name_to_id, @dep_graph, @problem_system[:solution])
-    Dep_gecode.VersionProblemDestroy(@problem);
+
+    Dep_gecode.VersionProblemDestroy(new_problem)
   end
 
    it "should prefer to disable suspicious packages" do
@@ -264,11 +266,17 @@ describe Dep_gecode do
       acc
     end
     observed_disabled_packages.should == expected_disabled_packages
+
+    Dep_gecode.VersionProblemDestroy(problem)
+    Dep_gecode.VersionProblemDestroy(soln)
   end
  
   describe "maximization of latestness of solution constraints" do
     before do
       # setup dep graph
+
+      # since @problem was already created, first free it
+      Dep_gecode.VersionProblemDestroy(@problem)
       @problem = Dep_gecode.VersionProblemCreate(4)
       @pkg_a = Dep_gecode.AddPackage(@problem, -1, 1, 0);
       @pkg_b = Dep_gecode.AddPackage(@problem, -1, 1, 0);
@@ -295,7 +303,10 @@ describe Dep_gecode do
       Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 1
       Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 0
       Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 0
+
+      Dep_gecode.VersionProblemDestroy(soln)
     end
+
     it "Should select lastest if we don't mark any at all" do
 
       soln = Dep_gecode.Solve(@problem)
@@ -307,6 +318,8 @@ describe Dep_gecode do
       Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 0
       Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 1
       Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 1
+
+      Dep_gecode.VersionProblemDestroy(soln)
     end
 
     # Note: this is the actual test of latestness maximization
@@ -323,6 +336,8 @@ describe Dep_gecode do
       Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 0
       Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 1
       Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 1
+
+      Dep_gecode.VersionProblemDestroy(soln)
     end
   end
 
