@@ -489,29 +489,24 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   VersionProblem *best_solution = NULL;
   timer.start();
 
-  for (int k = 0; k < 1; k++)
+  Restart<VersionProblem> solver(problem);
+  best_solution = NULL;
+
+  while (VersionProblem *solution = solver.next())
     {
-
-    Restart<VersionProblem> solver(problem);
-    best_solution = NULL;
-   
-    while (VersionProblem *solution = solver.next())
-      {
-	if (best_solution != NULL) 
-	  {
-	    delete best_solution;
-	  }
-	best_solution = solution;
-	++i;
+      if (best_solution != NULL) 
+        {
+          delete best_solution;
+        }
+      best_solution = solution;
+      ++i;
 #ifdef DEBUG
-	std::cout << "Trial Solution #" << i << "===============================" << std::endl;
-	const Search::Statistics & stats = solver.statistics();
-	std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-	std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
-	solution->Print(std::cout);
+      std::cout << "Trial Solution #" << i << "===============================" << std::endl;
+      const Search::Statistics & stats = solver.statistics();
+      std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+      std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+      solution->Print(std::cout);
 #endif //DEBUG
-      }
-
   }
 
   double elapsed_time = timer.stop();
