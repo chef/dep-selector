@@ -39,8 +39,9 @@ const int VersionProblem::MIN_TRUST_LEVEL = 0;
 const int VersionProblem::MAX_TRUST_LEVEL = 10;
 const int VersionProblem::MAX_PREFERRED_WEIGHT = 10;
 
-VersionProblem::VersionProblem(int packageCount)
-  : size(packageCount), finalized(false), cur_package(0), package_versions(*this, packageCount), 
+VersionProblem::VersionProblem(int packageCount, bool dumpStats)
+  : size(packageCount), version_constraint_count(0), dump_stats(dumpStats),
+    finalized(false), cur_package(0), package_versions(*this, packageCount), 
     disabled_package_variables(*this, packageCount, 0, 1), total_disabled(*this, 0, packageCount*MAX_TRUST_LEVEL),
     total_required_disabled(*this, 0, packageCount), total_induced_disabled(*this, 0, packageCount), 
     total_suspicious_disabled(*this, 0, packageCount),
@@ -61,8 +62,9 @@ VersionProblem::VersionProblem(int packageCount)
 }
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
-  : Space(share, s), size(s.size),
-    finalized(s.finalized), cur_package(s.cur_package),
+  : Space(share, s), 
+    size(s.size), version_constraint_count(s.version_constraint_count), dump_stats(s.dump_stats),
+    finalized(s.finalized), cur_package(s.cur_package), 
     disabled_package_variables(s.disabled_package_variables), total_disabled(s.total_disabled),
     total_required_disabled(s.total_required_disabled), total_induced_disabled(s.total_induced_disabled), 
     total_suspicious_disabled(s.total_suspicious_disabled),
@@ -135,7 +137,8 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
   BoolVar version_match(*this, 0, 1);
   BoolVar depend_match(*this, 0, 1);
   BoolVar predicated_depend_match(*this, 0, 1);
-
+  
+  version_constraint_count++;
 #ifdef DEBUG
   std::cout << "Add VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId;
   std::cout << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
@@ -510,6 +513,18 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   }
 
   double elapsed_time = timer.stop();
+
+  if (problem->dump_stats) {
+      std::cerr << "dep_selector solve: ";
+      std::cerr << (best_solution ? "SOLVED" : "FAILED") << " "; 
+      std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
+      std::cerr << "Time: " << elapsed_time << "ms ";
+      const Search::Statistics & final_stats = solver.statistics();
+      std::cerr << "Stats: " << i << " steps, " << final_stats.memory << " bytes, ";
+      std::cerr << final_stats.propagate << " props, " << final_stats.node << " nodes, " << final_stats.depth << " depth ";
+      std::cerr << std::endl << std::flush;
+  }
+
 #ifdef DEBUG_LITE
   std::cout << "Solution completed: " << (best_solution ? "Found solution" : "No solution found") << std::endl;
   std::cout << "Solution consumed: " << elapsed_time << " ms " << i << " steps" << std::endl;

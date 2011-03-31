@@ -42,13 +42,13 @@ using namespace Gecode;
 
 class VersionProblem : public Space
 {
- public:
+public:
   static const int UNRESOLVED_VARIABLE;
   static const int MIN_TRUST_LEVEL;  
   static const int MAX_TRUST_LEVEL;
   static const int MAX_PREFERRED_WEIGHT;
 
-  VersionProblem(int packageCount);
+  VersionProblem(int packageCount, bool dumpStats = true);
   // Clone constructor; check gecode rules for this...
   VersionProblem(bool share, VersionProblem & s);
   virtual ~VersionProblem();
@@ -95,10 +95,11 @@ class VersionProblem : public Space
 
  protected:
   int size;
+  int version_constraint_count;
   int cur_package;
-  bool CheckPackageId(int id);
+  bool dump_stats;
   bool finalized;
-  //  std::vector<int> test;
+
   BoolVarArgs version_flags;
   IntVarArray package_versions;
   BoolVarArray disabled_package_variables;
@@ -116,6 +117,7 @@ class VersionProblem : public Space
   int * is_required;
   int * is_suspicious;
 
+  bool CheckPackageId(int id);
   void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
   void BuildCostVector(IntVarArgs & costVector) const;

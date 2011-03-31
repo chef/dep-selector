@@ -31,7 +31,7 @@ extern "C" {
   typedef struct VersionProblem VersionProblem;
 #endif // __cplusplus
 
-  VersionProblem * VersionProblemCreate(int packageCount);
+  VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats);
   void VersionProblemDestroy(VersionProblem * vp);
 
 

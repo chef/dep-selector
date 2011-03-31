@@ -32,7 +32,7 @@ def setup_problem_for_dep_gecode(relationships)
   setup_constraint(dep_graph, relationships)
 
   dep_gecode_packages = {}
-  problem = Dep_gecode.VersionProblemCreate(dep_graph.packages.size+1) # extra for runlist meta package
+  problem = Dep_gecode.VersionProblemCreate(dep_graph.packages.size+1, true) # extra for runlist meta package
 
   # all packages must be created before dependencies using them can be created
   dep_graph.each_package do |package|
@@ -121,12 +121,12 @@ end
 describe Dep_gecode do
  
   it "Can be created and destroyed" do
-    problem = Dep_gecode.VersionProblemCreate(1) 
+    problem = Dep_gecode.VersionProblemCreate(1, true) 
     Dep_gecode.VersionProblemDestroy(problem)
   end
 
   it "Can be created, and have packages added to it" do
-    problem = Dep_gecode.VersionProblemCreate(2) 
+    problem = Dep_gecode.VersionProblemCreate(2, true) 
     Dep_gecode.VersionProblemSize(problem).should == 2
     Dep_gecode.VersionProblemPackageCount(problem).should == 0
     packageId = Dep_gecode.AddPackage(problem, 0, 2, 8)
@@ -224,7 +224,7 @@ describe Dep_gecode do
     # Note: this test is a lower-level version of the test in
     # selector_spec titled "should indicate that the problematic
     # package is the dependency that is constrained to no versions"
-    problem = Dep_gecode.VersionProblemCreate(11)
+    problem = Dep_gecode.VersionProblemCreate(11, true)
 
     # setup dep graph
     Dep_gecode.AddPackage(problem, -1, 0, 0);
@@ -277,7 +277,7 @@ describe Dep_gecode do
 
       # since @problem was already created, first free it
       Dep_gecode.VersionProblemDestroy(@problem)
-      @problem = Dep_gecode.VersionProblemCreate(4)
+      @problem = Dep_gecode.VersionProblemCreate(4, true)
       @pkg_a = Dep_gecode.AddPackage(@problem, -1, 1, 0);
       @pkg_b = Dep_gecode.AddPackage(@problem, -1, 1, 0);
       @pkg_c = Dep_gecode.AddPackage(@problem, -1, 1, 0);
