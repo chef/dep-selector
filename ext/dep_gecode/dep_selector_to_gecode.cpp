@@ -29,6 +29,8 @@
 #include <iostream>
 #include <vector>
 
+
+
 //#define DEBUG
 //#define USE_DUMB_BRANCHING
 #define VECTOR_CONSTRAIN
@@ -38,6 +40,29 @@ const int VersionProblem::UNRESOLVED_VARIABLE = INT_MIN;
 const int VersionProblem::MIN_TRUST_LEVEL = 0;
 const int VersionProblem::MAX_TRUST_LEVEL = 10;
 const int VersionProblem::MAX_PREFERRED_WEIGHT = 10;
+
+VersionProblemPool::VersionProblemPool() : elems() 
+{ }
+
+VersionProblemPool::~VersionProblemPool() {}
+void VersionProblemPool::Add(VersionProblem * vp) 
+{
+    elems.insert(vp); 
+}
+void VersionProblemPool::Delete(VersionProblem *vp) 
+{
+    elems.erase(vp); 
+}
+void VersionProblemPool::DeleteAll()
+{
+    std::set<VersionProblem *>::iterator i;
+    for(i = elems.begin(); i != elems.end(); i++) {
+        std::cout << "DeleteAll has\t\t\t" << *i << std::endl << std::flush;
+        delete *i;
+    }
+}
+
+
 
 VersionProblem::VersionProblem(int packageCount, bool dumpStats)
   : size(packageCount), version_constraint_count(0), dump_stats(dumpStats),
@@ -51,7 +76,8 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats)
     // These domains could be narrowed a bit; check later
     total_preferred_at_latest(*this, -packageCount*MAX_PREFERRED_WEIGHT, packageCount*MAX_PREFERRED_WEIGHT), 
     total_not_preferred_at_latest(*this, -packageCount, packageCount), 
-    preferred_at_latest_weights(new int[packageCount])
+    preferred_at_latest_weights(new int[packageCount]),
+    pool(0)
 {
   for (int i = 0; i < packageCount; i++)
   {
@@ -59,6 +85,9 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats)
     is_required[i] = 0;
     is_suspicious[i] = 0;
   }
+  pool = new VersionProblemPool();
+  std::cout << "C VersionProblem(int,bool)\t" << this << std::endl << std::flush;
+//  pool->Add(*this);
 }
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
@@ -72,7 +101,8 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
     at_latest(s.at_latest),
     total_preferred_at_latest(s.total_preferred_at_latest), 
     total_not_preferred_at_latest(s.total_preferred_at_latest), 
-    preferred_at_latest_weights(NULL)
+    preferred_at_latest_weights(NULL),
+    pool(s.pool)
 {
   package_versions.update(*this, share, s.package_versions);
   disabled_package_variables.update(*this, share, s.disabled_package_variables);
@@ -83,6 +113,10 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
   at_latest.update(*this, share, s.at_latest);
   total_preferred_at_latest.update(*this, share, s.total_preferred_at_latest);
   total_not_preferred_at_latest.update(*this, share, s.total_not_preferred_at_latest);
+
+  pool->Add(this);
+
+  std::cout << "C VersionProblem(bool, VP)\t" << this << std::endl << std::flush;
 }
 
 // Support for gecode
@@ -96,6 +130,8 @@ VersionProblem::~VersionProblem()
   delete[] preferred_at_latest_weights;
   delete[] is_required;
   delete[] is_suspicious;
+  pool->Delete(this);
+  std::cout << "D VersionProblem\t\t" << this << std::endl << std::flush;
 }
 
 int VersionProblem::Size() 
@@ -478,6 +514,52 @@ void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArg
   rel(*this, borrow[current.size()], IRT_EQ, 1);
 }
 
+VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &itercount) 
+{
+    Gecode::Support::Timer timer;
+    timer.start();
+
+    std::cout << "Creating solver" << std::endl << std::flush;
+
+    VersionProblem *best_solution = NULL;
+    Restart<VersionProblem> solver(problem);
+    
+    std::cout << "Starting Solve" << std::endl << std::flush;
+    
+    while (VersionProblem *solution = solver.next())
+    {
+        std::cout << "Solver Next " << solution << std::endl << std::flush;
+        if (best_solution != NULL) 
+        {
+            delete best_solution;
+        }
+        best_solution = solution;
+        ++itercount;
+#ifdef DEBUG
+        std::cout << "Trial Solution #" << itercount << "===============================" << std::endl;
+        const Search::Statistics & stats = solver.statistics();
+        std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+        std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+        solution->Print(std::cout);
+#endif //DEBUG  
+    }
+
+    double elapsed_time = timer.stop();
+    
+    if (problem->dump_stats) {
+        std::cerr << "dep_selector solve: ";
+        std::cerr << (best_solution ? "SOLVED" : "FAILED") << " "; 
+        std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
+        std::cerr << "Time: " << elapsed_time << "ms ";
+        const Search::Statistics & final_stats = solver.statistics();
+        std::cerr << "Stats: " << itercount << " steps, " << final_stats.memory << " bytes, ";
+        std::cerr << final_stats.propagate << " props, " << final_stats.node << " nodes, " << final_stats.depth << " depth ";
+      std::cerr << std::endl << std::flush;
+    }
+    
+    return best_solution;
+}
+
 VersionProblem * VersionProblem::Solve(VersionProblem * problem) 
 {
   problem->Finalize();
@@ -486,51 +568,14 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
   std::cout << "Before solve" << std::endl;
   problem->Print(std::cout);
 #endif //DEBUG
-  int i = 0;
+  int itercount = 0;
 
-  Gecode::Support::Timer timer;
-  VersionProblem *best_solution = NULL;
-  timer.start();
+  VersionProblem *best_solution = InnerSolve(problem, itercount);
 
-  Restart<VersionProblem> solver(problem);
-  best_solution = NULL;
+  std::cout << "Solver Best Solution " << best_solution << std::endl << std::flush;
 
-  while (VersionProblem *solution = solver.next())
-    {
-      if (best_solution != NULL) 
-        {
-          delete best_solution;
-        }
-      best_solution = solution;
-      ++i;
-#ifdef DEBUG
-      std::cout << "Trial Solution #" << i << "===============================" << std::endl;
-      const Search::Statistics & stats = solver.statistics();
-      std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-      std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
-      solution->Print(std::cout);
-#endif //DEBUG
-  }
-
-  double elapsed_time = timer.stop();
-
-  if (problem->dump_stats) {
-      std::cerr << "dep_selector solve: ";
-      std::cerr << (best_solution ? "SOLVED" : "FAILED") << " "; 
-      std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
-      std::cerr << "Time: " << elapsed_time << "ms ";
-      const Search::Statistics & final_stats = solver.statistics();
-      std::cerr << "Stats: " << i << " steps, " << final_stats.memory << " bytes, ";
-      std::cerr << final_stats.propagate << " props, " << final_stats.node << " nodes, " << final_stats.depth << " depth ";
-      std::cerr << std::endl << std::flush;
-  }
-
-#ifdef DEBUG_LITE
-  std::cout << "Solution completed: " << (best_solution ? "Found solution" : "No solution found") << std::endl;
-  std::cout << "Solution consumed: " << elapsed_time << " ms " << i << " steps" << std::endl;
-  std::cout << "======================================================================" << std::endl;
-  std::cout.flush();
-#endif // DEBUG_LITE
+  problem->pool->Delete(best_solution);
+  problem->pool->DeleteAll();
 
   return best_solution;
 }

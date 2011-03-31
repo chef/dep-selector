@@ -23,6 +23,7 @@
 #include "dep_selector_to_gecode_interface.h"
 #include <iostream>	       
 #include <vector>
+#include <set>
 
 #include <gecode/driver.hh>
 #include <gecode/int.hh>
@@ -39,6 +40,18 @@ using namespace Gecode;
 // Extend:
 // Add optimization functions
 // Allow non-contiguous ranges in package dependencies. 
+
+// TODO: Add locking 
+struct VersionProblemPool 
+{
+    std::set<VersionProblem *> elems;
+    VersionProblemPool();
+    ~VersionProblemPool();
+    void Add(VersionProblem * vp);
+    void Delete(VersionProblem *vp);
+    void DeleteAll();
+};
+
 
 class VersionProblem : public Space
 {
@@ -90,6 +103,7 @@ public:
   void Print(std::ostream &out);
   void PrintPackageVar(std::ostream & out, int packageId) ;
 
+    static VersionProblem *InnerSolve(VersionProblem * problem, int & itercount);
   static VersionProblem *Solve(VersionProblem *problem);
  
 
@@ -117,6 +131,10 @@ public:
   int * is_required;
   int * is_suspicious;
 
+  VersionProblemPool *pool;
+
+    
+    
   bool CheckPackageId(int id);
   void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
