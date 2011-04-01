@@ -605,8 +605,9 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
     std::cout << "Solver Best Solution " << best_solution << std::endl << std::flush;
     
     pool->Delete(best_solution);
-    pool->DeleteAll();
+    problem->pool = 0;    
 
+    pool->DeleteAll();
     delete pool;
 
   return best_solution;
