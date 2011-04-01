@@ -44,23 +44,48 @@ const int VersionProblem::MAX_PREFERRED_WEIGHT = 10;
 VersionProblemPool::VersionProblemPool() : elems() 
 { }
 
-VersionProblemPool::~VersionProblemPool() {}
+VersionProblemPool::~VersionProblemPool() 
+{
+    DeleteAll();
+}
 void VersionProblemPool::Add(VersionProblem * vp) 
 {
+    vp->pool = this;
+    std::cout << "Pool add\t" << vp << std::endl << std::flush;
     elems.insert(vp); 
 }
 void VersionProblemPool::Delete(VersionProblem *vp) 
-{
-    elems.erase(vp); 
-}
-void VersionProblemPool::DeleteAll()
-{
-    std::set<VersionProblem *>::iterator i;
-    for(i = elems.begin(); i != elems.end(); i++) {
-        std::cout << "DeleteAll has\t\t\t" << *i << std::endl << std::flush;
-        delete *i;
+{ 
+    if (vp->pool != 0) 
+    {
+        std::cout << "Pool del\t" << vp << std::endl << std::flush;
+        elems.erase(vp); 
+        vp->pool = 0;
     }
 }
+void VersionProblemPool::ShowAll() 
+{
+    std::cout << "ShowAll =====================================================" << std::endl << std::flush;
+    std::set<VersionProblem *>::iterator i;
+    for(i = elems.begin(); i != elems.end(); i++) {
+        std::cout << "ShowAll has\t\t\t" << *i << std::endl << std::flush;
+    }
+    std::cout << "ShowAll =====================================================" << std::endl << std::flush;
+}
+
+void VersionProblemPool::DeleteAll()
+{
+    ShowAll();
+    std::set<VersionProblem *>::iterator i;
+    for(i = elems.begin(); i != elems.end(); i++) {
+        VersionProblem *vp = *i;
+        vp->pool = 0;
+        delete *i;
+    }
+    elems.clear();
+    std::cout << "DeleteAll ===================================================" << std::endl << std::flush;
+}
+
 
 
 
@@ -85,9 +110,7 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats)
     is_required[i] = 0;
     is_suspicious[i] = 0;
   }
-  pool = new VersionProblemPool();
   std::cout << "C VersionProblem(int,bool)\t" << this << std::endl << std::flush;
-//  pool->Add(*this);
 }
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
@@ -130,7 +153,9 @@ VersionProblem::~VersionProblem()
   delete[] preferred_at_latest_weights;
   delete[] is_required;
   delete[] is_suspicious;
-  pool->Delete(this);
+  if (pool!= 0) {
+      pool->Delete(this);
+  }
   std::cout << "D VersionProblem\t\t" << this << std::endl << std::flush;
 }
 
@@ -562,20 +587,27 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
 
 VersionProblem * VersionProblem::Solve(VersionProblem * problem) 
 {
-  problem->Finalize();
-  problem->status();
+
+    problem->Finalize();
+    problem->status();
+
+    VersionProblemPool *pool = new VersionProblemPool();
+    problem->pool = pool;
+
 #ifdef DEBUG
-  std::cout << "Before solve" << std::endl;
-  problem->Print(std::cout);
-#endif //DEBUG
-  int itercount = 0;
+    std::cout << "Before solve" << std::endl;
+    problem->Print(std::cout);
+#endif //DEB    UG
+    int itercount = 0;
+    
+    VersionProblem *best_solution = InnerSolve(problem, itercount);
+    
+    std::cout << "Solver Best Solution " << best_solution << std::endl << std::flush;
+    
+    pool->Delete(best_solution);
+    pool->DeleteAll();
 
-  VersionProblem *best_solution = InnerSolve(problem, itercount);
-
-  std::cout << "Solver Best Solution " << best_solution << std::endl << std::flush;
-
-  problem->pool->Delete(best_solution);
-  problem->pool->DeleteAll();
+    delete pool;
 
   return best_solution;
 }

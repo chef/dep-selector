@@ -49,6 +49,7 @@ struct VersionProblemPool
     ~VersionProblemPool();
     void Add(VersionProblem * vp);
     void Delete(VersionProblem *vp);
+    void ShowAll();
     void DeleteAll();
 };
 
@@ -133,12 +134,12 @@ public:
 
   VersionProblemPool *pool;
 
-    
-    
   bool CheckPackageId(int id);
   void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
   void BuildCostVector(IntVarArgs & costVector) const;
+  
+  friend class VersionProblemPool;
 };
 
 template<class T> void PrintVarAligned(const char * message, T & var);
