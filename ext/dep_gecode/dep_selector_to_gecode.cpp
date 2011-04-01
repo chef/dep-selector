@@ -30,7 +30,7 @@
 #include <vector>
 
 
-
+//#define MEMORY_DEBUG
 //#define DEBUG
 //#define USE_DUMB_BRANCHING
 #define VECTOR_CONSTRAIN
@@ -51,14 +51,18 @@ VersionProblemPool::~VersionProblemPool()
 void VersionProblemPool::Add(VersionProblem * vp) 
 {
     vp->pool = this;
+#ifdef MEMORY_DEBUG
     std::cout << "Pool add\t" << vp << std::endl << std::flush;
+#endif // MEMORY_DEBUG
     elems.insert(vp); 
 }
 void VersionProblemPool::Delete(VersionProblem *vp) 
 { 
     if (vp->pool != 0) 
     {
+#ifdef MEMORY_DEBUG
         std::cout << "Pool del\t" << vp << std::endl << std::flush;
+#endif // MEMORY_DEBUG
         elems.erase(vp); 
         vp->pool = 0;
     }
@@ -68,14 +72,18 @@ void VersionProblemPool::ShowAll()
     std::cout << "ShowAll =====================================================" << std::endl << std::flush;
     std::set<VersionProblem *>::iterator i;
     for(i = elems.begin(); i != elems.end(); i++) {
+#ifdef MEMORY_DEBUG
         std::cout << "ShowAll has\t\t\t" << *i << std::endl << std::flush;
+#endif // MEMORY_DEBUG
     }
     std::cout << "ShowAll =====================================================" << std::endl << std::flush;
 }
 
 void VersionProblemPool::DeleteAll()
 {
+#ifdef MEMORY_DEBUG
     ShowAll();
+#endif 
     std::set<VersionProblem *>::iterator i;
     for(i = elems.begin(); i != elems.end(); i++) {
         VersionProblem *vp = *i;
@@ -83,7 +91,9 @@ void VersionProblemPool::DeleteAll()
         delete *i;
     }
     elems.clear();
+#ifdef MEMORY_DEBUG
     std::cout << "DeleteAll ===================================================" << std::endl << std::flush;
+#endif
 }
 
 
@@ -110,7 +120,7 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats)
     is_required[i] = 0;
     is_suspicious[i] = 0;
   }
-  std::cout << "C VersionProblem(int,bool)\t" << this << std::endl << std::flush;
+//  std::cout << "C VersionProblem(int,bool)\t" << this << std::endl << std::flush;
 }
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
@@ -138,8 +148,9 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
   total_not_preferred_at_latest.update(*this, share, s.total_not_preferred_at_latest);
 
   pool->Add(this);
-
+#ifdef MEMORY_DEBUG
   std::cout << "C VersionProblem(bool, VP)\t" << this << std::endl << std::flush;
+#endif 
 }
 
 // Support for gecode
@@ -156,7 +167,9 @@ VersionProblem::~VersionProblem()
   if (pool!= 0) {
       pool->Delete(this);
   }
+#ifdef MEMORY_DEBUG
   std::cout << "D VersionProblem\t\t" << this << std::endl << std::flush;
+#endif
 }
 
 int VersionProblem::Size() 
@@ -544,16 +557,21 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
     Gecode::Support::Timer timer;
     timer.start();
 
+#ifdef MEMORY_DEBUG
     std::cout << "Creating solver" << std::endl << std::flush;
-
+#endif
     VersionProblem *best_solution = NULL;
     Restart<VersionProblem> solver(problem);
     
+#ifdef MEMORY_DEBUG
     std::cout << "Starting Solve" << std::endl << std::flush;
-    
+#endif    
+
     while (VersionProblem *solution = solver.next())
     {
+#ifdef MEMORY_DEBUG
         std::cout << "Solver Next " << solution << std::endl << std::flush;
+#endif
         if (best_solution != NULL) 
         {
             delete best_solution;
@@ -577,9 +595,10 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
         std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
         std::cerr << "Time: " << elapsed_time << "ms ";
         const Search::Statistics & final_stats = solver.statistics();
-        std::cerr << "Stats: " << itercount << " steps, " << final_stats.memory << " bytes, ";
+        std::cerr << "Stats: " << itercount << " steps, ";
+        std::cerr << final_stats.memory << " bytes, ";
         std::cerr << final_stats.propagate << " props, " << final_stats.node << " nodes, " << final_stats.depth << " depth ";
-      std::cerr << std::endl << std::flush;
+        std::cerr << std::endl << std::flush;
     }
     
     return best_solution;
@@ -602,8 +621,10 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
     
     VersionProblem *best_solution = InnerSolve(problem, itercount);
     
+#ifdef MEMORY_DEBUG
     std::cout << "Solver Best Solution " << best_solution << std::endl << std::flush;
-    
+#endif    
+
     pool->Delete(best_solution);
     problem->pool = 0;    
 
