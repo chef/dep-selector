@@ -25,7 +25,7 @@ require 'mkmf'
 
 $LIBS << " -lstdc++"
 
-$CFLAGS << "-g"
+# $CFLAGS << "-g"
 
 gecode_installed =
   have_library('gecodesearch') &&
