@@ -25,12 +25,14 @@ module DepSelector
     attr_reader :gecode_problem
     DontCareConstraint = -1
     NoMatchConstraint = -2
+    DumpStatistics = true
+    DebugLogsOn = false
     
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
     def initialize(problem_or_package_count)
       if (problem_or_package_count.is_a?(Numeric))
-        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, true)
+        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, DumpStatistics, DebugLogsOn)
       else
         @gecode_problem = problem_or_package_count
       end

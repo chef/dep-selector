@@ -1673,15 +1673,18 @@ SWIGINTERN VALUE
 _wrap_VersionProblemCreate(int argc, VALUE *argv, VALUE self) {
   int arg1 ;
   bool arg2 ;
+  bool arg3 ;
   VersionProblem *result = 0 ;
   int val1 ;
   int ecode1 = 0 ;
   bool val2 ;
   int ecode2 = 0 ;
+  bool val3 ;
+  int ecode3 = 0 ;
   VALUE vresult = Qnil;
   
-  if ((argc < 2) || (argc > 2)) {
-    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  if ((argc < 3) || (argc > 3)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 3)",argc); SWIG_fail;
   }
   ecode1 = SWIG_AsVal_int(argv[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
@@ -1693,7 +1696,12 @@ _wrap_VersionProblemCreate(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VersionProblemCreate" "', argument " "2"" of type '" "bool""'");
   } 
   arg2 = static_cast< bool >(val2);
-  result = (VersionProblem *)VersionProblemCreate(arg1,arg2);
+  ecode3 = SWIG_AsVal_bool(argv[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "VersionProblemCreate" "', argument " "3"" of type '" "bool""'");
+  } 
+  arg3 = static_cast< bool >(val3);
+  result = (VersionProblem *)VersionProblemCreate(arg1,arg2,arg3);
   vresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_VersionProblem, 0 |  0 );
   return vresult;
 fail:
