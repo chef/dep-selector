@@ -32,6 +32,7 @@
 
 //#define MEMORY_DEBUG
 //#define DEBUG
+#define DEBUG_STREAM std::cerr
 //#define USE_DUMB_BRANCHING
 #define VECTOR_CONSTRAIN
 
@@ -52,7 +53,7 @@ void VersionProblemPool::Add(VersionProblem * vp)
 {
     vp->pool = this;
 #ifdef MEMORY_DEBUG
-    std::cout << "Pool add\t" << vp << std::endl << std::flush;
+    DEBUG_STREAM << "Pool add\t" << vp << std::endl << std::flush;
 #endif // MEMORY_DEBUG
     elems.insert(vp); 
 }
@@ -61,7 +62,7 @@ void VersionProblemPool::Delete(VersionProblem *vp)
     if (vp->pool != 0) 
     {
 #ifdef MEMORY_DEBUG
-        std::cout << "Pool del\t" << vp << std::endl << std::flush;
+        DEBUG_STREAM << "Pool del\t" << vp << std::endl << std::flush;
 #endif // MEMORY_DEBUG
         elems.erase(vp); 
         vp->pool = 0;
@@ -69,14 +70,14 @@ void VersionProblemPool::Delete(VersionProblem *vp)
 }
 void VersionProblemPool::ShowAll() 
 {
-    std::cout << "ShowAll =====================================================" << std::endl << std::flush;
+    DEBUG_STREAM << "ShowAll =====================================================" << std::endl << std::flush;
     std::set<VersionProblem *>::iterator i;
     for(i = elems.begin(); i != elems.end(); i++) {
 #ifdef MEMORY_DEBUG
-        std::cout << "ShowAll has\t\t\t" << *i << std::endl << std::flush;
+        DEBUG_STREAM << "ShowAll has\t\t\t" << *i << std::endl << std::flush;
 #endif // MEMORY_DEBUG
     }
-    std::cout << "ShowAll =====================================================" << std::endl << std::flush;
+    DEBUG_STREAM << "ShowAll =====================================================" << std::endl << std::flush;
 }
 
 void VersionProblemPool::DeleteAll()
@@ -92,15 +93,15 @@ void VersionProblemPool::DeleteAll()
     }
     elems.clear();
 #ifdef MEMORY_DEBUG
-    std::cout << "DeleteAll ===================================================" << std::endl << std::flush;
+    DEBUG_STREAM << "DeleteAll ===================================================" << std::endl << std::flush;
 #endif
 }
 
 
 
 
-VersionProblem::VersionProblem(int packageCount, bool dumpStats)
-  : size(packageCount), version_constraint_count(0), dump_stats(dumpStats),
+VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug)
+    : size(packageCount), version_constraint_count(0), dump_stats(dumpStats), debug_logging(debug),
     finalized(false), cur_package(0), package_versions(*this, packageCount), 
     disabled_package_variables(*this, packageCount, 0, 1), total_disabled(*this, 0, packageCount*MAX_TRUST_LEVEL),
     total_required_disabled(*this, 0, packageCount), total_induced_disabled(*this, 0, packageCount), 
@@ -120,7 +121,10 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats)
     is_required[i] = 0;
     is_suspicious[i] = 0;
   }
-//  std::cout << "C VersionProblem(int,bool)\t" << this << std::endl << std::flush;
+  if (debug_logging) {
+      DEBUG_STREAM << "Creating VersionProblem with args" << packageCount <<" "<< dumpStats <<" "<< debug << std::endl;
+      DEBUG_STREAM.flush();
+  }
 }
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s) 
@@ -149,7 +153,7 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
 
   pool->Add(this);
 #ifdef MEMORY_DEBUG
-  std::cout << "C VersionProblem(bool, VP)\t" << this << std::endl << std::flush;
+  DEBUG_STREAM << "C VersionProblem(bool, VP)\t" << this << std::endl << std::flush;
 #endif 
 }
 
@@ -168,7 +172,7 @@ VersionProblem::~VersionProblem()
       pool->Delete(this);
   }
 #ifdef MEMORY_DEBUG
-  std::cout << "D VersionProblem\t\t" << this << std::endl << std::flush;
+  DEBUG_STREAM << "D VersionProblem\t\t" << this << std::endl << std::flush;
 #endif
 }
 
@@ -189,10 +193,10 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
     return -1;
   }
 
-#ifdef DEBUG
-  std::cout << "Adding package id " << cur_package << '/' << size << ": min = " << minVersion << ", max = " << maxVersion << ", current version " << currentVersion << std::endl;
-  std::cout.flush();    
-#endif // DEBUG
+  if (debug_logging) {
+      DEBUG_STREAM << "Adding   package id " << cur_package << '/' << size << ": min = " << minVersion << ", max = " << maxVersion << ", current version " << currentVersion << std::endl;
+      DEBUG_STREAM.flush();    
+  }
   int index = cur_package;
   cur_package++;
   //  IntVar version(*this, minVersion, maxVersion);
@@ -213,11 +217,11 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
   BoolVar predicated_depend_match(*this, 0, 1);
   
   version_constraint_count++;
-#ifdef DEBUG
-  std::cout << "Add VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId;
-  std::cout << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
-  std::cout.flush();
-#endif // DEBUG
+  if (debug_logging) {
+      DEBUG_STREAM << "Add VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId;
+      DEBUG_STREAM << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
+      DEBUG_STREAM.flush();
+  }
 
 
   //version_flags << version_match;
@@ -255,56 +259,58 @@ VersionProblem::MarkPackagePreferredToBeAtLatest(int packageId, int weight)
 
 void VersionProblem::Finalize() 
 {
-#ifdef DEBUG
-  std::cout << "Finalization Started" << std::endl;
-  std::cout.flush();
-#endif // DEBUG
+  if (debug_logging) {
+      DEBUG_STREAM << "Finalization Started" << std::endl;
+      DEBUG_STREAM.flush();
+  }
   finalized = true;
 
   // Setup constraint for cost
   // We wish to minimize the total number of disabled packages, by priority ranks
   IntArgs disabled_required_weights(size, is_required);
   linear(*this, disabled_required_weights, disabled_package_variables,  IRT_EQ, total_required_disabled);
-#ifdef DEBUG
-  std::cout << "disabled_required_weights:            " << disabled_required_weights << std::endl;
-  std::cout << "total_required_disabled:              " << total_required_disabled << std::endl;
-#endif // DEBUG
+  if (debug_logging) {
+      DEBUG_STREAM << "disabled_required_weights:            " << disabled_required_weights << std::endl;
+      DEBUG_STREAM << "total_required_disabled:              " << total_required_disabled << std::endl;
+  }
 
   IntArgs disabled_induced_weights(size);
   for (int i = 0; i < size; i++) {
     disabled_induced_weights[i] = !(is_required[i] || is_suspicious[i]);
   }
   linear(*this, disabled_induced_weights, disabled_package_variables,  IRT_EQ, total_induced_disabled);
-#ifdef DEBUG
-  std::cout << "disabled_induced_weights:             " << disabled_induced_weights << std::endl;
-  std::cout << "total_induced_disabled:               " << total_induced_disabled << std::endl;
-#endif // DEBUG
+
+  if (debug_logging) {
+      DEBUG_STREAM << "        disabled_induced_weights:             " << disabled_induced_weights << std::endl;
+      DEBUG_STREAM << "total_induce    d_disabled:               " << total_induced_disabled << std::endl;
+  } 
   
   IntArgs disabled_suspicious_weights(size, is_suspicious);
   linear(*this, disabled_suspicious_weights, disabled_package_variables,  IRT_EQ, total_suspicious_disabled);
-#ifdef DEBUG
-  std::cout << "disabled_suspicious_weights:          " << disabled_suspicious_weights << std::endl;
-  std::cout << "total_suspicious_disabled:            " << total_suspicious_disabled << std::endl;
-#endif // DEBUG
-
+  
+  if (debug_logging) {
+      DEBUG_STREAM << "disabled_suspicious_weights:          " << disabled_suspicious_weights << std::endl;
+      DEBUG_STREAM << "total_suspicious_disabled:            " << total_suspicious_disabled << std::endl;
+  }
+  
   linear(*this, disabled_package_variables,  IRT_EQ, total_disabled);
-#ifdef DEBUG
-  std::cout << "total_disabled:                       " << total_disabled << std::endl;
-#endif // DEBUG
+  if (debug_logging) {
+      DEBUG_STREAM << "total_disabled:                       " << total_disabled << std::endl;
+  }
 
   // Setup computation for total_preferred_at_latest
   // We wish to maximize the total number of packages at their latest versions in the preferred tier of packages
   // We negate the weights in the cost function to make it fit into the context of a minimization problem.
   for (int i = 0; i < size; i++) {
-    preferred_at_latest_weights[i] = -preferred_at_latest_weights[i];
+      preferred_at_latest_weights[i] = -preferred_at_latest_weights[i];
   }
   IntArgs preferred_at_latest_weights_args(size, preferred_at_latest_weights);
   linear(*this, preferred_at_latest_weights_args, at_latest, IRT_EQ, total_preferred_at_latest);
-#ifdef DEBUG
-  std::cout << "preferred_at_latest_weights_args:     " << preferred_at_latest_weights_args << std::endl;
-  std::cout << "total_preferred_at_latest:            " << total_preferred_at_latest << std::endl;
-#endif // DEBUG
-
+  if (debug_logging) {
+      DEBUG_STREAM << "        preferred_at_latest_weights_args:     " << preferred_at_latest_weights_args << std::endl;
+      DEBUG_STREAM << "total_prefer    red_at_latest:            " << total_preferred_at_latest << std::endl;
+  }
+  
   // Setup computation for remaining variables
   // We wish to maximize the total number of packages at their latest version in the non-preferred tier of packages
   // We negate the weights in the cost function to make it fit into the context of a minimization problem.
@@ -315,23 +321,24 @@ void VersionProblem::Finalize()
     }
   }
   linear(*this, not_preferred_at_latest_weights_args, at_latest, IRT_EQ, total_not_preferred_at_latest);
-#ifdef DEBUG
-  std::cout << "not_preferred_at_latest_weights_args: " << not_preferred_at_latest_weights_args << std::endl;
-  std::cout << "total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
-#endif // DEBUG
+  if (debug_logging) {
+      DEBUG_STREAM << "        not_preferred_at_latest_weights_args: " << not_preferred_at_latest_weights_args << std::endl;
+      DEBUG_STREAM << "total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
+  }
+  
 
   // Cleanup
   // Assign a dummy variable to elements greater than actually used.
   for (int i = cur_package; i < size; i++) {
-    package_versions[i] = IntVar(*this, -1, -1);
-    disabled_package_variables[i] = BoolVar(*this, 1, 1);
+      package_versions[i] = IntVar(*this, -1, -1);
+      disabled_package_variables[i] = BoolVar(*this, 1, 1);
   }
 
 #ifdef USE_DUMB_BRANCHING
-#  ifdef DEBUG
-  std::cout << "Adding branching (POOR)" << std::endl;
-  std::cout.flush();
-#  endif // DEBUG
+  if (debug_logging) {
+  DEBUG_STREAM << "Adding branching (POOR)" << std::endl;
+  DEBUG_STREAM.flush();
+  }
   // This branching starts as far as possible from the solution, in order to exercise the optimization functions.
   branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MAX);
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MIN);
@@ -343,10 +350,10 @@ void VersionProblem::Finalize()
   branch(*this, total_preferred_at_latest, INT_VAL_MIN);
   branch(*this, total_not_preferred_at_latest, INT_VAL_MIN);
 #else // USE_DUMB_BRANCHING
-#  ifdef DEBUG
-  std::cout << "Adding branching (BEST)" << std::endl;
-  std::cout.flush();
-#  endif // DEBUG
+  if (debug_logging) {
+  DEBUG_STREAM << "Adding branching (BEST)" << std::endl;
+  DEBUG_STREAM.flush();
+  }
   // This branching is meant to start with most probable solution
   branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
   branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
@@ -359,10 +366,10 @@ void VersionProblem::Finalize()
   branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
 #endif // USE_DUMB_BRANCHING
 
-#ifdef DEBUG
-  std::cout << "Finalization Done" << std::endl;
-  std::cout.flush();
-#endif // DEBUG
+  if (debug_logging) {
+      DEBUG_STREAM << "        Finalization Done" << std::endl;
+      DEBUG_STREAM.flush();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -388,7 +395,9 @@ void VersionProblem::constrain(const Space & _best_known_solution)
   // new constraint: total_disabled < best_known_total_disabled_value)
   int best_known_total_disabled_value = best_known_solution.total_disabled.val();
   rel(*this, total_disabled, IRT_LE, best_known_total_disabled_value);
-  PrintVarAligned("Constrain: total_disabled: ", total_disabled);
+  if (debug_logging) {
+      PrintVarAligned("Con  strain: total_disabled: ", total_disabled);
+  }
 }
 #endif // TOTAL_DISABLED_COST
 
@@ -453,11 +462,11 @@ IntVar & VersionProblem::GetPackageVersionVar(int packageId)
   if (packageId < cur_package) {
     return package_versions[packageId];
   } else {
-#ifdef DEBUG
-    std::cout << "Bad package Id " << packageId << " >= " << cur_package << std::endl;
-    std::cout.flush();
-#endif //DEBUG
-    //    return 0;
+      if (debug_logging) {
+          DEBUG_STREAM << "Bad package Id " << packageId << " >= " << cur_package << std::endl;
+          DEBUG_STREAM.flush();
+      }
+      //     return 0;
   }
 }
 
@@ -542,10 +551,10 @@ void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArg
     IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
     // (delta < 0) <=> borrow[i+1]
     rel(*this, delta, IRT_LE, 0, borrow[i+1]);
-#ifdef DEBUG
-    std::cout << "ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
-    std::cout << "ConstrainVector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
-#endif //DEBUG
+    if (debug_logging) {
+        DEBUG_STREAM << "      ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
+        DEBUG_STREAM << "ConstrainV    ector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
+    }
   }
 
   // must borrow off past the most significant element.
@@ -558,19 +567,19 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
     timer.start();
 
 #ifdef MEMORY_DEBUG
-    std::cout << "Creating solver" << std::endl << std::flush;
+    DEBUG_STREAM << "Creating solver" << std::endl << std::flush;
 #endif
     VersionProblem *best_solution = NULL;
     Restart<VersionProblem> solver(problem);
     
 #ifdef MEMORY_DEBUG
-    std::cout << "Starting Solve" << std::endl << std::flush;
+    DEBUG_STREAM << "Starting Solve" << std::endl << std::flush;
 #endif    
 
     while (VersionProblem *solution = solver.next())
     {
 #ifdef MEMORY_DEBUG
-        std::cout << "Solver Next " << solution << std::endl << std::flush;
+        DEBUG_STREAM << "Solver Next " << solution << std::endl << std::flush;
 #endif
         if (best_solution != NULL) 
         {
@@ -578,15 +587,15 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
         }
         best_solution = solution;
         ++itercount;
-#ifdef DEBUG
-        std::cout << "Trial Solution #" << itercount << "===============================" << std::endl;
-        const Search::Statistics & stats = solver.statistics();
-        std::cout << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-        std::cout << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
-        solution->Print(std::cout);
-#endif //DEBUG  
+        if (problem->debug_logging) {
+            DEBUG_STREAM << "Trial Solution #" << itercount << "===============================" << std::endl;
+            const Search::Statistics & stats = solver.statistics();
+            DEBUG_STREAM << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+            DEBUG_STREAM << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+            solution->Print(DEBUG_STREAM);
+        }
     }
-
+    
     double elapsed_time = timer.stop();
     
     if (problem->dump_stats) {
@@ -613,17 +622,17 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
     VersionProblemPool *pool = new VersionProblemPool();
     problem->pool = pool;
 
-#ifdef DEBUG
-    std::cout << "Before solve" << std::endl;
-    problem->Print(std::cout);
-#endif //DEB    UG
+    if (problem->debug_logging) {
+        DEBUG_STREAM << "      Before solve" << std::endl;
+        problem->Print(DEBUG_STREAM);
+    }
     int itercount = 0;
     
     VersionProblem *best_solution = InnerSolve(problem, itercount);
     
-#ifdef MEMORY_DEBUG
-    std::cout << "Solver Best Solution " << best_solution << std::endl << std::flush;
-#endif    
+    if (problem->debug_logging) {
+        DEBUG_STREAM << "Solver Best Solution " << best_solution << std::endl << std::flush;
+    }
 
     pool->Delete(best_solution);
     problem->pool = 0;    
@@ -639,19 +648,15 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
 // 
 template <class T> void PrintVarAligned(const char * message, T & var) 
 {
-#ifdef DEBUG
-  std::cout.width(40);
-  std::cout << std::left << message << var << std::endl;
-  std::cout.width(0);
-#endif
+    DEBUG_STREAM.width(40);
+    DEBUG_STREAM << std::left << message << var << std::endl;
+    DEBUG_STREAM.width(0);
 }
 template <class S, class T> void PrintVarAligned(const char * message, S & var1, T & var2) 
 {
-#ifdef DEBUG
-  std::cout.width(40);
-  std::cout << std::left << message << var1 << " " << var2 << std::endl;
-  std::cout.width(0);
-#endif
+    DEBUG_STREAM.width(40);
+    DEBUG_STREAM << std::left << message << var1 << " " << var2 << std::endl;
+    DEBUG_STREAM.width(0);
 }
 
 //template void PrintVarAligned<int>(const char * message, int & var);

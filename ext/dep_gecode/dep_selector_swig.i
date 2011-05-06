@@ -27,7 +27,7 @@
 
 class VersionProblem;
 
-VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats);
+VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats, bool debug);
 void VersionProblemDestroy(VersionProblem * vp);
 
 int VersionProblemSize(VersionProblem *p); 
