@@ -97,8 +97,7 @@ void VersionProblemPool::DeleteAll()
 #endif
 }
 
-
-
+int VersionProblem::instance_counter = 0;
 
 VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug)
     : size(packageCount), version_constraint_count(0), dump_stats(dumpStats), debug_logging(debug),
@@ -113,7 +112,8 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug)
       total_preferred_at_latest(*this, -packageCount*MAX_PREFERRED_WEIGHT, packageCount*MAX_PREFERRED_WEIGHT),
       total_not_preferred_at_latest(*this, -packageCount, packageCount),
       preferred_at_latest_weights(new int[packageCount]),
-      pool(0)
+      pool(0),
+      instance_id(instance_counter++)
 {
     for (int i = 0; i < packageCount; i++)
         {
@@ -123,7 +123,7 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug)
         }
     if (debug_logging) {
         DEBUG_STREAM << std::endl;
-        DEBUG_STREAM << "Creating VersionProblem with " << packageCount << " packages, "
+        DEBUG_STREAM << "Creating VersionProblem inst# " << instance_id << " with " << packageCount << " packages, "
                      << dumpStats << " stats, " << debug << " debug" << std::endl;
         DEBUG_STREAM.flush();
     }
@@ -196,7 +196,8 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
     }
 
     if (debug_logging) {
-        DEBUG_STREAM << "Adding   package id " << cur_package << '/' << size << ": min = " << minVersion << ", max = " << maxVersion << ", current version " << currentVersion << std::endl;
+        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+                     << " - Adding package id " << cur_package << '/' << size << ": min = " << minVersion << ", max = " << maxVersion << ", current version " << currentVersion << std::endl;
         DEBUG_STREAM.flush();
     }
     int index = cur_package;
@@ -220,8 +221,9 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
 
     version_constraint_count++;
     if (debug_logging) {
-        DEBUG_STREAM << "Add VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId;
-        DEBUG_STREAM << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
+        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+                     << " - Adding VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId
+                     << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
         DEBUG_STREAM.flush();
     }
 
@@ -245,18 +247,36 @@ void
 VersionProblem::MarkPackageSuspicious(int packageId)
 {
     is_suspicious[packageId] = 1;
+
+    if (debug_logging) {
+        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+                     << " - Marking Package Suspicious " << packageId << std::endl;
+        DEBUG_STREAM.flush();
+    }
 }
 
 void
 VersionProblem::MarkPackageRequired(int packageId)
 {
     is_required[packageId] = 1;
+
+    if (debug_logging) {
+        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+                     << " - Marking Package Required " << packageId << std::endl;
+        DEBUG_STREAM.flush();
+    }
 }
 
 void
 VersionProblem::MarkPackagePreferredToBeAtLatest(int packageId, int weight)
-{
+ {
     preferred_at_latest_weights[packageId] = std::max(MAX_PREFERRED_WEIGHT, std::min(0, weight));
+
+    if (debug_logging) {
+        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+                     << " - Marking Package Preferred Latest " << packageId << " weight " << weight << std::endl;
+        DEBUG_STREAM.flush();
+    }
 }
 
 void VersionProblem::Finalize()

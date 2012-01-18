@@ -62,6 +62,8 @@ public:
   static const int MAX_TRUST_LEVEL;
   static const int MAX_PREFERRED_WEIGHT;
 
+  static int instance_counter;
+
   VersionProblem(int packageCount, bool dumpStats = true, bool debug = false);
   // Clone constructor; check gecode rules for this...
   VersionProblem(bool share, VersionProblem & s);
@@ -109,6 +111,7 @@ public:
  
 
  protected:
+  int instance_id;
   int size;
   int version_constraint_count;
   int cur_package;
