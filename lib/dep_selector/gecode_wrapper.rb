@@ -26,7 +26,7 @@ module DepSelector
     DontCareConstraint = -1
     NoMatchConstraint = -2
     DumpStatistics = true
-    DebugLogsOn = false
+    DebugLogsOn = true
     
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
