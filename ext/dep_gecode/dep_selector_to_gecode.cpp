@@ -272,8 +272,8 @@ void VersionProblem::Finalize()
     IntArgs disabled_required_weights(size, is_required);
     linear(*this, disabled_required_weights, disabled_package_variables,  IRT_EQ, total_required_disabled);
     if (debug_logging) {
-        DEBUG_STREAM << "disabled_required_weights:            " << disabled_required_weights << std::endl;
-        DEBUG_STREAM << "total_required_disabled:              " << total_required_disabled << std::endl;
+        DEBUG_STREAM << "    disabled_required_weights:            " << disabled_required_weights << std::endl;
+        DEBUG_STREAM << "    total_required_disabled:              " << total_required_disabled << std::endl;
     }
 
     IntArgs disabled_induced_weights(size);
@@ -283,21 +283,21 @@ void VersionProblem::Finalize()
     linear(*this, disabled_induced_weights, disabled_package_variables,  IRT_EQ, total_induced_disabled);
 
     if (debug_logging) {
-        DEBUG_STREAM << "        disabled_induced_weights:             " << disabled_induced_weights << std::endl;
-        DEBUG_STREAM << "total_induce    d_disabled:               " << total_induced_disabled << std::endl;
+        DEBUG_STREAM << "    disabled_induced_weights:             " << disabled_induced_weights << std::endl;
+        DEBUG_STREAM << "    total_induced_disabled:               " << total_induced_disabled << std::endl;
     }
 
     IntArgs disabled_suspicious_weights(size, is_suspicious);
     linear(*this, disabled_suspicious_weights, disabled_package_variables,  IRT_EQ, total_suspicious_disabled);
 
     if (debug_logging) {
-        DEBUG_STREAM << "disabled_suspicious_weights:          " << disabled_suspicious_weights << std::endl;
-        DEBUG_STREAM << "total_suspicious_disabled:            " << total_suspicious_disabled << std::endl;
+        DEBUG_STREAM << "    disabled_suspicious_weights:          " << disabled_suspicious_weights << std::endl;
+        DEBUG_STREAM << "    total_suspicious_disabled:            " << total_suspicious_disabled << std::endl;
     }
 
     linear(*this, disabled_package_variables,  IRT_EQ, total_disabled);
     if (debug_logging) {
-        DEBUG_STREAM << "total_disabled:                       " << total_disabled << std::endl;
+        DEBUG_STREAM << "    total_disabled:                       " << total_disabled << std::endl;
     }
 
     // Setup computation for total_preferred_at_latest
@@ -309,8 +309,8 @@ void VersionProblem::Finalize()
     IntArgs preferred_at_latest_weights_args(size, preferred_at_latest_weights);
     linear(*this, preferred_at_latest_weights_args, at_latest, IRT_EQ, total_preferred_at_latest);
     if (debug_logging) {
-        DEBUG_STREAM << "        preferred_at_latest_weights_args:     " << preferred_at_latest_weights_args << std::endl;
-        DEBUG_STREAM << "total_prefer    red_at_latest:            " << total_preferred_at_latest << std::endl;
+        DEBUG_STREAM << "    preferred_at_latest_weights_args:     " << preferred_at_latest_weights_args << std::endl;
+        DEBUG_STREAM << "    total_preferred_at_latest:            " << total_preferred_at_latest << std::endl;
     }
 
     // Setup computation for remaining variables
@@ -324,8 +324,8 @@ void VersionProblem::Finalize()
     }
     linear(*this, not_preferred_at_latest_weights_args, at_latest, IRT_EQ, total_not_preferred_at_latest);
     if (debug_logging) {
-        DEBUG_STREAM << "        not_preferred_at_latest_weights_args: " << not_preferred_at_latest_weights_args << std::endl;
-        DEBUG_STREAM << "total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
+        DEBUG_STREAM << "    not_preferred_at_latest_weights_args: " << not_preferred_at_latest_weights_args << std::endl;
+        DEBUG_STREAM << "    total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
     }
 
 
@@ -338,7 +338,7 @@ void VersionProblem::Finalize()
 
 #ifdef USE_DUMB_BRANCHING
     if (debug_logging) {
-        DEBUG_STREAM << "Adding branching (POOR)" << std::endl;
+        DEBUG_STREAM << "    Adding branching (POOR)" << std::endl;
         DEBUG_STREAM.flush();
     }
     // This branching starts as far as possible from the solution, in order to exercise the optimization functions.
@@ -353,7 +353,7 @@ void VersionProblem::Finalize()
     branch(*this, total_not_preferred_at_latest, INT_VAL_MIN);
 #else // USE_DUMB_BRANCHING
     if (debug_logging) {
-        DEBUG_STREAM << "Adding branching (BEST)" << std::endl;
+        DEBUG_STREAM << "    Adding branching (BEST)" << std::endl;
         DEBUG_STREAM.flush();
     }
     // This branching is meant to start with most probable solution
@@ -369,7 +369,7 @@ void VersionProblem::Finalize()
 #endif // USE_DUMB_BRANCHING
 
     if (debug_logging) {
-        DEBUG_STREAM << "        Finalization Done" << std::endl;
+        DEBUG_STREAM << "Finalization Done" << std::endl;
         DEBUG_STREAM.flush();
     }
 }
