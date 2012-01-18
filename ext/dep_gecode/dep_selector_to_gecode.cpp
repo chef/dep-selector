@@ -122,7 +122,9 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug)
             is_suspicious[i] = 0;
         }
     if (debug_logging) {
-        DEBUG_STREAM << "Creating VersionProblem with args" << packageCount <<" "<< dumpStats <<" "<< debug << std::endl;
+        DEBUG_STREAM << std::endl;
+        DEBUG_STREAM << "Creating VersionProblem with " << packageCount << " packages, "
+                     << dumpStats << " stats, " << debug << " debug" << std::endl;
         DEBUG_STREAM.flush();
     }
 }
