@@ -1,0 +1,100 @@
+
+Creating VersionProblem inst# 0 with 18 packages, 1 stats, 1 debug
+DepSelector inst# 0 - Adding package id 0/18: min = -1, max = 9, current version 0
+DepSelector inst# 0 - Adding package id 1/18: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 2/18: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding package id 3/18: min = -1, max = 6, current version 0
+DepSelector inst# 0 - Adding package id 4/18: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 3 @ 0 depPkg 4 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 5/18: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding package id 6/18: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 7/18: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 8/18: min = -1, max = 3, current version 0
+DepSelector inst# 0 - Adding package id 9/18: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding package id 10/18: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 9 @ 1 depPkg 10 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 9 @ 1 depPkg 1 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 11/18: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 9 @ 1 depPkg 11 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 12/18: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 9 @ 1 depPkg 12 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 9 @ 0 depPkg 10 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 9 @ 0 depPkg 1 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 9 @ 0 depPkg 11 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 9 @ 0 depPkg 12 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 13/18: min = -1, max = -1, current version 0
+DepSelector inst# 0 - Adding VC for 9 @ 0 depPkg 13 [ -2, -2 ]
+DepSelector inst# 0 - Marking Package Suspicious 13
+DepSelector inst# 0 - Adding package id 14/18: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 15/18: min = -1, max = 16, current version 0
+DepSelector inst# 0 - Adding package id 16/18: min = -1, max = 8, current version 0
+DepSelector inst# 0 - Adding package id 17/18: min = 0, max = 0, current version 0
+DepSelector inst# 0 - Marking Package Preferred Latest 0 weight 10
+DepSelector inst# 0 - Marking Package Required 0
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 0 [ 0, 9 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 0 weight 10
+DepSelector inst# 0 - Marking Package Required 0
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 0 [ 0, 9 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 1 weight 10
+DepSelector inst# 0 - Marking Package Required 1
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 1 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 2 weight 10
+DepSelector inst# 0 - Marking Package Required 2
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 2 [ 0, 1 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 3 [ 0, 6 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 5 weight 10
+DepSelector inst# 0 - Marking Package Required 5
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 5 [ 0, 1 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 6 weight 10
+DepSelector inst# 0 - Marking Package Required 6
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 6 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 7 weight 10
+DepSelector inst# 0 - Marking Package Required 7
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 7 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 8 weight 10
+DepSelector inst# 0 - Marking Package Required 8
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 8 [ 0, 3 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 9 weight 10
+DepSelector inst# 0 - Marking Package Required 9
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 9 [ 0, 1 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 9 weight 10
+DepSelector inst# 0 - Marking Package Required 9
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 9 [ 0, 1 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 14 weight 10
+DepSelector inst# 0 - Marking Package Required 14
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 14 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 15 weight 10
+DepSelector inst# 0 - Marking Package Required 15
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 15 [ 0, 16 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 16 weight 10
+DepSelector inst# 0 - Marking Package Required 16
+DepSelector inst# 0 - Adding VC for 17 @ 0 depPkg 16 [ 0, 8 ]
+Finalization Started
+    disabled_required_weights:            {1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0}
+    total_required_disabled:              [0..12]
+    disabled_induced_weights:             {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1}
+    total_induced_disabled:               [0..5]
+    disabled_suspicious_weights:          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0}
+    total_suspicious_disabled:            [0..1]
+    total_disabled:                       [0..18]
+    preferred_at_latest_weights_args:     {-10, -10, -10, -10, 0, -10, -10, -10, -10, -10, 0, 0, 0, 0, -10, -10, -10, 0}
+    total_preferred_at_latest:            [-120..0]
+    not_preferred_at_latest_weights_args: {0, 0, 0, 0, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, -1}
+    total_not_preferred_at_latest:        [-6..-2]
+    Adding branching (BEST)
+Finalization Done
+      Before solve
+Version problem dump:                   18/18 packages used/allocated
+Disabled Variables:                     {[0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1]}
+Total Disabled variables (required):    [0..12]
+Total Disabled variables: (induced):    [0..5]
+Total Disabled variables: (suspicious): [0..1]
+Total Disabled variables:               [0..18]
+at_latest:                              {[0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], 1, [0..1], [0..1], [0..1], 1}
+total_preferred_at_latest:              [-120..0]
+total_not_preferred_at_latest:          [-6..-2]
+#011PackageId: 0 Sltn: [-1..9] disabled: [0..1] at latest: [0..1]
+#011PackageId: 1 Sltn: [-1..0] disabled: [0..1] at latest: [0..1]
+#011PackageId: 2 Sltn: [-1..1] disabled: [0..1] at latest: [0..1]
