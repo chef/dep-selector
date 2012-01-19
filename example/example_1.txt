@@ -98,3 +98,5 @@ total_not_preferred_at_latest:          [-6..-2]
 #011PackageId: 0 Sltn: [-1..9] disabled: [0..1] at latest: [0..1]
 #011PackageId: 1 Sltn: [-1..0] disabled: [0..1] at latest: [0..1]
 #011PackageId: 2 Sltn: [-1..1] disabled: [0..1] at latest: [0..1]
+
+Takes about .5 seconds on an ec2 m1.small
