@@ -6,3 +6,8 @@
 tmp
 save
 ext/dep_gecode/Makefile
+*.dsc
+*.deb
+*.gz
+*.changes
+*.build
