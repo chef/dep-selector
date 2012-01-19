@@ -1,0 +1,102 @@
+Creating VersionProblem inst# 0 with 27 packages, 1 stats, 1 debug
+DepSelector inst# 0 - Adding package id 0/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 1/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 0 @ 0 depPkg 1 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 2/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 3/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 4/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 3 @ 0 depPkg 4 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 5/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 3 @ 0 depPkg 5 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 0 depPkg 2 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 6/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 7/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 8/27: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding package id 9/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 9 @ 0 depPkg 1 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 10/27: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding package id 11/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 12/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 13/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 14/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 15/27: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding package id 16/27: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding package id 17/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 16 @ 1 depPkg 17 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 18/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 18 @ 0 depPkg 17 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 19/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 20/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 20 @ 0 depPkg 14 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 21/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 22/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 23/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 24/27: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding package id 25/27: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding VC for 25 @ 1 depPkg 2 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 26/27: min = 0, max = 0, current version 0
+DepSelector inst# 0 - Marking Package Preferred Latest 0 weight 10
+DepSelector inst# 0 - Marking Package Required 0
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 0 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 2 weight 10
+DepSelector inst# 0 - Marking Package Required 2
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 2 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 3 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 3 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 3 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 3 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 3 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 3 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 3 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 6 weight 10
+DepSelector inst# 0 - Marking Package Required 6
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 6 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 3 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 3 weight 10
+DepSelector inst# 0 - Marking Package Required 3
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 3 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 2 weight 10
+DepSelector inst# 0 - Marking Package Required 2
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 2 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 7 weight 10
+DepSelector inst# 0 - Marking Package Required 7
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 7 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 8 weight 10
+DepSelector inst# 0 - Marking Package Required 8
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 8 [ 0, 1 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 9 weight 10
+DepSelector inst# 0 - Marking Package Required 9
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 10 weight 10
+DepSelector inst# 0 - Marking Package Required 10
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 10 [ 0, 1 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 11 weight 10
+DepSelector inst# 0 - Marking Package Required 11
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 11 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 2 weight 10
+DepSelector inst# 0 - Marking Package Required 2
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 2 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 2 weight 10
+DepSelector inst# 0 - Marking Package Required 2
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 2 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 2 weight 10
+DepSelector inst# 0 - Marking Package Required 2
+Finalization Started
+
+This one takes about 5 secs on an m1.small
