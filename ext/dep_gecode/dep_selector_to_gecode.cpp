@@ -141,7 +141,8 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
       total_preferred_at_latest(s.total_preferred_at_latest),
       total_not_preferred_at_latest(s.total_preferred_at_latest),
       preferred_at_latest_weights(NULL),
-      pool(s.pool)
+      pool(s.pool),
+      instance_id(s.instance_id)
 {
     package_versions.update(*this, share, s.package_versions);
     disabled_package_variables.update(*this, share, s.disabled_package_variables);
@@ -282,7 +283,7 @@ VersionProblem::MarkPackagePreferredToBeAtLatest(int packageId, int weight)
 void VersionProblem::Finalize()
 {
     if (debug_logging) {
-        DEBUG_STREAM << "Finalization Started" << std::endl;
+        DEBUG_STREAM << "Finalization Started for inst# " << instance_id << std::endl;
         DEBUG_STREAM.flush();
     }
     finalized = true;
