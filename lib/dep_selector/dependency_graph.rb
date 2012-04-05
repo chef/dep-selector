@@ -26,6 +26,8 @@ require 'dep_selector/gecode_wrapper'
 module DepSelector
   class DependencyGraph
 
+    DebugOptionFile = "/tmp/DepSelectorDebugOn"
+
     attr_reader :packages
 
     def initialize
@@ -58,10 +60,11 @@ module DepSelector
             packages.map{ |name, pkg| pkg }
           end
 
+        debugFlag = DebugOptionFile && File::exists?(DebugOptionFile)
         # In addition to all the packages that the user specified,
         # there is a "ghost" package that contains the solution
         # constraints. See Selector#solve for more information.
-        @gecode_wrapper = GecodeWrapper.new(packages_in_solve.size + 1)
+        @gecode_wrapper = GecodeWrapper.new(packages_in_solve.size + 1, debugFlag)
         packages_in_solve.each{ |pkg| pkg.generate_gecode_wrapper_constraints }
       end
     end
