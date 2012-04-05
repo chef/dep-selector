@@ -53,6 +53,7 @@ struct VersionProblemPool
     void DeleteAll();
 };
 
+#define DEBUG_PREFIX_LENGTH 20
 
 class VersionProblem : public Space
 {
@@ -62,9 +63,11 @@ public:
   static const int MAX_TRUST_LEVEL;
   static const int MAX_PREFERRED_WEIGHT;
 
-  static int instance_counter;
+    static int instance_counter;
 
-  VersionProblem(int packageCount, bool dumpStats = true, bool debug = false);
+    VersionProblem(int packageCount, bool dumpStats = true, 
+                   bool debug = false, 
+                   const char * logId = 0);
   // Clone constructor; check gecode rules for this...
   VersionProblem(bool share, VersionProblem & s);
   virtual ~VersionProblem();
@@ -105,10 +108,10 @@ public:
   // Debug and utility functions
   void Print(std::ostream &out);
   void PrintPackageVar(std::ostream & out, int packageId) ;
+  const char * DebugPrefix() const { return debugPrefix; }
 
-    static VersionProblem *InnerSolve(VersionProblem * problem, int & itercount);
+  static VersionProblem *InnerSolve(VersionProblem * problem, int & itercount);
   static VersionProblem *Solve(VersionProblem *problem);
- 
 
  protected:
   int instance_id;
@@ -116,7 +119,8 @@ public:
   int version_constraint_count;
   int cur_package;
   bool dump_stats;
-  bool debug_logging;
+  bool debugLogging;
+  char debugPrefix[DEBUG_PREFIX_LENGTH];
   bool finalized;
 
   BoolVarArgs version_flags;
@@ -142,7 +146,7 @@ public:
   void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
   void BuildCostVector(IntVarArgs & costVector) const;
-  
+ 
   friend class VersionProblemPool;
 };
 

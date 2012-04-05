@@ -99,8 +99,9 @@ void VersionProblemPool::DeleteAll()
 
 int VersionProblem::instance_counter = 0;
 
-VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug)
-    : size(packageCount), version_constraint_count(0), dump_stats(dumpStats), debug_logging(debug),
+VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug, const char * logId)
+    : size(packageCount), version_constraint_count(0), dump_stats(dumpStats),
+      debugLogging(debug), 
       finalized(false), cur_package(0), package_versions(*this, packageCount),
       disabled_package_variables(*this, packageCount, 0, 1), total_disabled(*this, 0, packageCount*MAX_TRUST_LEVEL),
       total_required_disabled(*this, 0, packageCount), total_induced_disabled(*this, 0, packageCount),
@@ -115,15 +116,17 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug)
       pool(0),
       instance_id(instance_counter++)
 {
+    char * end = strncpy(debugPrefix, logId, DEBUG_PREFIX_LENGTH);
+    strncat(end, ": ", DEBUG_PREFIX_LENGTH-(debugPrefix-end));
     for (int i = 0; i < packageCount; i++)
         {
             preferred_at_latest_weights[i] = 0;
             is_required[i] = 0;
             is_suspicious[i] = 0;
         }
-    if (debug_logging) {
+    if (debugLogging) {
         DEBUG_STREAM << std::endl;
-        DEBUG_STREAM << "Creating VersionProblem inst# " << instance_id << " with " << packageCount << " packages, "
+        DEBUG_STREAM << debugPrefix << "Creating VersionProblem inst# " << instance_id << " with " << packageCount << " packages, "
                      << dumpStats << " stats, " << debug << " debug" << std::endl;
         DEBUG_STREAM.flush();
     }
@@ -131,7 +134,9 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug)
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s)
     : Space(share, s),
-      size(s.size), version_constraint_count(s.version_constraint_count), dump_stats(s.dump_stats),
+      size(s.size), version_constraint_count(s.version_constraint_count), 
+      dump_stats(s.dump_stats), 
+      debugLogging(s.debugLogging), 
       finalized(s.finalized), cur_package(s.cur_package),
       disabled_package_variables(s.disabled_package_variables), total_disabled(s.total_disabled),
       total_required_disabled(s.total_required_disabled), total_induced_disabled(s.total_induced_disabled),
@@ -144,6 +149,7 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
       pool(s.pool),
       instance_id(s.instance_id)
 {
+    strncpy(debugPrefix, s.debugPrefix, DEBUG_PREFIX_LENGTH),
     package_versions.update(*this, share, s.package_versions);
     disabled_package_variables.update(*this, share, s.disabled_package_variables);
     total_disabled.update(*this, share, s.total_disabled);
@@ -196,8 +202,8 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
         return -1;
     }
 
-    if (debug_logging) {
-        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
                      << " - Adding package id " << cur_package << '/' << size << ": min = " << minVersion << ", max = " << maxVersion << ", current version " << currentVersion << std::endl;
         DEBUG_STREAM.flush();
     }
@@ -221,8 +227,8 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
     BoolVar predicated_depend_match(*this, 0, 1);
 
     version_constraint_count++;
-    if (debug_logging) {
-        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
                      << " - Adding VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId
                      << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
         DEBUG_STREAM.flush();
@@ -249,8 +255,8 @@ VersionProblem::MarkPackageSuspicious(int packageId)
 {
     is_suspicious[packageId] = 1;
 
-    if (debug_logging) {
-        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
                      << " - Marking Package Suspicious " << packageId << std::endl;
         DEBUG_STREAM.flush();
     }
@@ -261,8 +267,8 @@ VersionProblem::MarkPackageRequired(int packageId)
 {
     is_required[packageId] = 1;
 
-    if (debug_logging) {
-        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
                      << " - Marking Package Required " << packageId << std::endl;
         DEBUG_STREAM.flush();
     }
@@ -273,8 +279,8 @@ VersionProblem::MarkPackagePreferredToBeAtLatest(int packageId, int weight)
  {
     preferred_at_latest_weights[packageId] = std::max(MAX_PREFERRED_WEIGHT, std::min(0, weight));
 
-    if (debug_logging) {
-        DEBUG_STREAM << "DepSelector inst# " << instance_id 
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
                      << " - Marking Package Preferred Latest " << packageId << " weight " << weight << std::endl;
         DEBUG_STREAM.flush();
     }
@@ -282,8 +288,8 @@ VersionProblem::MarkPackagePreferredToBeAtLatest(int packageId, int weight)
 
 void VersionProblem::Finalize()
 {
-    if (debug_logging) {
-        DEBUG_STREAM << "Finalization Started for inst# " << instance_id << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "Finalization Started for inst# " << instance_id << std::endl;
         DEBUG_STREAM.flush();
     }
     finalized = true;
@@ -292,9 +298,9 @@ void VersionProblem::Finalize()
     // We wish to minimize the total number of disabled packages, by priority ranks
     IntArgs disabled_required_weights(size, is_required);
     linear(*this, disabled_required_weights, disabled_package_variables,  IRT_EQ, total_required_disabled);
-    if (debug_logging) {
-        DEBUG_STREAM << "    disabled_required_weights:            " << disabled_required_weights << std::endl;
-        DEBUG_STREAM << "    total_required_disabled:              " << total_required_disabled << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    disabled_required_weights:            " << disabled_required_weights << std::endl;
+        DEBUG_STREAM << debugPrefix << "    total_required_disabled:              " << total_required_disabled << std::endl;
     }
 
     IntArgs disabled_induced_weights(size);
@@ -303,22 +309,22 @@ void VersionProblem::Finalize()
     }
     linear(*this, disabled_induced_weights, disabled_package_variables,  IRT_EQ, total_induced_disabled);
 
-    if (debug_logging) {
-        DEBUG_STREAM << "    disabled_induced_weights:             " << disabled_induced_weights << std::endl;
-        DEBUG_STREAM << "    total_induced_disabled:               " << total_induced_disabled << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    disabled_induced_weights:             " << disabled_induced_weights << std::endl;
+        DEBUG_STREAM << debugPrefix <<"    total_induced_disabled:               " << total_induced_disabled << std::endl;
     }
 
     IntArgs disabled_suspicious_weights(size, is_suspicious);
     linear(*this, disabled_suspicious_weights, disabled_package_variables,  IRT_EQ, total_suspicious_disabled);
 
-    if (debug_logging) {
-        DEBUG_STREAM << "    disabled_suspicious_weights:          " << disabled_suspicious_weights << std::endl;
-        DEBUG_STREAM << "    total_suspicious_disabled:            " << total_suspicious_disabled << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    disabled_suspicious_weights:          " << disabled_suspicious_weights << std::endl;
+        DEBUG_STREAM << debugPrefix << "    total_suspicious_disabled:            " << total_suspicious_disabled << std::endl;
     }
 
     linear(*this, disabled_package_variables,  IRT_EQ, total_disabled);
-    if (debug_logging) {
-        DEBUG_STREAM << "    total_disabled:                       " << total_disabled << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM <<  debugPrefix <<"    total_disabled:                       " << total_disabled << std::endl;
     }
 
     // Setup computation for total_preferred_at_latest
@@ -329,9 +335,9 @@ void VersionProblem::Finalize()
     }
     IntArgs preferred_at_latest_weights_args(size, preferred_at_latest_weights);
     linear(*this, preferred_at_latest_weights_args, at_latest, IRT_EQ, total_preferred_at_latest);
-    if (debug_logging) {
-        DEBUG_STREAM << "    preferred_at_latest_weights_args:     " << preferred_at_latest_weights_args << std::endl;
-        DEBUG_STREAM << "    total_preferred_at_latest:            " << total_preferred_at_latest << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    preferred_at_latest_weights_args:     " << preferred_at_latest_weights_args << std::endl;
+        DEBUG_STREAM << debugPrefix << "    total_preferred_at_latest:            " << total_preferred_at_latest << std::endl;
     }
 
     // Setup computation for remaining variables
@@ -344,9 +350,9 @@ void VersionProblem::Finalize()
         }
     }
     linear(*this, not_preferred_at_latest_weights_args, at_latest, IRT_EQ, total_not_preferred_at_latest);
-    if (debug_logging) {
-        DEBUG_STREAM << "    not_preferred_at_latest_weights_args: " << not_preferred_at_latest_weights_args << std::endl;
-        DEBUG_STREAM << "    total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    not_preferred_at_latest_weights_args: " << not_preferred_at_latest_weights_args << std::endl;
+        DEBUG_STREAM << debugPrefix << "    total_not_preferred_at_latest:        " << total_not_preferred_at_latest << std::endl;
     }
 
 
@@ -358,8 +364,8 @@ void VersionProblem::Finalize()
     }
 
 #ifdef USE_DUMB_BRANCHING
-    if (debug_logging) {
-        DEBUG_STREAM << "    Adding branching (POOR)" << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    Adding branching (POOR)" << std::endl;
         DEBUG_STREAM.flush();
     }
     // This branching starts as far as possible from the solution, in order to exercise the optimization functions.
@@ -373,8 +379,8 @@ void VersionProblem::Finalize()
     branch(*this, total_preferred_at_latest, INT_VAL_MIN);
     branch(*this, total_not_preferred_at_latest, INT_VAL_MIN);
 #else // USE_DUMB_BRANCHING
-    if (debug_logging) {
-        DEBUG_STREAM << "    Adding branching (BEST)" << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    Adding branching (BEST)" << std::endl;
         DEBUG_STREAM.flush();
     }
     // This branching is meant to start with most probable solution
@@ -389,8 +395,8 @@ void VersionProblem::Finalize()
     branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
 #endif // USE_DUMB_BRANCHING
 
-    if (debug_logging) {
-        DEBUG_STREAM << "Finalization Done" << std::endl;
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "Finalization Done" << std::endl;
         DEBUG_STREAM.flush();
     }
 }
@@ -418,7 +424,8 @@ void VersionProblem::constrain(const Space & _best_known_solution)
     // new constraint: total_disabled < best_known_total_disabled_value)
     int best_known_total_disabled_value = best_known_solution.total_disabled.val();
     rel(*this, total_disabled, IRT_LE, best_known_total_disabled_value);
-    if (debug_logging) {
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix;
         PrintVarAligned("Con  strain: total_disabled: ", total_disabled);
     }
 }
@@ -485,8 +492,8 @@ IntVar & VersionProblem::GetPackageVersionVar(int packageId)
     if (packageId < cur_package) {
         return package_versions[packageId];
     } else {
-        if (debug_logging) {
-            DEBUG_STREAM << "Bad package Id " << packageId << " >= " << cur_package << std::endl;
+        if (debugLogging) {
+            DEBUG_STREAM << debugPrefix << "Bad package Id " << packageId << " >= " << cur_package << std::endl;
             DEBUG_STREAM.flush();
         }
         //     return 0;
@@ -526,17 +533,17 @@ int VersionProblem::GetDisabledVariableCount()
 // Utility
 void VersionProblem::Print(std::ostream & out)
 {
-    out << "Version problem dump:                   " << cur_package << "/" << size << " packages used/allocated" << std::endl;
-    out << "Disabled Variables:                     " << disabled_package_variables << std::endl;
-    out << "Total Disabled variables (required):    " << total_required_disabled << std::endl;
-    out << "Total Disabled variables: (induced):    " << total_induced_disabled << std::endl;
-    out << "Total Disabled variables: (suspicious): " << total_suspicious_disabled << std::endl;
-    out << "Total Disabled variables:               " << total_disabled << std::endl;
-    out << "at_latest:                              " << at_latest << std::endl;
-    out << "total_preferred_at_latest:              " << total_preferred_at_latest << std::endl;
-    out << "total_not_preferred_at_latest:          " << total_not_preferred_at_latest << std::endl;
+    out << debugPrefix << "Version problem dump:                   " << cur_package << "/" << size << " packages used/allocated" << std::endl;
+    out << debugPrefix << "Disabled Variables:                     " << disabled_package_variables << std::endl;
+    out << debugPrefix << "Total Disabled variables (required):    " << total_required_disabled << std::endl;
+    out << debugPrefix << "Total Disabled variables: (induced):    " << total_induced_disabled << std::endl;
+    out << debugPrefix << "Total Disabled variables: (suspicious): " << total_suspicious_disabled << std::endl;
+    out << debugPrefix << "Total Disabled variables:               " << total_disabled << std::endl;
+    out << debugPrefix << "at_latest:                              " << at_latest << std::endl;
+    out << debugPrefix << "total_preferred_at_latest:              " << total_preferred_at_latest << std::endl;
+    out << debugPrefix << "total_not_preferred_at_latest:          " << total_not_preferred_at_latest << std::endl;
     for (int i = 0; i < cur_package; i++) {
-        out << "\t";
+        out << debugPrefix << "\t";
         PrintPackageVar(out, i);
         out << std::endl;
     }
@@ -574,9 +581,9 @@ void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArg
         IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
         // (delta < 0) <=> borrow[i+1]
         rel(*this, delta, IRT_LE, 0, borrow[i+1]);
-        if (debug_logging) {
-            DEBUG_STREAM << "      ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
-            DEBUG_STREAM << "      ConstrainVector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
+        if (debugLogging) {
+            DEBUG_STREAM << debugPrefix << "      ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
+            DEBUG_STREAM << debugPrefix << "      ConstrainVector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
         }
     }
 
@@ -610,10 +617,10 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
                 }
             best_solution = solution;
             ++itercount;
-            if (problem->debug_logging) {
-                DEBUG_STREAM << "Trial Solution #" << itercount << "===============================" << std::endl;
+            if (problem->debugLogging) {
+                DEBUG_STREAM << problem->debugPrefix << "Trial Solution #" << itercount << "===============================" << std::endl;
                 const Search::Statistics & stats = solver.statistics();
-                DEBUG_STREAM << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+                DEBUG_STREAM << problem->debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
                 DEBUG_STREAM << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
                 solution->Print(DEBUG_STREAM);
             }
@@ -622,7 +629,7 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
     double elapsed_time = timer.stop();
 
     if (problem->dump_stats) {
-        std::cerr << "dep_selector solve: ";
+        std::cerr << problem->debugPrefix << "dep_selector solve: ";
         std::cerr << (best_solution ? "SOLVED" : "FAILED") << " ";
         std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
         std::cerr << "Time: " << elapsed_time << "ms ";
@@ -645,16 +652,16 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
     VersionProblemPool *pool = new VersionProblemPool();
     problem->pool = pool;
 
-    if (problem->debug_logging) {
-        DEBUG_STREAM << "      Before solve" << std::endl;
+    if (problem->debugLogging) {
+        DEBUG_STREAM << problem->DebugPrefix() << "      Before solve" << std::endl;
         problem->Print(DEBUG_STREAM);
     }
     int itercount = 0;
 
     VersionProblem *best_solution = InnerSolve(problem, itercount);
 
-    if (problem->debug_logging) {
-        DEBUG_STREAM << "Solver Best Solution " << best_solution << std::endl << std::flush;
+    if (problem->debugLogging) {
+        DEBUG_STREAM << problem->DebugPrefix() << "Solver Best Solution " << best_solution << std::endl << std::flush;
     }
 
     pool->Delete(best_solution);
