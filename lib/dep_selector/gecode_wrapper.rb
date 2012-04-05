@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 
+require "uuidtools"
 require "dep_gecode"
 require 'dep_selector/exceptions'
 
@@ -32,7 +33,7 @@ module DepSelector
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
     def initialize(problem_or_package_count)
       if (problem_or_package_count.is_a?(Numeric))
-        logId = "JunkMonkey"
+        logId = UUIDTools::UUID.random_create().to_str()
         @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, DumpStatistics, DebugLogsOn, logId)
       else
         @gecode_problem = problem_or_package_count
