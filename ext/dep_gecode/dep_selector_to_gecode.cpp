@@ -629,7 +629,8 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
     double elapsed_time = timer.stop();
 
     if (problem->dump_stats) {
-        std::cerr << problem->debugPrefix << "dep_selector solve: ";
+        if (problem->debugLogging) std::cerr << problem->debugPrefix;
+        std::cerr << "dep_selector solve: ";
         std::cerr << (best_solution ? "SOLVED" : "FAILED") << " ";
         std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
         std::cerr << "Time: " << elapsed_time << "ms ";
