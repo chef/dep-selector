@@ -53,7 +53,7 @@ struct VersionProblemPool
     void DeleteAll();
 };
 
-#define DEBUG_PREFIX_LENGTH 20
+#define DEBUG_PREFIX_LENGTH 40
 
 class VersionProblem : public Space
 {
