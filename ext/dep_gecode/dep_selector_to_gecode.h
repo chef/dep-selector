@@ -63,7 +63,7 @@ public:
   static const int MAX_TRUST_LEVEL;
   static const int MAX_PREFERRED_WEIGHT;
 
-    static int instance_counter;
+  static int instance_counter;
 
     VersionProblem(int packageCount, bool dumpStats = true, 
                    bool debug = false, 
@@ -121,6 +121,7 @@ public:
   bool dump_stats;
   bool debugLogging;
   char debugPrefix[DEBUG_PREFIX_LENGTH];
+  char outputBuffer[1024];
   bool finalized;
 
   BoolVarArgs version_flags;
