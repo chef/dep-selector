@@ -944,5 +944,3 @@ DepSelector inst# 4558 - Adding VC for 83 @ 0 depPkg 82 [ 0, 0 ]
 DepSelector inst# 4558 - Marking Package Preferred Latest 75 weight 10
 DepSelector inst# 4558 - Marking Package Required 75
 DepSelector inst# 4558 - Adding VC for 83 @ 0 depPkg 75 [ 0, 32 ]
-dep_selector solve: SOLVED 84 packages, 697 constraints, Time: 32.592ms Stats: 1 steps, 4478348 bytes, 4228 props, 149 nodes, 148 depth 
-Solver Best Solution 0x627a780

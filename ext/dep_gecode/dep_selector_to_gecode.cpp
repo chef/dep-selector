@@ -205,8 +205,9 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
     if (debugLogging) {
         sprintf(outputBuffer, "%s DepSelector inst# %d - Adding package id %d/%d: min = %d, max = %d, current version %d",
                 debugPrefix, instance_id, cur_package, size, minVersion, maxVersion, currentVersion);
-        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
-                     << " - Adding package id " << cur_package << '/' << size << ": min = " << minVersion << ", max = " << maxVersion << ", current version " << currentVersion << std::endl;
+        DEBUG_STREAM << outputBuffer;
+//        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
+//                     << " - Adding package id " << cur_package << '/' << size << ": min = " << minVersion << ", max = " << maxVersion << ", current version " << currentVersion << std::endl;
         DEBUG_STREAM.flush();
     }
     int index = cur_package;
@@ -232,9 +233,10 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
     if (debugLogging) {
         sprintf(outputBuffer, "%sDepSelector inst# %d - Adding VC for %d @ %d depPkg %d [%d, %d]",
                 debugPrefix, instance_id, packageId, version, dependentPackageId, minDependentVersion, maxDependentVersion);
-        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
-                     << " - Adding VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId
-                     << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
+        DEBUG_STREAM << outputBuffer;
+//        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
+//                     << " - Adding VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId
+//                     << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
         DEBUG_STREAM.flush();
     }
 
@@ -262,8 +264,9 @@ VersionProblem::MarkPackageSuspicious(int packageId)
     if (debugLogging) {
         sprintf(outputBuffer, "%sDepSelector inst# %d - Marking Package Suspicious %d",
                 debugPrefix, instance_id, packageId);
-        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
-                     << " - Marking Package Suspicious " << packageId << std::endl;
+        DEBUG_STREAM << outputBuffer;
+//        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
+//                     << " - Marking Package Suspicious " << packageId << std::endl;
         DEBUG_STREAM.flush();
     }
 }
