@@ -30,13 +30,13 @@ require 'dep_selector/error_reporter/simple_tree_traverser'
 # constraint that makes a solution impossible.
 module DepSelector
   class Selector
-    attr_accessor :dep_graph, :error_reporter
+    attr_accessor :dep_graph, :error_reporter, :time_bound
 
     DEFAULT_ERROR_REPORTER = ErrorReporter::SimpleTreeTraverser.new
 
     def initialize(dep_graph, time_bound = 5, error_reporter = DEFAULT_ERROR_REPORTER)
-      @time_bound = time_bound
       @dep_graph = dep_graph
+      @time_bound = time_bound
       @error_reporter = error_reporter
     end
 
