@@ -78,11 +78,15 @@ module DepSelector
 
         # determine all versions of curr_pkg that match
         # version_constraint and recurse into them
+        seen_dep_trees = {}
         curr_pkg[version_constraint].each do |curr_pkg_ver|
+          next if seen_dep_trees.has_key?(curr_pkg_ver.dependencies.to_s)
           curr_path.push(curr_pkg_ver)
           curr_pkg_ver.dependencies.each do |dep|
+            next if curr_pkg.name == dep.package.name
             paths_to_pkg(dep_graph, dep.package, dep.constraint, target_pkg, curr_path, all_paths)
           end
+          seen_dep_trees[curr_pkg_ver.dependencies.to_s] = true
           curr_path.pop
         end
       end
