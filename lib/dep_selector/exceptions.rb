@@ -38,6 +38,11 @@ module DepSelector
       end
     end
 
+    class TimeBoundExceeded < StandardError
+    end
+    class TimeBoundExceededNoSolution < StandardError
+    end
+
     # This exception is thrown by gecode_wrapper and only used
     # internally
     class NoSolutionFound < StandardError
