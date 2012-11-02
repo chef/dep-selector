@@ -25,6 +25,7 @@
 
 #include "dep_selector_to_gecode.h"
 
+#include <cstdio>
 #include <limits>
 #include <iostream>
 #include <vector>
