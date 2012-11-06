@@ -17,22 +17,25 @@
 # limitations under the License.
 #
 
+require "uuidtools"
 require "dep_gecode"
 require 'dep_selector/exceptions'
 
 module DepSelector
   class GecodeWrapper
     attr_reader :gecode_problem
+    attr_reader :debug_logs_on
     DontCareConstraint = -1
     NoMatchConstraint = -2
     DumpStatistics = true
-    DebugLogsOn = false
     
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
-    def initialize(problem_or_package_count)
+    def initialize(problem_or_package_count, debug=false)
       if (problem_or_package_count.is_a?(Numeric))
-        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, DumpStatistics, DebugLogsOn)
+        logId = UUIDTools::UUID.random_create().to_str()
+        @debug_logs_on = debug
+        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, DumpStatistics, debug, logId)
       else
         @gecode_problem = problem_or_package_count
       end
@@ -142,7 +145,7 @@ module DepSelector
 
     def solve()
       raise "Gecode internal failure (solve)" if gecode_problem.nil?
-      solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem))
+      solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem), debug_logs_on)
       raise "Gecode internal failure (no solution found)" if (solution.nil?)
 
       raise Exceptions::NoSolutionFound.new(solution) if solution.package_disabled_count > 0

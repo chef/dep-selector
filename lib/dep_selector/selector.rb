@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 
+require 'timeout'
 require 'dep_selector/dependency_graph'
 require 'dep_selector/exceptions'
 require 'dep_selector/error_reporter'
@@ -29,12 +30,13 @@ require 'dep_selector/error_reporter/simple_tree_traverser'
 # constraint that makes a solution impossible.
 module DepSelector
   class Selector
-    attr_accessor :dep_graph, :error_reporter
+    attr_accessor :dep_graph, :error_reporter, :time_bound
 
     DEFAULT_ERROR_REPORTER = ErrorReporter::SimpleTreeTraverser.new
 
-    def initialize(dep_graph, error_reporter = DEFAULT_ERROR_REPORTER)
+    def initialize(dep_graph, time_bound = 5, error_reporter = DEFAULT_ERROR_REPORTER)
       @dep_graph = dep_graph
+      @time_bound = time_bound
       @error_reporter = error_reporter
     end
 
@@ -65,8 +67,10 @@ module DepSelector
       packages_to_include_in_solve = trim_unreachable_packages(dep_graph, solution_constraints)
 
       begin
-        # first, try to solve the whole set of constraints
-        solve(dep_graph.clone, solution_constraints, valid_packages, packages_to_include_in_solve)
+        Timeout::timeout(@time_bound, Exceptions::TimeBoundExceeded) do 
+          # first, try to solve the whole set of constraints
+          solve(dep_graph.clone, solution_constraints, valid_packages, packages_to_include_in_solve)
+        end
       rescue Exceptions::NoSolutionFound
         # since we're here, solving the whole system failed, so add
         # the solution_constraints one-by-one and try to solve in
@@ -79,48 +83,50 @@ module DepSelector
         # iteratively add and solve in order to re-use
         # propagations. This will require separating setting up the
         # constraints from searching for the solution.
-        solution_constraints.each_index do |idx|
-          workspace = dep_graph.clone
-          begin
-            solve(workspace, solution_constraints[0..idx], valid_packages, packages_to_include_in_solve)
-          rescue Exceptions::NoSolutionFound => nsf
-            disabled_packages =
-              packages_to_include_in_solve.inject([]) do |acc, elt|
+        Timeout::timeout(@time_bound, Exceptions::TimeBoundExceededNoSolution) do
+          solution_constraints.each_index do |idx|
+            workspace = dep_graph.clone
+            begin
+              solve(workspace, solution_constraints[0..idx], valid_packages, packages_to_include_in_solve)
+            rescue Exceptions::NoSolutionFound => nsf
+              disabled_packages =
+                packages_to_include_in_solve.inject([]) do |acc, elt|
                 pkg = workspace.package(elt.name)
                 acc << pkg if nsf.unsatisfiable_problem.is_package_disabled?(pkg.gecode_package_id)
                 acc
               end
-            # disambiguate between packages disabled becuase they
+              # disambiguate between packages disabled becuase they
             # don't exist and those that have otherwise problematic
-            # constraints
-            disabled_non_existent_packages = []
-            disabled_most_constrained_packages = []
-            disabled_packages.each do |disabled_pkg|
-              disabled_collection =
-                if disabled_pkg.valid? || (valid_packages && valid_packages.include?(disabled_pkg))
-                  disabled_most_constrained_packages
-                else
-                  disabled_non_existent_packages
-                end
-              disabled_collection << disabled_pkg
+              # constraints
+              disabled_non_existent_packages = []
+              disabled_most_constrained_packages = []
+              disabled_packages.each do |disabled_pkg|
+                disabled_collection =
+                  if disabled_pkg.valid? || (valid_packages && valid_packages.include?(disabled_pkg))
+                    disabled_most_constrained_packages
+                  else
+                    disabled_non_existent_packages
+                  end
+                disabled_collection << disabled_pkg
+              end
+              
+              # Pick the first non-existent or most-constrained package
+              # that was required or the package whose constraints had
+              # to be disabled in order to find a solution and generate
+              # feedback for it. We only report feedback for one
+              # package, because it is in fact actionable and dispalying
+              # feedback for every disabled package would probably be
+              # too long. The full set of disabled packages is
+              # accessible in the NoSolutionExists exception.
+              disabled_package_to_report_on = disabled_non_existent_packages.first ||
+                disabled_most_constrained_packages.first
+              feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx,
+                                                      disabled_package_to_report_on)
+              
+              raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx],
+                                                     disabled_non_existent_packages,
+                                                     disabled_most_constrained_packages)
             end
-
-            # Pick the first non-existent or most-constrained package
-            # that was required or the package whose constraints had
-            # to be disabled in order to find a solution and generate
-            # feedback for it. We only report feedback for one
-            # package, because it is in fact actionable and dispalying
-            # feedback for every disabled package would probably be
-            # too long. The full set of disabled packages is
-            # accessible in the NoSolutionExists exception.
-            disabled_package_to_report_on = disabled_non_existent_packages.first ||
-                                            disabled_most_constrained_packages.first
-            feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx,
-                                                    disabled_package_to_report_on)
-
-            raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx],
-                                                   disabled_non_existent_packages,
-                                                   disabled_most_constrained_packages)
           end
         end
       end

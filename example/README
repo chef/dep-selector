@@ -1,0 +1,60 @@
+In this directory are dumps from the problem setup in the dep_selector
+interface to gecode.
+
+We've abstracted out a lot of the problem domain in the ruby wrapper
+above, to keep things as simple as possible.
+
+Packages are mapped to simple id numbers.
+The set of valid versions of packages (e.g. 1.0, etc) are mapped to a dense array of
+integers.
+The ~> operator designates a range of package versions; if our dense
+map had 1.0 -> 1, 1.1 -> 2, 1.2 -> 3 and 2.0 -> 4, the constraint
+version -> 1 would map to [1,3] (inclusive set)
+
+We have some special versions designated (see gecode_wrapper.rb for
+more information. 
+We use -1 to indicate packages that might be optional
+If a constraint matches no versions, we will constrain the package to
+the range [-2,-2], so that if a branch requires a package 
+
+Version Constraints (VC) are added as dependencies on a particular
+version of a package; if package 1 is at version 0, then we constraint
+the dependent package 2 to be in the range [X, Y]
+
+The solver then attempts to maximize the number of packages at the
+latest version available.
+
+That pretty much comprises the simple part of the problem.
+
+Error feedback:
+
+The fast majority of the work done by the system is to provide error
+feedback for overconstrained systems. Debugging which constraint is at
+fault in that case is something of a black art. To at least provide
+some support for this, we try to find a solution with some packages
+disabled, and provide feedback on which ones were chosen. This is
+posed as a minimization problem, where we generate a cost function
+with the packages weighted in three tiers. 
+
+* Some packages are marked as required; these are the packages explicity
+specified on the runlist.
+* Some packages are marked as suspicious; there are heuristics such as
+whether any available versions exist to choose those.
+* The remaining packages are 'normal' priority.
+
+The cost function minimizes the number of required packages disabled
+first, then minimizes the number of normal packages disabled, then
+minimizes the number of suspicious packages disabled. 
+
+This greatly expands the problem space to be solved. 
+
+Right now we solve the whole problem in one try for simplicity's
+sake. This proved to still be faster than the couchdb accesses
+required to set up the problem in the first place, and we never got
+around to implementing it.
+
+However if the time to solve the problem ever became excessive, we
+would attempt to solve the simple problem, and only provide error
+diagnostics for the more complex problem.
+
+

@@ -1,0 +1,101 @@
+Creating VersionProblem inst# 0 with 27 packages, 1 stats, 1 debug
+DepSelector inst# 0 - Adding package id 0/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding package id 1/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 0 @ 0 depPkg 1 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 2/27: min = -1, max = 2, current version 0
+DepSelector inst# 0 - Adding VC for 0 @ 0 depPkg 2 [ 0, 2 ]
+DepSelector inst# 0 - Adding package id 3/27: min = -1, max = 4, current version 0
+DepSelector inst# 0 - Adding VC for 0 @ 0 depPkg 3 [ 0, 4 ]
+DepSelector inst# 0 - Adding package id 4/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 0 @ 0 depPkg 4 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 5/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 0 @ 0 depPkg 5 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 6/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 0 @ 0 depPkg 6 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 7/27: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding VC for 0 @ 0 depPkg 7 [ 0, 1 ]
+DepSelector inst# 0 - Adding package id 8/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 3 @ 4 depPkg 8 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 4 depPkg 6 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 9/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 3 @ 4 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 3 depPkg 8 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 3 depPkg 6 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 3 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 2 depPkg 8 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 2 depPkg 6 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 2 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 1 depPkg 8 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 1 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 0 depPkg 8 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 3 @ 0 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 10/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 10 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 11/27: min = -1, max = 2, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 11 [ 0, 2 ]
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 8 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 12/27: min = -1, max = 1, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 12 [ 0, 1 ]
+DepSelector inst# 0 - Adding package id 13/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 13 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 14/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 14 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 15/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 15 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 16/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 16 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 17/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 17 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 18/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 18 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 19/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 6 @ 0 depPkg 19 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 20/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 12 @ 1 depPkg 20 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 12 @ 1 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 21/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 12 @ 1 depPkg 21 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 12 @ 0 depPkg 20 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 12 @ 0 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 12 @ 0 depPkg 21 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 22/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 20 @ 0 depPkg 22 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 23/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 20 @ 0 depPkg 23 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 20 @ 0 depPkg 9 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 24/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 23 @ 0 depPkg 24 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 25/27: min = -1, max = 0, current version 0
+DepSelector inst# 0 - Adding VC for 14 @ 0 depPkg 25 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 15 @ 0 depPkg 8 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 16 @ 0 depPkg 8 [ 0, 0 ]
+DepSelector inst# 0 - Adding VC for 5 @ 0 depPkg 8 [ 0, 0 ]
+DepSelector inst# 0 - Adding package id 26/27: min = 0, max = 0, current version 0
+DepSelector inst# 0 - Marking Package Preferred Latest 0 weight 10
+DepSelector inst# 0 - Marking Package Required 0
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 0 [ 0, 0 ]
+DepSelector inst# 0 - Marking Package Preferred Latest 0 weight 10
+DepSelector inst# 0 - Marking Package Required 0
+DepSelector inst# 0 - Adding VC for 26 @ 0 depPkg 0 [ 0, 0 ]
+Finalization Started
+    disabled_required_weights:            {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    total_required_disabled:              [0..1]
+    disabled_induced_weights:             {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+    total_induced_disabled:               [0..26]
+    disabled_suspicious_weights:          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    total_suspicious_disabled:            0
+    total_disabled:                       [0..27]
+    preferred_at_latest_weights_args:     {-10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    total_preferred_at_latest:            [-10..0]
+    not_preferred_at_latest_weights_args: {0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
+    total_not_preferred_at_latest:        [-26..-1]
+    Adding branching (BEST)
+Finalization Done
+      Before solve
+Version problem dump:                   27/27 packages used/allocated
+Disabled Variables:                     {[0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1], [0..1]}
+Total Disabled variables (required):    [0..1]
+Total Disabled variables: (induced):    [0..26]
+
+Takes about .5 seconds on an ec2 m1.small
