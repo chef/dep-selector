@@ -159,7 +159,7 @@ class Solver {
   Solver(VersionProblem *s);
   VersionProblem GetNextSolution();
  private:
-  Restart<VersionProblem> solver;
+  RBS<DFS,VersionProblem> solver;
 };
 
 #endif // dep_selector_to_gecode_h
