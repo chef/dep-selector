@@ -18,6 +18,7 @@
 #
 
 require 'rubygems'
+$:.unshift(File.expand_path("../../ext/dep_gecode", __FILE__))
 require 'dep_selector'
 require 'pp'
 

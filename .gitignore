@@ -11,3 +11,7 @@ ext/dep_gecode/Makefile
 *.gz
 *.changes
 *.build
+pkg/*
+Gemfile.lock
+*.so
+*.def
