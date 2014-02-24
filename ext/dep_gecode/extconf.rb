@@ -23,16 +23,38 @@
 # to work properly here.
 require 'mkmf'
 
-$LIBS << " -lstdc++"
+# XXX: Why is this here? On mingw this causes (and lots of similar)
+#   multiple definition of `std::ctype<char>::_M_widen_init() const'
+# $LIBS << " -lstdc++"
 
 # $CFLAGS << "-g"
 
 gecode_installed =
-  have_library('gecodesearch') &&
-  have_library('gecodeint') &&
-  have_library('gecodekernel') &&
+  # Gecode documentation notes:
+  # "Some linkers require the list of libraries to be sorted such that
+  # libraries appear before all libraries they depend on."
+  # http://www.gecode.org/doc-latest/MPG.pdf
+  #
+  # This appears to be true of the version of mingw that ships with Ruby 1.9.3.
+  # The correct order of `-l` flags according to the docs is:
+  #
+  # 1. -lgecodeflatzinc
+  # 2. -lgecodedriver
+  # 3. -lgecodegist
+  # 4. -lgecodesearch,
+  # 5. -lgecodeminimodel
+  # 6. -lgecodeset
+  # 7. -lgecodefloat
+  # 8. -lgecodeint
+  # 9. -lgecodekernel
+  # 10. -lgecodesupport
+  #
+  # Ruby `mkmf` will add `-l` flags in the _REVERSE_ order that they appear here.
   have_library('gecodesupport') &&
-  have_library('gecodeminimodel')
+  have_library('gecodekernel') &&
+  have_library('gecodeint') &&
+  have_library('gecodeminimodel') &&
+  have_library('gecodesearch')
 
 unless gecode_installed
   STDERR.puts <<EOS
