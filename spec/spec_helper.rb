@@ -21,6 +21,17 @@ require 'rubygems'
 $:.unshift(File.expand_path("../../ext/dep_gecode", __FILE__))
 require 'dep_selector'
 require 'pp'
+RSpec.configure do |config|
+  config.run_all_when_everything_filtered = true
+  config.treat_symbols_as_metadata_keys_with_true_values = true
+
+  config.filter_run :focus => true
+  config.filter_run_excluding :external => true
+
+  # Tests that randomly fail, but may have value.
+  config.filter_run_excluding :volatile => true
+end
+
 
 def setup_constraint(dep_graph, cset)
   cset.each do |cb_version|

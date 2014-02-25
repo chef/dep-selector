@@ -1,0 +1,13 @@
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install libgecode-dev
+  - gem --version
+
+rvm:
+  - 1.9.3
+  - 2.0.0
+  - 2.1.0
+
+script: 
+  - bundle exec rake compile
+  - bundle exec rake spec
