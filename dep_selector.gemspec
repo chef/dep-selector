@@ -17,4 +17,7 @@ Gem::Specification.new do |s|
   s.requirements << 'g++'
   s.files = Dir.glob("lib/**/*.{rb}") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
   s.extensions = Dir["ext/**/extconf.rb"]
+
+  s.add_development_dependency "uuidtools"
+  s.add_development_dependency "rspec"
 end
