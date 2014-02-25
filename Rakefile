@@ -20,13 +20,16 @@
 require 'rubygems'
 require 'rake'
 
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rubygems/specification'
 require 'date'
 
 gemspec = eval(File.read('dep_selector.gemspec'))
 
-Rake::GemPackageTask.new(gemspec).define
+Gem::PackageTask.new(gemspec) do |pkg|
+  pkg.need_zip = true
+  pkg.need_tar = true
+end
 
 desc "install the gem locally"
 task :install => :package do
