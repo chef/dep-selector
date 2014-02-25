@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.files = Dir.glob("lib/**/*.{rb}") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
   s.extensions = Dir["ext/**/extconf.rb"]
 
-  s.add_development_dependency "uuidtools"
-  s.add_development_dependency "rspec"
+  s.add_development_dependency "uuidtools", "~> 2.1"
+  s.add_development_dependency "rspec", "~> 2.14"
+  s.add_development_dependency "rake-compiler", "~> 0.9.2"
 end

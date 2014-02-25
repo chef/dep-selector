@@ -18,11 +18,11 @@ simple_cookbook_version_constraint_2 =
    {"key"=>["C", "3.0.0"], "value"=>{}}
   ]
 
-simple_cookbook_version_constraint_3 =
-  [{"key"=>["A", "1.0.0"], "value"=>{"B"=>">= 1.0.0"}},
-   {"key"=>["B", "1.0.0"], "value"=>{}},
-   {"key"=>["B", "2.0.0"], "value"=>{}},
-  ]
+# simple_cookbook_version_constraint_3 =
+#   [{"key"=>["A", "1.0.0"], "value"=>{"B"=>">= 1.0.0"}},
+#    {"key"=>["B", "1.0.0"], "value"=>{}},
+#    {"key"=>["B", "2.0.0"], "value"=>{}},
+#   ]
 
 moderate_cookbook_version_constraint =
   [{"key"=>["A", "1.0.0"], "value"=>{"B"=>"= 2.0.0", "C"=>">= 2.0.0"}},
@@ -39,16 +39,16 @@ moderate_cookbook_version_constraint =
    {"key"=>["D", "4.0.0"], "value"=>{}} 
   ]
 
-moderate_cookbook_version_constraint_2 =
-  [{"key"=>["A", "1.0"], "value"=>{"C"=>"< 4.0"}},
-   {"key"=>["B", "1.0"], "value"=>{"C"=>"< 3.0"}},
-   {"key"=>["C", "2.0"], "value"=>{"D"=>"> 1.0", "F"=>">= 0.0.0"}},
-   {"key"=>["C", "3.0"], "value"=>{"D"=>"> 2.0", "E"=>">= 0.0.0"}},
-   {"key"=>["D", "1.1"], "value"=>{}},
-   {"key"=>["D", "2.1"], "value"=>{}},
-   {"key"=>["E", "1.0"], "value"=>{}},
-   {"key"=>["F", "1.0"], "value"=>{}},
-  ]
+# moderate_cookbook_version_constraint_2 =
+#   [{"key"=>["A", "1.0"], "value"=>{"C"=>"< 4.0"}},
+#    {"key"=>["B", "1.0"], "value"=>{"C"=>"< 3.0"}},
+#    {"key"=>["C", "2.0"], "value"=>{"D"=>"> 1.0", "F"=>">= 0.0.0"}},
+#    {"key"=>["C", "3.0"], "value"=>{"D"=>"> 2.0", "E"=>">= 0.0.0"}},
+#    {"key"=>["D", "1.1"], "value"=>{}},
+#    {"key"=>["D", "2.1"], "value"=>{}},
+#    {"key"=>["E", "1.0"], "value"=>{}},
+#    {"key"=>["F", "1.0"], "value"=>{}},
+#   ]
 
 moderate_cookbook_version_constraint_3 =
   [{"key"=>["a", "1.0"], "value"=>{"c"=>"< 4.0"}}, 
@@ -67,53 +67,53 @@ moderate_cookbook_version_constraint_3 =
   ]
 
 
-big_cookbook_version_constraint_0 = 
-  [{"key"=>["A", "1.0"], "value"=>{"B"=>"= 1.0"}}]
-
-big_cookbook_version_constraint_1 = 
-  [{"key"=>["A", "0.0.0"], "value"=>{"B"=>"<= 0.0.0"}},
-   {"key"=>["B", "0.0.0"], "value"=>{}},
-   {"key"=>["C", "0.0.0"], "value"=>{}},
-   {"key"=>["D", "0.0.0"], "value"=>{"E"=>"<= 0.0.0", "F"=>"<= 0.0.0", "C"=>"<= 0.0.0"}},
-   {"key"=>["E", "0.0.0"], "value"=>{}},
-   {"key"=>["F", "0.0.0"], "value"=>{}},
-   {"key"=>["G", "0.0.0"], "value"=>{}},
-   {"key"=>["H", "0.0.0"], "value"=>{}},
-   {"key"=>["I", "0.0.0"], "value"=>{}},
-   {"key"=>["I", "1.0.0"], "value"=>{}},
-   {"key"=>["J", "0.0.0"], "value"=>{"B"=>"<= 0.0.0"}},
-   {"key"=>["K", "0.0.0"], "value"=>{}},
-   {"key"=>["K", "1.0.0"], "value"=>{}},
-   {"key"=>["L", "0.0.0"], "value"=>{}},
-   {"key"=>["M", "0.0.0"], "value"=>{}},
-   {"key"=>["N", "0.0.0"], "value"=>{}},
-   {"key"=>["O", "0.0.0"], "value"=>{}},
-   {"key"=>["P", "0.0.0"], "value"=>{}},
-   {"key"=>["P", "1.0.0"], "value"=>{}},
-   {"key"=>["Q", "0.0.0"], "value"=>{}},
-   {"key"=>["Q", "1.0.0"], "value"=>{"R"=>"<= 0.0.0"}},
-   {"key"=>["R", "0.0.0"], "value"=>{}},
-   {"key"=>["S", "0.0.0"], "value"=>{"R"=>"<= 0.0.0"}},
-   {"key"=>["T", "0.0.0"], "value"=>{}},
-   {"key"=>["U", "0.0.0"], "value"=>{"O"=>"<= 0.0.0"}},
-   {"key"=>["V", "0.0.0"], "value"=>{}},
-   {"key"=>["W", "0.0.0"], "value"=>{}},
-   {"key"=>["X", "0.0.0"], "value"=>{}},
-   {"key"=>["Y", "0.0.0"], "value"=>{}},
-   {"key"=>["Y", "1.0.0"], "value"=>{}},
-   {"key"=>["Z", "0.0.0"], "value"=>{}},
-   {"key"=>["Z", "1.0.0"], "value"=>{"C"=>"<= 0.0.0"}},
-   {"key"=>["AA", "0.0.0"],
-     "value"=>
-     { "A"=>"<= 0.0.0",
-       "C"=>"<= 0.0.0",
-       "D"=>"<= 0.0.0",
-       "G"=>"<= 0.0.0",
-       "H"=>"<= 0.0.0",
-       "I"=>"<= 1.0.0",
-       "J"=>"<= 0.0.0",
-       "K"=>"<= 1.0.0",
-       "L"=>"<= 0.0.0"}}]
+# big_cookbook_version_constraint_0 = 
+#   [{"key"=>["A", "1.0"], "value"=>{"B"=>"= 1.0"}}]
+# 
+# big_cookbook_version_constraint_1 = 
+#   [{"key"=>["A", "0.0.0"], "value"=>{"B"=>"<= 0.0.0"}},
+#    {"key"=>["B", "0.0.0"], "value"=>{}},
+#    {"key"=>["C", "0.0.0"], "value"=>{}},
+#    {"key"=>["D", "0.0.0"], "value"=>{"E"=>"<= 0.0.0", "F"=>"<= 0.0.0", "C"=>"<= 0.0.0"}},
+#    {"key"=>["E", "0.0.0"], "value"=>{}},
+#    {"key"=>["F", "0.0.0"], "value"=>{}},
+#    {"key"=>["G", "0.0.0"], "value"=>{}},
+#    {"key"=>["H", "0.0.0"], "value"=>{}},
+#    {"key"=>["I", "0.0.0"], "value"=>{}},
+#    {"key"=>["I", "1.0.0"], "value"=>{}},
+#    {"key"=>["J", "0.0.0"], "value"=>{"B"=>"<= 0.0.0"}},
+#    {"key"=>["K", "0.0.0"], "value"=>{}},
+#    {"key"=>["K", "1.0.0"], "value"=>{}},
+#    {"key"=>["L", "0.0.0"], "value"=>{}},
+#    {"key"=>["M", "0.0.0"], "value"=>{}},
+#    {"key"=>["N", "0.0.0"], "value"=>{}},
+#    {"key"=>["O", "0.0.0"], "value"=>{}},
+#    {"key"=>["P", "0.0.0"], "value"=>{}},
+#    {"key"=>["P", "1.0.0"], "value"=>{}},
+#    {"key"=>["Q", "0.0.0"], "value"=>{}},
+#    {"key"=>["Q", "1.0.0"], "value"=>{"R"=>"<= 0.0.0"}},
+#    {"key"=>["R", "0.0.0"], "value"=>{}},
+#    {"key"=>["S", "0.0.0"], "value"=>{"R"=>"<= 0.0.0"}},
+#    {"key"=>["T", "0.0.0"], "value"=>{}},
+#    {"key"=>["U", "0.0.0"], "value"=>{"O"=>"<= 0.0.0"}},
+#    {"key"=>["V", "0.0.0"], "value"=>{}},
+#    {"key"=>["W", "0.0.0"], "value"=>{}},
+#    {"key"=>["X", "0.0.0"], "value"=>{}},
+#    {"key"=>["Y", "0.0.0"], "value"=>{}},
+#    {"key"=>["Y", "1.0.0"], "value"=>{}},
+#    {"key"=>["Z", "0.0.0"], "value"=>{}},
+#    {"key"=>["Z", "1.0.0"], "value"=>{"C"=>"<= 0.0.0"}},
+#    {"key"=>["AA", "0.0.0"],
+#      "value"=>
+#      { "A"=>"<= 0.0.0",
+#        "C"=>"<= 0.0.0",
+#        "D"=>"<= 0.0.0",
+#        "G"=>"<= 0.0.0",
+#        "H"=>"<= 0.0.0",
+#        "I"=>"<= 1.0.0",
+#        "J"=>"<= 0.0.0",
+#        "K"=>"<= 1.0.0",
+#        "L"=>"<= 0.0.0"}}]
 
 big_cookbook_version_constraint_2 =
   [{"key"=>["A", "0.0"], "value"=>{"B"=>"<= 0.0", "C"=>"<= 12.0"}},
@@ -879,7 +879,9 @@ describe DepSelector::Selector do
     end
   end
   
-  it "solves moderately complex dependency graph #3 and times out" do
+  it "solves moderately complex dependency graph #3 and times out", :volatile do
+    # This test does not reliably trigger timeout.
+    pending("test unreliable, investigate")
     dep_graph = DepSelector::DependencyGraph.new
     setup_constraint(dep_graph, big_cookbook_version_constraint_2)
     selector = DepSelector::Selector.new(dep_graph, 0.001)
@@ -890,7 +892,7 @@ describe DepSelector::Selector do
       selector.find_solution(constraints)
     end.to raise_error(DepSelector::Exceptions::TimeBoundExceeded)
     
-    end
+  end
 
   # TODO [cw,2011/2/4]: Add a test for a set of solution constraints
   # that contains multiple restrictions on the same package. Do the
