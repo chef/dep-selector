@@ -23,10 +23,6 @@
 # to work properly here.
 require 'mkmf'
 
-# XXX: Why is this here? On mingw this causes (and lots of similar)
-#   multiple definition of `std::ctype<char>::_M_widen_init() const'
-# $LIBS << " -lstdc++"
-
 # $CFLAGS << "-g"
 
 gecode_installed =
