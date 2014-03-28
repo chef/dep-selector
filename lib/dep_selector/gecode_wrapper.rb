@@ -17,9 +17,16 @@
 # limitations under the License.
 #
 
-require "uuidtools"
-require "dep_gecode"
+require 'securerandom'
 require 'dep_selector/exceptions'
+
+begin
+  require "dep_gecode"
+rescue LoadError
+  path = File.expand_path("../../../ext/dep_gecode", __FILE__)
+  $:.unshift(path)
+  require "dep_gecode"
+end
 
 module DepSelector
   class GecodeWrapper
@@ -28,12 +35,12 @@ module DepSelector
     DontCareConstraint = -1
     NoMatchConstraint = -2
     DumpStatistics = true
-    
+
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
     def initialize(problem_or_package_count, debug=false)
       if (problem_or_package_count.is_a?(Numeric))
-        logId = UUIDTools::UUID.random_create().to_str()
+        logId = SecureRandom.uuid
         @debug_logs_on = debug
         @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, DumpStatistics, debug, logId)
       else
@@ -46,9 +53,9 @@ module DepSelector
     end
 
     def check_package_id(package_id, param_name)
-      raise "Gecode #{param_name} is out of range #{package_id}" unless (package_id >= 0 && package_id < self.size()) 
+      raise "Gecode #{param_name} is out of range #{package_id}" unless (package_id >= 0 && package_id < self.size())
     end
-    
+
     def size()
       raise "Gecode internal failure" if gecode_problem.nil?
       Dep_gecode.VersionProblemSize(gecode_problem)
@@ -105,18 +112,18 @@ module DepSelector
       check_package_id(package_id, "package_id")
       Dep_gecode.GetPackageDisabledState(gecode_problem, package_id);
     end
-    
-    def get_package_max(package_id) 
+
+    def get_package_max(package_id)
       raise "Gecode internal failure" if gecode_problem.nil?
       check_package_id(package_id, "package_id")
       Dep_gecode.GetPackageMax(gecode_problem, package_id)
     end
-    def get_package_min(package_id) 
+    def get_package_min(package_id)
       raise "Gecode internal failure" if gecode_problem.nil?
       check_package_id(package_id, "package_id")
       Dep_gecode.GetPackageMin(gecode_problem, package_id)
     end
-    def dump() 
+    def dump()
       raise "Gecode internal failure" if gecode_problem.nil?
       Dep_gecode.VersionProblemDump(gecode_problem)
     end
