@@ -34,7 +34,9 @@ module DepSelector
     attr_reader :debug_logs_on
     DontCareConstraint = -1
     NoMatchConstraint = -2
-    DumpStatistics = true
+
+    # This should be configurable...
+    DumpStatistics = false
 
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
