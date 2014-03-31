@@ -513,7 +513,7 @@ IntVar * VersionProblem::GetPackageVersionVar(int packageId)
             DEBUG_STREAM << debugPrefix << "Bad package Id " << packageId << " >= " << cur_package << std::endl;
             DEBUG_STREAM.flush();
         }
-        //     return 0;
+        return NULL;
     }
 }
 
