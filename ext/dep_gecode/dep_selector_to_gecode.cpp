@@ -222,7 +222,7 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
     return index;
 }
 
-bool
+void
 VersionProblem::AddVersionConstraint(int packageId, int version,
                                      int dependentPackageId, int minDependentVersion, int maxDependentVersion)
 {
@@ -255,6 +255,10 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
 
     rel(*this, disabled_package_variables[dependentPackageId], BOT_OR, depend_match, predicated_depend_match);
     rel(*this, version_match, BOT_IMP, predicated_depend_match, 1);
+
+    // This used to return a boolean value describing when the problem
+    // became insoluble. This was never used, and didn't appear to work
+    // at all, and so has been replaced with returning void.
 }
 
 void
@@ -500,10 +504,10 @@ void VersionProblem::BuildCostVector(IntVarArgs & costVector) const {
 
 
 
-IntVar & VersionProblem::GetPackageVersionVar(int packageId)
+IntVar * VersionProblem::GetPackageVersionVar(int packageId)
 {
     if (packageId < cur_package) {
-        return package_versions[packageId];
+        return &package_versions[packageId];
     } else {
         if (debugLogging) {
             DEBUG_STREAM << debugPrefix << "Bad package Id " << packageId << " >= " << cur_package << std::endl;
@@ -515,8 +519,8 @@ IntVar & VersionProblem::GetPackageVersionVar(int packageId)
 
 int VersionProblem::GetPackageVersion(int packageId)
 {
-    IntVar & var = GetPackageVersionVar(packageId);
-    if (1 == var.size()) return var.val();
+    IntVar *var = GetPackageVersionVar(packageId);
+    if (1 == var->size()) return var->val();
     return UNRESOLVED_VARIABLE;
 }
 bool VersionProblem::GetPackageDisabledState(int packageId)
@@ -526,11 +530,11 @@ bool VersionProblem::GetPackageDisabledState(int packageId)
 
 int VersionProblem::GetMax(int packageId)
 {
-    return GetPackageVersionVar(packageId).max();
+    return GetPackageVersionVar(packageId)->max();
 }
 int VersionProblem::GetMin(int packageId)
 {
-    return GetPackageVersionVar(packageId).min();
+    return GetPackageVersionVar(packageId)->min();
 }
 
 int VersionProblem::GetDisabledVariableCount()
@@ -567,8 +571,8 @@ void VersionProblem::Print(std::ostream & out)
 
 void VersionProblem::PrintPackageVar(std::ostream & out, int packageId)
 {
-    IntVar & var = GetPackageVersionVar(packageId);
-    out << "PackageId: " << packageId <<  " Sltn: " << var << " disabled: " << disabled_package_variables[packageId] << " at latest: " << at_latest[packageId];
+    IntVar *var = GetPackageVersionVar(packageId);
+    out << "PackageId: " << packageId <<  " Sltn: " << *var << " disabled: " << disabled_package_variables[packageId] << " at latest: " << at_latest[packageId];
 }
 
 bool VersionProblem::CheckPackageId(int id)
