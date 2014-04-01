@@ -23,7 +23,9 @@ require 'dep_selector/exceptions'
 begin
   require "dep_gecode"
 rescue LoadError
+  warn("Unable to find shared object `dep_gecode' in load path")
   path = File.expand_path("../../../ext/dep_gecode", __FILE__)
+  warn("Adding ext directory `#{path}' to load path to find development extensions.")
   $:.unshift(path)
   require "dep_gecode"
 end
