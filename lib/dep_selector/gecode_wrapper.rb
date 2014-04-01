@@ -29,22 +29,31 @@ rescue LoadError
 end
 
 module DepSelector
+
+  @dump_statistics = false
+
+  def self.dump_statistics
+    @dump_statistics
+  end
+
+  def self.dump_statistics=(dump_statistics)
+    @dump_statistics = dump_statistics
+  end
+
   class GecodeWrapper
     attr_reader :gecode_problem
     attr_reader :debug_logs_on
     DontCareConstraint = -1
     NoMatchConstraint = -2
 
-    # This should be configurable...
-    DumpStatistics = false
-
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
     def initialize(problem_or_package_count, debug=false)
       if (problem_or_package_count.is_a?(Numeric))
         logId = SecureRandom.uuid
+        dump_statistics = DepSelector.dump_statistics || debug
         @debug_logs_on = debug
-        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, DumpStatistics, debug, logId)
+        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, dump_statistics, debug, logId)
       else
         @gecode_problem = problem_or_package_count
       end
