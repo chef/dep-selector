@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.description = s.summary
   s.license = 'Apache v2'
   s.authors = ["Christopher Walters", "Mark Anderson"]
-  s.email = ["cw@opscode.com", "mark@opscode.com"]
+  s.email = ["dev@getchef.com"]
   s.homepage = %q{http://github.com/opscode/dep-selector}
   s.require_path = 'lib'
   s.requirements << 'gecode, version 3.5 or greater'
@@ -18,7 +18,8 @@ Gem::Specification.new do |s|
   s.files = Dir.glob("lib/**/*.{rb}") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb}")
   s.extensions = Dir["ext/**/extconf.rb"]
 
-  s.add_development_dependency "uuidtools", "~> 2.1"
+  s.required_ruby_version = ">= 1.9.2"
+
   s.add_development_dependency "rspec", "~> 2.14"
   s.add_development_dependency "rake-compiler", "~> 0.9.2"
 end

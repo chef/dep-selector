@@ -32,7 +32,7 @@
 VersionProblem * VersionProblemCreate(int packageCount, bool dump_stats,
                                       bool debug, const char * logId) 
 {
-    return new VersionProblem(packageCount, dump_stats, debug, logId);
+  return new VersionProblem(packageCount, dump_stats, debug, logId);
 }
 
 void VersionProblemDestroy(VersionProblem * p)
@@ -66,55 +66,55 @@ void VersionProblemPrintPackageVar(VersionProblem *p, int packageId)
 
 // Return ID #
 int AddPackage(VersionProblem *problem, int min, int max, int currentVersion) {
-  problem->AddPackage(min,max,currentVersion);
+  return problem->AddPackage(min,max,currentVersion);
 }
 // Add constraint for package pkg @ version, 
 // that dependentPackage is at version [minDependentVersion,maxDependentVersion]
 // Returns false if system becomes insoluble.
-bool AddVersionConstraint(VersionProblem *problem, int packageId, int version, 
+void AddVersionConstraint(VersionProblem *problem, int packageId, int version,
 			  int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
 {
-  problem->AddVersionConstraint(packageId, version, dependentPackageId, minDependentVersion, maxDependentVersion);
+  return problem->AddVersionConstraint(packageId, version, dependentPackageId, minDependentVersion, maxDependentVersion);
 }
 
 void MarkPackageSuspicious(VersionProblem *problem, int packageId) 
 {
-  problem->MarkPackageSuspicious(packageId);
+  return problem->MarkPackageSuspicious(packageId);
 }
 
 void MarkPackagePreferredToBeAtLatest(VersionProblem *problem, int packageId, int weight)
 {
-  problem->MarkPackagePreferredToBeAtLatest(packageId, weight);
+  return problem->MarkPackagePreferredToBeAtLatest(packageId, weight);
 }
 
 void MarkPackageRequired(VersionProblem *problem, int packageId)
 {
-  problem->MarkPackageRequired(packageId);
+  return problem->MarkPackageRequired(packageId);
 }
 
 int GetPackageVersion(VersionProblem *problem, int packageId)
 {
-  problem->GetPackageVersion(packageId);
+  return problem->GetPackageVersion(packageId);
 }
 
 bool GetPackageDisabledState(VersionProblem *problem, int packageId)
 {
-  problem->GetPackageDisabledState(packageId);
+  return problem->GetPackageDisabledState(packageId);
 }
 
 int GetPackageMax(VersionProblem *problem, int packageId)
 {
-  problem->GetMax(packageId);
+  return problem->GetMax(packageId);
 }
 
 int GetPackageMin(VersionProblem *problem, int packageId)
 {
-  problem->GetMin(packageId);
+  return problem->GetMin(packageId);
 }
 
 int GetDisabledVariableCount(VersionProblem *problem)
 {
-  problem->GetDisabledVariableCount();
+  return problem->GetDisabledVariableCount();
 }
 
 

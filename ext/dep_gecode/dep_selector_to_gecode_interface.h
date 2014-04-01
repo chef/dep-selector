@@ -44,7 +44,7 @@ extern "C" {
   // Add constraint for package pkg @ version, 
   // that dependentPackage is at version [minDependentVersion,maxDependentVersion]
   // Returns false if system becomes insoluble.
-  bool AddVersionConstraint(VersionProblem *problem, int packageId, int version, 
+  void AddVersionConstraint(VersionProblem *problem, int packageId, int version,
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 
   void MarkPackageSuspicious(VersionProblem *problem, int packageId);
