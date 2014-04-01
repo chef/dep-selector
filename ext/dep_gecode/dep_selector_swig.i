@@ -39,9 +39,12 @@ int VersionProblemPackageCount(VersionProblem *p);
 int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
 // Add constraint for package pkg @ version, 
 // that dependentPackage is at version [minDependentVersion,maxDependentVersion]
-// Returns false if system becomes insoluble.
-bool AddVersionConstraint(VersionProblem *problem, int packageId, int version, 
-			  int dependentPackageId, int minDependentVersion, int maxDependentVersion);
+//
+// This used to return a boolean value describing when the problem
+// became insoluble. This was never used, and didn't appear to work
+// at all, and so has been replaced with returning void.
+void AddVersionConstraint(VersionProblem *problem, int packageId, int version,
+                          int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 void MarkPackageSuspicious(VersionProblem *problem, int packageId);
 
 void MarkPackageRequired(VersionProblem *problem, int packageId);

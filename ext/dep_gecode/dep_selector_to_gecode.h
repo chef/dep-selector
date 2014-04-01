@@ -75,11 +75,11 @@ public:
   int Size();
   int PackageCount();
 
-  IntVar & GetPackageVersionVar(int packageId);
+  IntVar * GetPackageVersionVar(int packageId);
 
   virtual int AddPackage(int minVersion, int maxVersion, int currentVersion);
 
-  virtual bool AddVersionConstraint(int packageId, int version, 
+  virtual void AddVersionConstraint(int packageId, int version,
 			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 
   // We may wish to indicate that some packages have suspicious constraints, and when chosing packages to disable we 

@@ -67,7 +67,7 @@ module DepSelector
       packages_to_include_in_solve = trim_unreachable_packages(dep_graph, solution_constraints)
 
       begin
-        Timeout::timeout(@time_bound, Exceptions::TimeBoundExceeded) do 
+        Timeout::timeout(@time_bound, Exceptions::TimeBoundExceeded) do
           # first, try to solve the whole set of constraints
           solve(dep_graph.clone, solution_constraints, valid_packages, packages_to_include_in_solve)
         end
@@ -109,7 +109,7 @@ module DepSelector
                   end
                 disabled_collection << disabled_pkg
               end
-              
+
               # Pick the first non-existent or most-constrained package
               # that was required or the package whose constraints had
               # to be disabled in order to find a solution and generate
@@ -122,7 +122,7 @@ module DepSelector
                 disabled_most_constrained_packages.first
               feedback = error_reporter.give_feedback(dep_graph, solution_constraints, idx,
                                                       disabled_package_to_report_on)
-              
+
               raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx],
                                                      disabled_non_existent_packages,
                                                      disabled_most_constrained_packages)
@@ -147,7 +147,7 @@ module DepSelector
       # validate solution_constraints and generate its constraints
       process_soln_constraints(workspace, solution_constraints, valid_packages)
 
-      # solve and trim the solution down to only the 
+      # solve and trim the solution down to only the
       soln = workspace.gecode_wrapper.solve
       trim_solution(solution_constraints, soln, workspace)
     end
@@ -162,7 +162,7 @@ module DepSelector
 
       soln_constraints_on_non_existent_packages = []
       soln_constraints_that_match_no_versions = []
-      
+
       # generate constraints imposed by solution_constraints
       solution_constraints.each do |soln_constraint|
         # look up the package in the cloned dep_graph that corresponds to soln_constraint
@@ -182,6 +182,7 @@ module DepSelector
         end
 
         pkg_id = pkg.gecode_package_id
+
         gecode.mark_preferred_to_be_at_latest(pkg_id, 10)
         gecode.mark_required(pkg_id)
 
@@ -203,11 +204,13 @@ module DepSelector
     end
 
     # Given an assignment of versions to packages, filter down to only
-    # the required assignments 
+    # the required assignments
     def trim_solution(soln_constraints, soln, workspace)
       trimmed_soln = {}
+
       soln_constraints.each do |soln_constraint|
         package = workspace.package(soln_constraint.package.name)
+
         expand_package(trimmed_soln, package, soln)
       end
 
