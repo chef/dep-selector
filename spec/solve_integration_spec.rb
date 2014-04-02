@@ -36,7 +36,17 @@ describe "Integration with berkshelf solve" do
   it "uses solve's artifact objects to describe the problem" do
     artifact = solve_artifact_top_level
 
-    graph.package(artifact.name).add_version(artifact.version)
+    package_version = graph.package(artifact.name).add_version(artifact.version)
+    package_version.version.should == Solve::Version.new("1.0.0")
+  end
+
+  it "uses solve's constraints to find matching packages" do
+    artifact = solve_artifact_top_level
+
+    package_version = graph.package(artifact.name).add_version(artifact.version)
+    package = graph.package(artifact.name)
+
+    package[Solve::Constraint.new(">= 0.0.0")].should == [ package_version ]
   end
 
   it "uses solve's dependencies to describe the problem" do
@@ -52,7 +62,8 @@ describe "Integration with berkshelf solve" do
     gecode_demands = [ DepSelector::SolutionConstraint.new(graph.package(artifact.name), Solve::Constraint.new(">= 0.0.0"))  ]
 
     selector = DepSelector::Selector.new(graph, (1.0))
-    pp selector.find_solution(gecode_demands, gecode_all_versions)
+    solution = selector.find_solution(gecode_demands, gecode_all_versions)
+    solution.should == { "top-level" => Solve::Version.new("1.0.0") }
   end
 
 end
