@@ -49,7 +49,7 @@ module DepSelector
       # version constraints must abide the include? contract
       if version_or_constraint.respond_to?(:include?)
         versions.select do |ver|
-          version_or_constraint.include?(ver)
+          version_or_constraint.include?(ver.version)
         end
       else
         versions.find{|pkg_version| pkg_version.version == version_or_constraint}
