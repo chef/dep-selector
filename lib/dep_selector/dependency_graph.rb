@@ -77,10 +77,26 @@ module DepSelector
       packages.keys.sort.map{|name| packages[name].to_s(incl_densely_packed_versions)}.join("\n")
     end
 
-    # TODO [cw,2010/11/23]: this is a simple but inefficient impl. Do
-    # it for realz.
+    # Does a mostly deep copy of this graph, creating new Package,
+    # PackageVersion, and Dependency objects in the copy graph. Version and
+    # VersionConstraint objects are re-used from the existing graph.
     def clone
-      Marshal.load(Marshal.dump(self))
+      copy = self.class.new
+      @packages.each do |name, package|
+        copy_package = copy.package(name)
+
+        package.versions.each do |package_version|
+          copy_pkg_version = copy_package.add_version(package_version.version)
+          package_version.dependencies.each do |pkg_vers_dep|
+            dep_pkg_name = pkg_vers_dep.package.name
+            copy_dependency = DepSelector::Dependency.new(copy.package(dep_pkg_name), pkg_vers_dep.constraint)
+            copy_pkg_version.dependencies << copy_dependency
+          end
+        end
+      end
+      copy
     end
+
+
   end
 end
