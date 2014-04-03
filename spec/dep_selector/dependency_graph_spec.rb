@@ -43,5 +43,37 @@ describe DepSelector::DependencyGraph do
       dg2.package("foo").add_version("1.0.0")
       dg1.package("foo").versions.should be_empty
     end
+
+    it "creates correct references in package, version, and dependency objects" do
+      dg1 = DepSelector::DependencyGraph.new
+      original_pkg_a = dg1.package("A").add_version("1.0.0")
+      b_v2 = dg1.package("B").add_version("2.0.0")
+
+      dep = DepSelector::Dependency.new(dg1.package("A"), ">= 0.0.0")
+
+      b_v2.dependencies << dep
+
+      copy = dg1.clone
+      copied_package_a = copy.package("A")
+      copied_package_b = copy.package("B")
+
+      copied_package_a.should_not equal(original_pkg_a)
+
+      copy.package("A").dependency_graph.should equal(copy)
+      copy.package("A").should have(1).versions
+      copied_pkg_a_v1_0_0 = copy.package("A").versions.first
+      copied_pkg_a_v1_0_0.package.should equal(copied_package_a)
+
+      copied_package_b_v2_0_0 = copied_package_b.versions.first
+      copied_package_b_v2_0_0.should have(1).dependencies
+
+      copied_dependency = copied_package_b_v2_0_0.dependencies.first
+      copied_dependency.package.should equal(copied_package_a)
+
+      # Object equality isn't strictly necessary for the implementation, but
+      # object reuse improves perf.
+      copied_dependency.constraint.should equal(dep.constraint)
+    end
+
   end
 end
