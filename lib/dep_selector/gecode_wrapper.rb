@@ -17,17 +17,75 @@
 # limitations under the License.
 #
 
+require 'ffi'
 require 'securerandom'
 require 'dep_selector/exceptions'
 
-begin
-  require "dep_gecode"
-rescue LoadError
-  warn("Unable to find shared object `dep_gecode' in load path")
-  path = File.expand_path("../../../ext/dep_gecode", __FILE__)
-  warn("Adding ext directory `#{path}' to load path to find development extensions.")
-  $:.unshift(path)
-  require "dep_gecode"
+# begin
+#   require "dep_gecode"
+# rescue LoadError
+#   warn("Unable to find shared object `dep_gecode' in load path")
+#   path = File.expand_path("../../../ext/dep_gecode", __FILE__)
+#   warn("Adding ext directory `#{path}' to load path to find development extensions.")
+#   $:.unshift(path)
+#   require "dep_gecode"
+# end
+
+module Dep_gecode
+
+  extend FFI::Library
+
+  path = File.expand_path("../../../ext/dep_gecode/dep_gecode.bundle", __FILE__)
+  puts path
+
+  ffi_lib path
+
+  # VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats, 
+  #                                       bool debug, const char * log_id);
+  attach_function :VersionProblemCreate, [:int, :bool, :bool, :string], :pointer
+
+  # void VersionProblemDestroy(VersionProblem * vp);
+  attach_function :VersionProblemDestroy, [:pointer], :void
+
+  # int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
+  attach_function :AddPackage, [:pointer, :int, :int, :int], :int
+
+  # int VersionProblemSize(VersionProblem *p); 
+  attach_function :VersionProblemSize, [:pointer], :int
+
+  # void MarkPackagePreferredToBeAtLatest(VersionProblem *problem, int packageId, int weight);
+  attach_function :MarkPackagePreferredToBeAtLatest, [:pointer, :int, :int], :void
+
+  # void MarkPackageRequired(VersionProblem *problem, int packageId);
+  attach_function :MarkPackageRequired, [:pointer, :int], :void
+
+  # void AddVersionConstraint(VersionProblem *problem, int packageId, int version,
+  #                           int dependentPackageId, int minDependentVersion, int maxDependentVersion);
+  attach_function :AddVersionConstraint, [:pointer, :int, :int, :int, :int, :int], :void
+
+  # VersionProblem * Solve(VersionProblem * problem);
+  attach_function :Solve, [:pointer], :pointer
+
+  # int GetDisabledVariableCount(VersionProblem *problem);
+  attach_function :GetDisabledVariableCount, [:pointer], :int
+
+  # int GetPackageVersion(VersionProblem *problem, int packageId);
+  attach_function :GetPackageVersion, [:pointer, :int], :int
+
+  # void MarkPackageSuspicious(VersionProblem *problem, int packageId);
+  attach_function :MarkPackageSuspicious, [:pointer, :int], :void
+
+  # bool GetPackageDisabledState(VersionProblem *problem, int packageId);
+  attach_function :GetPackageDisabledState, [:pointer, :int], :bool
+
+  # int VersionProblemPackageCount(VersionProblem *p);
+  attach_function :VersionProblemPackageCount, [:pointer], :int
+
+  # int GetPackageMax(VersionProblem *problem, int packageId);
+  attach_function :GetPackageMax, [:pointer, :int], :int
+
+  # int GetPackageMin(VersionProblem *problem, int packageId);
+  attach_function :GetPackageMin, [:pointer, :int], :int
 end
 
 module DepSelector
@@ -43,6 +101,7 @@ module DepSelector
   end
 
   class GecodeWrapper
+
     attr_reader :gecode_problem
     attr_reader :debug_logs_on
     DontCareConstraint = -1
