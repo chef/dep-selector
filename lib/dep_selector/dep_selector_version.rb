@@ -1,3 +1,3 @@
 module DepSelector
-  VERSION = "1.0.0.alpha.0"
+  VERSION = "1.0.0.jruby.0"
 end
