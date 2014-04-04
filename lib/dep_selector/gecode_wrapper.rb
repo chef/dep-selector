@@ -35,9 +35,13 @@ module Dep_gecode
 
   extend FFI::Library
 
+  lib_dir = File.expand_path("../../", __FILE__)
+  lib_dir_path = Dir["#{lib_dir}/dep_gecode.*"].first
+
   ext_dir = File.expand_path("../../../ext/dep_gecode/", __FILE__)
-  path = Dir["#{ext_dir}/dep_gecode.*"].first
-  puts path
+  ext_dir_path = Dir["#{ext_dir}/dep_gecode.*"].first
+
+  path = lib_dir_path || ext_dir_path
 
   ffi_lib path
 
