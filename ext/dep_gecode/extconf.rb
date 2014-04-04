@@ -107,9 +107,11 @@ else # JRUBY
   if cc =~ /gcc|clang/
     cflags << "-Wno-error=shorten-64-to-32  -pipe"
     cflags << " -O3" unless cflags =~ /-O\d/
-    cflags << " -Wall"
+    cflags << " -Wall -fPIC"
     cppflags << " -O3" unless cppflags =~ /-O\d/
-    cppflags << " -fno-common"
+    cppflags << " -fno-common -fPIC"
+    cxxflags << " -O3" unless cppflags =~ /-O\d/
+    cxxflags << " -fno-common -fPIC"
   end
 
   ENV['CFLAGS'] = cflags
