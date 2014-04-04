@@ -12,3 +12,7 @@ rvm:
 script: 
   - bundle exec rake compile
   - bundle exec rake spec
+
+branches:
+  only:
+    - master
