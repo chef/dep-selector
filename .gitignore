@@ -3,6 +3,7 @@
 *.dSym
 *.log
 *.bundle
+*.dylib
 *.jar
 tmp
 save

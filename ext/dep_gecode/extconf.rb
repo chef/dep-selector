@@ -81,6 +81,7 @@ EOS
 else # JRUBY
 
   require 'rbconfig'
+  require 'ffi/platform'
 
   cflags = ENV['CFLAGS']
   cppflags = ENV['CPPFLAGS']
@@ -121,7 +122,7 @@ else # JRUBY
   ENV["CPPFLAGS"] = cppflags
   ENV["CXXFLAGS"] = cxxflags
 
-  dlext = RbConfig::CONFIG["DLEXT"]
+  dlext = FFI::Platform::LIBSUFFIX
 
   headers = "$(srcdir)/dep_selector_to_gecode.h $(srcdir)/dep_selector_to_gecode_interface.h"
 
