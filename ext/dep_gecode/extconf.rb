@@ -103,16 +103,16 @@ else # JRUBY
   cc ||= "gcc"
   cxx ||= "g++"
 
-  # FIXME: add more compilers with default options
-  if cc =~ /gcc|clang/
-    cflags << "-Wno-error=shorten-64-to-32  -pipe"
-    cflags << " -O3" unless cflags =~ /-O\d/
-    cflags << " -Wall -fPIC"
-    cppflags << " -O3" unless cppflags =~ /-O\d/
-    cppflags << " -fno-common -fPIC"
-    cxxflags << " -O3" unless cppflags =~ /-O\d/
-    cxxflags << " -fno-common -fPIC"
-  end
+  # JRuby reports that the compiler is "CC" no matter what, so we can't detect
+  # if we're using anything other than gcc/llvm. Therefore we just assume
+  # that's the compiler we're on.
+  cflags << "-Wno-error=shorten-64-to-32  -pipe"
+  cflags << " -O3" unless cflags =~ /-O\d/
+  cflags << " -Wall -fPIC"
+  cppflags << " -O3" unless cppflags =~ /-O\d/
+  cppflags << " -fno-common -fPIC"
+  cxxflags << " -O3" unless cppflags =~ /-O\d/
+  cxxflags << " -fno-common -fPIC"
 
   ENV['CFLAGS'] = cflags
   ENV['LDFLAGS'] = ldflags
