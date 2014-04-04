@@ -3,6 +3,8 @@
 *.dSym
 *.log
 *.bundle
+*.dylib
+*.jar
 tmp
 save
 ext/dep_gecode/Makefile

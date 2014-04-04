@@ -36,14 +36,11 @@ task :install => :package do
   sh %{gem install pkg/#{gemspec.name}-#{gemspec.version}}
 end
 
-begin
-  require 'rake/extensiontask'
-  Rake::ExtensionTask.new('dep_gecode', gemspec)
-rescue LoadError
-  desc "Disabled: install rake-compiler to enable this"
-  task :compile do
-    abort "rake-compiler is not avabilable. (sudo) gem install rake-compiler"
-  end
+task :compile do
+  cd("ext/dep_gecode")
+  ruby("extconf.rb")
+  sh("make clean")
+  sh("make")
 end
 
 begin

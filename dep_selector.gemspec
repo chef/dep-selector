@@ -20,7 +20,9 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = ">= 1.9.2"
 
+  s.add_runtime_dependency "ffi", "~> 1.9"
+
+  s.add_development_dependency "rake", "~> 10.0"
   s.add_development_dependency "rspec", "~> 2.14"
-  s.add_development_dependency "rake-compiler", "~> 0.9.2"
   s.add_development_dependency "solve", "~> 0.8"
 end
