@@ -64,16 +64,25 @@ OSX:
   git checkout 3c5ca25 Library/Formula/gecode.rb
   brew install gecode
 
-For convenience, we have built Gecode for Debian/Ubuntu (<release> is lucid or maverick):
-  Add the following two lines to /etc/apt/sources.list.d/opscode.list:
-    deb http://apt.opscode.com <release> main
-    deb-src http://apt.opscode.com <release> main
-  Then run:
-    curl http://apt.opscode.com/packages@opscode.com.gpg.key | sudo apt-key add -
-    sudo apt-get update
-    sudo apt-get install libgecode-dev
+Debian and Ubuntu:
+  sudo apt-get install libgecode-dev
 
-Other distributions can build from source.
+Build from source:
+  Get gecode 3.7.3 source:
+    curl -O http://www.gecode.org/download/gecode-3.7.3.tar.gz
+  Unpack it:
+    tar zxvf gecode-3.7.3.tar.gz
+  Build:
+    ./configure --disable-doc-dot \
+           --disable-doc-search \
+           --disable-doc-tagfile \
+           --disable-doc-chm \
+           --disable-doc-docset \
+           --disable-qt \
+           --disable-examples
+    make
+    (sudo) make install
+
 =========================================================================================
 EOS
     raise "Gecode not installed"
