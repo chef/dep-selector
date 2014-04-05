@@ -57,9 +57,11 @@ if !defined?(RUBY_ENGINE) || RUBY_ENGINE == 'ruby' || RUBY_ENGINE == 'rbx'
   unless gecode_installed
     STDERR.puts <<EOS
 =========================================================================================
-Gecode >3.5 must be installed (http://www.gecode.org/).
+Gecode ~>3.5 must be installed (http://www.gecode.org/).
 
 OSX:
+  cd $( brew --prefix )
+  git checkout 3c5ca25 Library/Formula/gecode.rb
   brew install gecode
 
 For convenience, we have built Gecode for Debian/Ubuntu (<release> is lucid or maverick):
