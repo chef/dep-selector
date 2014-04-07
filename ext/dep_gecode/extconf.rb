@@ -24,8 +24,13 @@ if !defined?(RUBY_ENGINE) || RUBY_ENGINE == 'ruby' || RUBY_ENGINE == 'rbx'
   # ./configure --with-architectures=i386,x86_64
   # to work properly here.
   require 'mkmf'
+  require 'dep-selector-libgecode'
 
-  # $CFLAGS << "-g"
+  opt_path = DepSelectorLibgecode.opt_path
+  include_path = DepSelectorLibgecode.include_path
+  find_library("gecodesupport", nil, opt_path)
+  # find_header doesn't seem to work for stuff like `gecode/thing.hh`
+  $INCFLAGS << " -I#{include_path}"
 
   gecode_installed =
     # Gecode documentation notes:
@@ -94,6 +99,22 @@ else # JRUBY
   require 'rbconfig'
   require 'ffi/platform'
 
+  incflags = "-I."
+  libpath = "-L."
+
+  require 'dep-selector-libgecode'
+  opt_path = DepSelectorLibgecode.opt_path
+  include_path = DepSelectorLibgecode.include_path
+  libpath << " -L#{opt_path}"
+
+  # On MRI, RbConfig::CONFIG["RPATHFLAG"] == "" when using clang/llvm, but this
+  # isn't set on JRuby so we need to detect llvm manually and set rpath on gcc
+  unless `gcc -v` =~ /LLVM/
+    rpath_flag = (" -Wl,-R%1$-s" % [opt_path])
+    libpath << rpath_flag
+  end
+  incflags << " -I#{include_path}"
+
   cflags = ENV['CFLAGS']
   cppflags = ENV['CPPFLAGS']
   cxxflags = ENV['CXXFLAGS']
@@ -132,6 +153,8 @@ else # JRUBY
   ENV['CXX'] = cxx
   ENV["CPPFLAGS"] = cppflags
   ENV["CXXFLAGS"] = cxxflags
+  ENV['INCFLAGS'] = incflags
+  ENV['LIBPATH'] = libpath
 
   dlext = FFI::Platform::LIBSUFFIX
 
@@ -156,7 +179,9 @@ CFLAGS = #{ENV['CFLAGS']}
 LDFLAGS = #{ENV['LDFLAGS']}
 CPPFLAGS = #{ENV['CPPFLAGS']}
 CXXFLAGS = #{ENV['CXXFLAGS']}
-INCFLAGS = -I.
+INCFLAGS = #{ENV['INCFLAGS']}
+LIBPATH = #{ENV['LIBPATH']}
+
 LDSHAREDXX = #{ldsharedxx}
 
 empty =
