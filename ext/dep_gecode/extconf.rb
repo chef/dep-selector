@@ -106,6 +106,13 @@ else # JRUBY
   opt_path = DepSelectorLibgecode.opt_path
   include_path = DepSelectorLibgecode.include_path
   libpath << " -L#{opt_path}"
+
+  # On MRI, RbConfig::CONFIG["RPATHFLAG"] == "" when using clang/llvm, but this
+  # isn't set on JRuby so we need to detect llvm manually and set rpath on gcc
+  unless `gcc -v` =~ /LLVM/
+    rpath_flag = (" -Wl,-R%1$-s" % [opt_path])
+    libpath << rpath_flag
+  end
   incflags << " -I#{include_path}"
 
   cflags = ENV['CFLAGS']
