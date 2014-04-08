@@ -1,9 +1,9 @@
 Background
 ==========
-The dep_selector gem contains the native Ruby bindings for solving dependency
-graphs with Geocode. It accepts a representation of packages and their
-dependencies and finds a binding of packages to versions that satisfies desired
-constraints.
+The dep_selector gem contains the native Ruby bindings for solving
+dependency graphs with Gecode. It accepts a representation of packages
+and their dependencies and finds a binding of packages to versions that
+satisfies desired constraints.
 
 Installation
 ------------
