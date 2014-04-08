@@ -41,7 +41,7 @@ dep_graph = DependencyGraph.new
 
 # package A has versions 1 and 2
 a = dep_graph.package('A')
-a1 = a.add_version(Version.new('1.0.0'))Â
+a1 = a.add_version(Version.new('1.0.0'))
 a2 = a.add_version(Version.new('2.0.0'))
 
 # package B has versions 1, 2, and 3
