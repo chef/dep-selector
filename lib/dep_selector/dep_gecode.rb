@@ -30,6 +30,8 @@ module Dep_gecode
 
   path = lib_dir_path || ext_dir_path
 
+  path.gsub!('/', '\\') if RUBY_PLATFORM =~ /mswin|mingw|windows/
+
   ffi_lib path
 
   # VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats, 
