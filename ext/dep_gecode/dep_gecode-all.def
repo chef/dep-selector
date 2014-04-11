@@ -1,0 +1,16 @@
+EXPORTS
+VersionProblemCreate
+VersionProblemDestroy
+AddPackage
+VersionProblemSize
+MarkPackagePreferredToBeAtLatest
+MarkPackageRequired
+AddVersionConstraint
+Solve
+GetDisabledVariableCount
+GetPackageVersion
+MarkPackageSuspicious
+GetPackageDisabledState
+VersionProblemPackageCount
+GetPackageMax
+GetPackageMin
