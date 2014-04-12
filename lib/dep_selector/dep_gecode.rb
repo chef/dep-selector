@@ -30,6 +30,12 @@ module Dep_gecode
 
   path = lib_dir_path || ext_dir_path
 
+  # FFI will load the library by calling LoadLibraryExA. The docs for this
+  # function advise not to use forward slashes (though this does work at least
+  # in at least some cases).
+  # See: http://msdn.microsoft.com/en-us/library/windows/desktop/ms684179(v=vs.85).aspx
+  path.gsub!('/', '\\') if RUBY_PLATFORM =~ /mswin|mingw|windows/
+
   ffi_lib path
 
   # VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats, 
