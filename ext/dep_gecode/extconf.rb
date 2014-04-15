@@ -98,6 +98,13 @@ EOS
     # symbols we need to export. We pass an extra def file to the linker to
     # make it export the symbols we need.
     $DLDFLAGS << " -Wl,--enable-auto-image-base,--enable-auto-import dep_gecode-all.def"
+
+    # When compiling with devkit, mingw/bin is added to the PATH only for
+    # compilation, but not at runtime. Windows uses PATH for shared library
+    # path and has no rpath feature. This means that dynamic linking to
+    # libraries in mingw/bin will succeed at compilation but cause runtime
+    # loading failures. To fix this we static link libgcc and libstdc++
+    # See: https://github.com/opscode/dep-selector/issues/17
     $libs << "  -static-libgcc -static-libstdc++"
   end
 
