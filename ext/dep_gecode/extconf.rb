@@ -97,7 +97,7 @@ EOS
     # By default, ruby will generate linker options that will not export the
     # symbols we need to export. We pass an extra def file to the linker to
     # make it export the symbols we need.
-    $DLDFLAGS << " -Wl,--enable-auto-image-base,--enable-auto-import dep_gecode-all.def"
+    $DLDFLAGS << " -Wl,--enable-auto-image-base,--enable-auto-import dep_gecode-all.def -static-libgcc -static-libstdc++"
   end
 
   create_makefile('dep_gecode')
