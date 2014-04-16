@@ -26,19 +26,60 @@ module DepSelector
   class ErrorReporter
     class SimpleTreeTraverser < ErrorReporter
 
+      def handle_errors(workspace, solution_constraints, idx, dep_graph, valid_packages, packages_to_include_in_solve, nsf)
+        disabled_packages =
+          packages_to_include_in_solve.inject([]) do |acc, elt|
+          pkg = workspace.package(elt.name)
+          acc << pkg if nsf.unsatisfiable_problem.is_package_disabled?(pkg.gecode_package_id)
+          acc
+          end
+        # disambiguate between packages disabled becuase they
+        # don't exist and those that have otherwise problematic
+        # constraints
+        disabled_non_existent_packages = []
+        disabled_most_constrained_packages = []
+        disabled_packages.each do |disabled_pkg|
+          disabled_collection =
+            if disabled_pkg.valid? || (valid_packages && valid_packages.include?(disabled_pkg))
+              disabled_most_constrained_packages
+            else
+              disabled_non_existent_packages
+            end
+          disabled_collection << disabled_pkg
+        end
+
+        # Pick the first non-existent or most-constrained package
+        # that was required or the package whose constraints had
+        # to be disabled in order to find a solution and generate
+        # feedback for it. We only report feedback for one
+        # package, because it is in fact actionable and dispalying
+        # feedback for every disabled package would probably be
+        # too long. The full set of disabled packages is
+        # accessible in the NoSolutionExists exception.
+        disabled_package_to_report_on = disabled_non_existent_packages.first ||
+          disabled_most_constrained_packages.first
+        feedback = give_feedback(dep_graph, solution_constraints, idx,
+                                                disabled_package_to_report_on)
+
+        raise Exceptions::NoSolutionExists.new(feedback, solution_constraints[idx],
+                                               disabled_non_existent_packages,
+                                               disabled_most_constrained_packages)
+
+      end
+
+      private
+
       def give_feedback(dep_graph, soln_constraints, unsatisfiable_constraint_idx, most_constrained_pkg)
         unsatisfiable_soln_constraint = soln_constraints[unsatisfiable_constraint_idx]
         feedback = "Unable to satisfy constraints on package #{most_constrained_pkg.name}"
         feedback << ", which does not exist," unless most_constrained_pkg.valid?
         feedback << " due to solution constraint #{unsatisfiable_soln_constraint}. "
 
-        all_paths = paths_from_soln_constraints_to_pkg_constraints(dep_graph, soln_constraints, most_constrained_pkg)
-        collapsed_paths = collapse_adjacent_paths(all_paths).map{|collapsed_path| "[#{print_path(collapsed_path).join(' -> ')}]"}
+#        all_paths = paths_from_soln_constraints_to_pkg_constraints(dep_graph, soln_constraints, most_constrained_pkg)
+#        collapsed_paths = collapse_adjacent_paths(all_paths).map{|collapsed_path| "[#{print_path(collapsed_path).join(' -> ')}]"}
 
-        feedback << "Solution constraints that may result in a constraint on #{most_constrained_pkg.name}: #{collapsed_paths.join(', ')}"
+#        feedback << "Solution constraints that may result in a constraint on #{most_constrained_pkg.name}: #{collapsed_paths.join(', ')}"
       end
-
-      private
 
       def paths_from_soln_constraints_to_pkg_constraints(dep_graph, soln_constraints, most_constrained_pkg)
         all_paths = []
