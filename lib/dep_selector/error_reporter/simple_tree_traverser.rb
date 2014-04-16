@@ -75,10 +75,10 @@ module DepSelector
         feedback << ", which does not exist," unless most_constrained_pkg.valid?
         feedback << " due to solution constraint #{unsatisfiable_soln_constraint}. "
 
-#        all_paths = paths_from_soln_constraints_to_pkg_constraints(dep_graph, soln_constraints, most_constrained_pkg)
-#        collapsed_paths = collapse_adjacent_paths(all_paths).map{|collapsed_path| "[#{print_path(collapsed_path).join(' -> ')}]"}
+        all_paths = paths_from_soln_constraints_to_pkg_constraints(dep_graph, soln_constraints, most_constrained_pkg)
+        collapsed_paths = collapse_adjacent_paths(all_paths).map{|collapsed_path| "[#{print_path(collapsed_path).join(' -> ')}]"}
 
-#        feedback << "Solution constraints that may result in a constraint on #{most_constrained_pkg.name}: #{collapsed_paths.join(', ')}"
+        feedback << "Solution constraints that may result in a constraint on #{most_constrained_pkg.name}: #{collapsed_paths.join(', ')}"
       end
 
       def paths_from_soln_constraints_to_pkg_constraints(dep_graph, soln_constraints, most_constrained_pkg)
