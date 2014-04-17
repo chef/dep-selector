@@ -32,9 +32,9 @@ module DepSelector
   class Selector
     attr_accessor :dep_graph, :error_reporter, :time_bound
 
-    DEFAULT_ERROR_REPORTER = ErrorReporter::SimpleTreeTraverser.new
+    DEFAULT_ERROR_REPORTER_CLASS = ErrorReporter::SimpleTreeTraverser
 
-    def initialize(dep_graph, time_bound = 5, error_reporter = DEFAULT_ERROR_REPORTER)
+    def initialize(dep_graph, time_bound = 5, error_reporter = DEFAULT_ERROR_REPORTER_CLASS)
       @dep_graph = dep_graph
       @time_bound = time_bound
       @error_reporter = error_reporter
@@ -89,7 +89,7 @@ module DepSelector
             begin
               solve(workspace, solution_constraints[0..idx], valid_packages, packages_to_include_in_solve)
             rescue Exceptions::NoSolutionFound => nsf
-              error_reporter.handle_errors(workspace, solution_constraints, idx, dep_graph, valid_packages, packages_to_include_in_solve, nsf)
+              error_reporter.new(workspace, solution_constraints, idx, dep_graph, valid_packages, packages_to_include_in_solve, nsf).handle_errors
             end
           end
         end
