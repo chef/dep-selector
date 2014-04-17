@@ -44,7 +44,10 @@ module DepSelector
     end
 
     def include?(v)
-      version = if v.respond_to? :version
+      version = if v.kind_of?(Version)
+                  v
+                elsif
+                  v.respond_to? :version
                   Version.new(v.version.to_s)
                 else
                   Version.new(v.to_s)
