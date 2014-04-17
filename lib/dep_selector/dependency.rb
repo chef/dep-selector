@@ -42,5 +42,9 @@ module DepSelector
       self.class == o.class && self == o
     end
 
+    def hash
+      @hashcode ||= to_s.hash
+    end
+
   end
 end

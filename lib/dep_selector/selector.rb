@@ -96,7 +96,7 @@ module DepSelector
                 acc
               end
               # disambiguate between packages disabled becuase they
-            # don't exist and those that have otherwise problematic
+              # don't exist and those that have otherwise problematic
               # constraints
               disabled_non_existent_packages = []
               disabled_most_constrained_packages = []
