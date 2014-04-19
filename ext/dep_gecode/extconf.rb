@@ -28,7 +28,20 @@ if !defined?(RUBY_ENGINE) || RUBY_ENGINE == 'ruby' || RUBY_ENGINE == 'rbx'
 
   opt_path = DepSelectorLibgecode.opt_path
   include_path = DepSelectorLibgecode.include_path
-  find_library("gecodesupport", nil, opt_path)
+  if find_library("gecodesupport", nil, opt_path)
+
+    # Ruby sometimes has a blank RPATHFLAG, even though it's on a system that
+    # really should be setting rpath flags. If there _is_ an rpath flag we'll
+    # honor it, but if not, we'll assume that ruby is lying and set it
+    # ourselves.
+    #
+    # See also: https://github.com/opscode/dep-selector/issues/23
+    ruby_rpathflag = RbConfig::MAKEFILE_CONFIG["RPATHFLAG"]
+    if ruby_rpathflag.nil? || ruby_rpathflag.empty?
+      hax_rpath_flags = " -Wl,-rpath,%1$-s" % [opt_path]
+      $DLDFLAGS << hax_rpath_flags
+    end
+  end
   # find_header doesn't seem to work for stuff like `gecode/thing.hh`
   $INCFLAGS << " -I#{include_path}"
 
