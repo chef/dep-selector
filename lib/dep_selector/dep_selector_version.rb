@@ -1,3 +1,3 @@
 module DepSelector
-  VERSION = "1.0.3.rc.0"
+  VERSION = "1.0.3"
 end
