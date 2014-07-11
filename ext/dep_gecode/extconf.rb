@@ -24,6 +24,7 @@ if !defined?(RUBY_ENGINE) || RUBY_ENGINE == 'ruby' || RUBY_ENGINE == 'rbx'
   # ./configure --with-architectures=i386,x86_64
   # to work properly here.
   require 'mkmf'
+  require 'rubygems'
   require 'dep-selector-libgecode'
 
   opt_path = DepSelectorLibgecode.opt_path
