@@ -663,14 +663,19 @@ describe DepSelector::Selector do
         selector.find_solution(invalid_solution_constraints, [dep_graph.package("really_does_exist")])
         fail "Should have failed to find a solution"
       rescue DepSelector::Exceptions::InvalidSolutionConstraints => isc
+        # TODO: explain in commit message, side effects in the test mean that
+        # we can't tell the difference between packages with no versions
+        # created by test setup vs. those passed in w/ the "valid packages"
+        # argument to #find_solution; this shouldn't matter though because a
+        # package w/ zero versions should not occur in correct usage
         isc.non_existent_packages.should == [
                                              invalid_solution_constraints[1],
-                                             invalid_solution_constraints[2]
+                                             invalid_solution_constraints[2],
+                                             invalid_solution_constraints[5]
                                             ]
         isc.constrained_to_no_versions.should == [
                                                   invalid_solution_constraints[3],
-                                                  invalid_solution_constraints[4],
-                                                  invalid_solution_constraints[5]
+                                                  invalid_solution_constraints[4]
                                                  ]
       end
     end

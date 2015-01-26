@@ -87,7 +87,7 @@ module DepSelector
     def create_subgraph_for_constraints(constraints)
       subgraph = self.class.new
       add_matching_packages(constraints, subgraph)
-      copy
+      subgraph
     end
 
     # Does a mostly deep copy of this graph, creating new Package,
@@ -125,19 +125,13 @@ module DepSelector
 
       soln_constraints.each do |soln_constraint|
 
-        # This is the code from Selector#process_soln_constraints that is used
-        # to generate the error messages when solution constraints require
-        # packages that don't exist at all or package versions that don't exist at all
-        # generate constraints imposed by solution_constraints
-        #####
-        # look up the package in the cloned dep_graph that corresponds to soln_constraint
         pkg_name = soln_constraint.package.name
         pkg = package(pkg_name)
         constraint = soln_constraint.constraint
 
         # record invalid solution constraints and raise an exception
         # afterwards
-        unless pkg.valid? || (valid_packages && valid_packages.include?(pkg))
+        unless pkg.valid?
           soln_constraints_on_non_existent_packages << soln_constraint
           next
         end
@@ -159,24 +153,24 @@ module DepSelector
       subgraph
     end
 
-    def add_dependent_matching_packages(curr_pkg, soln_constraints, subgraph)
-
-      # don't follow circular paths or duplicate work
-      return if subgraph.has_package?(curr_pkg.name)
-
+    def add_dependent_matching_packages(package, soln_constraints, subgraph)
       # Deep clone the package on the cloned depgraph
-      copy_package = subgraph.package(curr_pkg.name)
+      copy_package = subgraph.package(package.name)
 
-      curr_pkg.versions.each do |curr_pkg_ver|
+      package.versions.each do |package_version|
+        # don't follow circular paths or duplicate work
+        next if subgraph.has_package?(package.name) && subgraph.package(package.name).has_version?(package_version)
+
         # skip versions that don't satisfy top-level dep constraints
-        next unless should_include_in_subgraph?(curr_pkg, curr_pkg_ver, soln_constraints)
-        # clone the version to the subgraph
-        copy_pkg_version = copy_package.add_version(curr_pkg_ver.version)
+        next unless should_include_in_subgraph?(package, package_version, soln_constraints)
 
-        curr_pkg_ver.dependencies.each do |dep|
+        # clone the version to the subgraph
+        copy_pkg_version = copy_package.add_version(package_version.version)
+
+        package_version.dependencies.each do |dep|
           # clone the dependency
-          dep_pkg_name = pkg_vers_dep.package.name
-          copy_dependency = DepSelector::Dependency.new(copy.package(dep_pkg_name), pkg_vers_dep.constraint)
+          dep_pkg_name = dep.package.name
+          copy_dependency = DepSelector::Dependency.new(subgraph.package(dep_pkg_name), dep.constraint)
           copy_pkg_version.dependencies << copy_dependency
 
           # add dependent packages to the subgraph
@@ -200,8 +194,8 @@ module DepSelector
       # * check all constraints for each package version we add to the
       # subgraph. Downside is we're adding an O(N) loop nested in other loops.
       # This is the approach we take here.
-      relevant_constraints = soln_constraints.select { |constraint| constraint.name == package.name }
-      relevant_constraints.all? { |constraint| constraint.constraint.include?(version) }
+      relevant_constraints = soln_constraints.select { |constraint| constraint.package.name == package.name }
+      relevant_constraints.all? { |constraint| constraint.constraint.include?(version.version) }
     end
 
   end
