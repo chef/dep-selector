@@ -76,4 +76,42 @@ describe DepSelector::DependencyGraph do
     end
 
   end
+
+  describe "creating a subgraph based on given solution constraints" do
+
+    context "when the solution constraints are valid" do
+
+      context "when the solution constraints match every available package and version" do
+
+        it "returns a deep clone of itself with correct object references"
+
+      end
+
+      context "when some packages are not required by the solution constraints" do
+
+        it "removes the unreachable packages from the clone"
+
+        it "returns a deep subgraph clone of itself with correct object references"
+
+      end
+
+      context "when some package versions are not required by the solution constraints" do
+
+        it "removes the unreachable package versions from the clone"
+
+        it "returns a deep subgraph clone of itself with correct object references"
+
+      end
+
+    end
+
+    context "when the solution constraints are invalid" do
+
+      it "reports packages that don't exist at all"
+
+      it "reports packages that have no version matching the constraint"
+    end
+
+  end
+
 end
