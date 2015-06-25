@@ -1,16 +1,6 @@
 require 'spec_helper'
 require 'solve'
-
-# The current version of solve (0.8.2) doesn't quite match the API we require.
-# This will be remedied in a future release.
-module Solve
-  class Constraint
-
-    def include?(v)
-      satisfies?(v)
-    end
-  end
-end
+require 'solve/constraint'
 
 # Test that we can use duck typing to pass Solve's version and constraint
 # types to dep-selector
@@ -19,10 +9,10 @@ describe "Integration with berkshelf solve" do
   let(:solve_graph) do
     graph = Solve::Graph.new
 
-    graph.artifacts("top-level", "1.0.0")
+    graph.artifact("top-level", "1.0.0")
       .depends("dep-package", ">= 0.0.0")
 
-    graph.artifacts("dep-package", "1.0.0-beta")
+    graph.artifact("dep-package", "1.0.0-beta")
     graph
   end
 
@@ -30,14 +20,14 @@ describe "Integration with berkshelf solve" do
 
   let(:graph) { DepSelector::DependencyGraph.new }
 
-  let(:solve_artifact_top_level) { solve_graph.artifacts("top-level", "1.0.0") }
-  let(:solve_artifact_dep_package) { solve_graph.artifacts("dep-package", "1.0.0") }
+  let(:solve_artifact_top_level) { solve_graph.artifact("top-level", "1.0.0") }
+  let(:solve_artifact_dep_package) { solve_graph.artifact("dep-package", "1.0.0") }
 
   it "uses solve's artifact objects to describe the problem" do
     artifact = solve_artifact_top_level
 
     package_version = graph.package(artifact.name).add_version(artifact.version)
-    package_version.version.should == Solve::Version.new("1.0.0")
+    package_version.version.should == Semverse::Version.new("1.0.0")
   end
 
   it "uses solve's constraints to find matching packages" do
@@ -63,7 +53,7 @@ describe "Integration with berkshelf solve" do
 
     selector = DepSelector::Selector.new(graph, (1.0))
     solution = selector.find_solution(gecode_demands, gecode_all_versions)
-    solution.should == { "top-level" => Solve::Version.new("1.0.0") }
+    solution.should == { "top-level" => Semverse::Version.new("1.0.0") }
   end
 
 end
