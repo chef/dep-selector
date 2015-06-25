@@ -24,10 +24,9 @@ if !defined?(RUBY_ENGINE) || RUBY_ENGINE == 'ruby' || RUBY_ENGINE == 'rbx'
   # ./configure --with-architectures=i386,x86_64
   # to work properly here.
   require 'mkmf'
-  require 'dep-selector-libgecode'
 
-  opt_path = DepSelectorLibgecode.opt_path
-  include_path = DepSelectorLibgecode.include_path
+  opt_path = "/usr/lib/#{`dpkg-architecture -qDEB_TARGET_MULTIARCH`}"
+  include_path = '/usr/include'
   if find_library("gecodesupport", nil, opt_path)
 
     # Ruby sometimes has a blank RPATHFLAG, even though it's on a system that
@@ -130,9 +129,8 @@ else # JRUBY
   incflags = "-I."
   libpath = "-L."
 
-  require 'dep-selector-libgecode'
-  opt_path = DepSelectorLibgecode.opt_path
-  include_path = DepSelectorLibgecode.include_path
+  opt_path = "/usr/lib/#{`dpkg-architecture -qDEB_TARGET_MULTIARCH`}"
+  include_path = '/usr/include'
   libpath << " -L#{opt_path}"
 
   # On MRI, RbConfig::CONFIG["RPATHFLAG"] == "" when using clang/llvm, but this
