@@ -25,6 +25,7 @@ module Dep_gecode
   lib_dir = File.expand_path("../../", __FILE__)
   lib_dir_path = Dir["#{lib_dir}/dep_gecode.*"].first
 
+  raise "There is no file in #{lib_dir}/dep_gecode.*" if lib_dir_path.nil? 
   ext_dir = File.expand_path("../../../ext/dep_gecode/", __FILE__)
   ext_dir_path = Dir["#{ext_dir}/dep_gecode.*"].first
 
