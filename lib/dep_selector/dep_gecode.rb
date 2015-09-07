@@ -25,11 +25,13 @@ module Dep_gecode
   lib_dir = File.expand_path("../../", __FILE__)
   lib_dir_path = Dir["#{lib_dir}/dep_gecode.*"].first
 
-  raise "There is no file in #{lib_dir}/dep_gecode.*" if lib_dir_path.nil? 
+
   ext_dir = File.expand_path("../../../ext/dep_gecode/", __FILE__)
   ext_dir_path = Dir["#{ext_dir}/dep_gecode.*"].first
 
   path = lib_dir_path || ext_dir_path
+
+  raise "There is no file in #{lib_dir}/dep_gecode.* or #{ext_dir}/dep_gecode.*" if path.nil?
 
   # FFI will load the library by calling LoadLibraryExA. The docs for this
   # function advise not to use forward slashes (though this does work at least
@@ -39,7 +41,7 @@ module Dep_gecode
 
   ffi_lib path
 
-  # VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats, 
+  # VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats,
   #                                       bool debug, const char * log_id);
   attach_function :VersionProblemCreate, [:int, :bool, :bool, :string], :pointer
 
@@ -49,7 +51,7 @@ module Dep_gecode
   # int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
   attach_function :AddPackage, [:pointer, :int, :int, :int], :int
 
-  # int VersionProblemSize(VersionProblem *p); 
+  # int VersionProblemSize(VersionProblem *p);
   attach_function :VersionProblemSize, [:pointer], :int
 
   # void MarkPackagePreferredToBeAtLatest(VersionProblem *problem, int packageId, int weight);
@@ -86,5 +88,3 @@ module Dep_gecode
   # int GetPackageMin(VersionProblem *problem, int packageId);
   attach_function :GetPackageMin, [:pointer, :int], :int
 end
-
-
