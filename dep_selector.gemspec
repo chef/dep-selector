@@ -14,14 +14,15 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/opscode/dep-selector}
   s.require_path = 'lib'
   s.requirements << 'gecode, version 3.5 or greater'
-  s.requirements << 'g++'
-  s.files = Dir.glob("lib/**/*.{rb}") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb,def}")
-  s.extensions = Dir["ext/**/extconf.rb"]
+ # s.requirements << 'g++'
+  s.files = Dir.glob("lib/**/*.{rb}")
+  #+ Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb,def}")
+ # s.extensions = Dir["ext/**/extconf.rb"]
 
   s.required_ruby_version = ">= 1.9.2"
 
   s.add_runtime_dependency "ffi", "~> 1.9"
-  s.add_runtime_dependency "dep-selector-libgecode", "~> 1.0"
+  s.add_runtime_dependency "dep-selector-libgecode", "1.0.2"
 
   s.add_development_dependency "rake", "~> 10.0"
   s.add_development_dependency "rspec", "~> 2.14"
