@@ -23,8 +23,14 @@ if !defined?(RUBY_ENGINE) || RUBY_ENGINE == 'ruby' || RUBY_ENGINE == 'rbx'
   # GECODE needs to be built with 
   # ./configure --with-architectures=i386,x86_64
   # to work properly here.
+  begin
+    require 'dep-selector-libgecode'
+  rescue LoadError
+    require 'rubygems'
+    require 'dep-selector-libgecode'
+  end
+
   require 'mkmf'
-  require 'dep-selector-libgecode'
 
   opt_path = DepSelectorLibgecode.opt_path
   include_path = DepSelectorLibgecode.include_path
