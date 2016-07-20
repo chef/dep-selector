@@ -10,11 +10,12 @@ def read_process_file(name)
   file = File.open(name)
   problem = nil
   file.each do |line|
-    next if line =~ /^\s*$/ 
+    next if line =~ /^\s*$/
     if line =~ /Creating VersionProblem inst\# (\d+) with (\d+) packages, (\d+) stats, (\d+) debug/ then
       instance, pkg_count, stats, debug = $1,$2.to_i,$3.to_i,($4 == '0' ? false : true)
 #      puts "Cr #{instance} #{pkg_count} #{stats} #{debug}"
-      problem = DepSelector::GecodeWrapper.new(pkg_count, debug)
+      logId = SecureRandom.uuid
+      problem = DepSelector::GecodeWrapper.new(pkg_count, logId, debug)
       next
     end
     if line =~ /DepSelector inst\# (\d+) - Adding package id (\d+)\/(\d+): min = (-?\d+), max = (-?\d+), current version (-?\d+)/ then
@@ -52,7 +53,3 @@ if __FILE__ == $0
 else
 #  setup_interactive
 end
-
-
-
-    

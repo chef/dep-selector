@@ -37,7 +37,14 @@ module DepSelector
 
     # Note: only invoke this method after all PackageVersions have been added
     def densely_packed_versions
-      @densely_packed_versions ||= DenselyPackedSet.new(versions.map{|pkg_version| pkg_version.version})
+      if @densely_packed_versions.nil?
+        @densely_packed_versions = DenselyPackedSet.new(versions.map{|pkg_version| pkg_version.version})
+        Debug.log.debug { "Package Versions for '#{@name}' :" }
+        versions.each do |v|
+          Debug.log.debug { "    #{v.to_s(true)}" }
+        end
+      end
+      @densely_packed_versions
     end
 
     # Given a version, this method returns the corresonding
@@ -91,7 +98,11 @@ module DepSelector
       # invalid portion of the state space instead of naively limiting
       # it for the purposes of having failure count heuristics?
       max = densely_packed_versions.range.max || -1
-      @gecode_package_id ||= dependency_graph.gecode_wrapper.add_package(-1, max, 0)
+      if @gecode_package_id.nil?
+         @gecode_package_id = dependency_graph.gecode_wrapper.add_package(-1, max, 0)
+         Debug.log.debug { "Adding Package '#{@name}' PackageId: #{@gecode_package_id}" }
+      end
+      @gecode_package_id
     end
 
     def generate_gecode_wrapper_constraints

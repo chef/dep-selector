@@ -60,11 +60,17 @@ module DepSelector
             packages.map{ |name, pkg| pkg }
           end
 
+        logId = SecureRandom.uuid
         debugFlag = DebugOptionFile && File::exists?(DebugOptionFile)
+        Debug.log.level = Logger::INFO unless debugFlag
+        Debug.log.formatter = proc do |severity, datetime, progname, msg|
+          "#{logId}: #{msg}\n"
+        end
+
         # In addition to all the packages that the user specified,
         # there is a "ghost" package that contains the solution
         # constraints. See Selector#solve for more information.
-        @gecode_wrapper = GecodeWrapper.new(packages_in_solve.size + 1, debugFlag)
+        @gecode_wrapper = GecodeWrapper.new(packages_in_solve.size + 1, logId, debugFlag)
         packages_in_solve.each{ |pkg| pkg.generate_gecode_wrapper_constraints }
       end
     end

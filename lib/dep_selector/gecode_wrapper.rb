@@ -37,15 +37,17 @@ module DepSelector
 
     attr_reader :gecode_problem
     attr_reader :debug_logs_on
+    attr_reader :log_id
+
     DontCareConstraint = -1
     NoMatchConstraint = -2
 
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
-    def initialize(problem_or_package_count, debug=false)
+    def initialize(problem_or_package_count, logId, debug=false)
       if (problem_or_package_count.is_a?(Numeric))
-        logId = SecureRandom.uuid
         dump_statistics = DepSelector.dump_statistics || debug
+        @log_id = logId
         @debug_logs_on = debug
         @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, dump_statistics, debug, logId)
       else
@@ -157,7 +159,7 @@ module DepSelector
 
     def solve()
       raise "Gecode internal failure (solve)" if gecode_problem.nil?
-      solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem), debug_logs_on)
+      solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem), log_id, debug_logs_on)
       raise "Gecode internal failure (no solution found)" if (solution.nil?)
 
       raise Exceptions::NoSolutionFound.new(solution) if solution.package_disabled_count > 0
