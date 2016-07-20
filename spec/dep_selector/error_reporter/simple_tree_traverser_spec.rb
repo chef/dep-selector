@@ -174,12 +174,14 @@ describe DepSelector::ErrorReporter::SimpleTreeTraverser do
 
     it "should collapse two neighbors that have only one difference in the path" do
       pending
+      raise "not yet implemented"
     end
 
     it "should not collapse neighbors that are only different at the constraint on the target package" do
       pending
+      raise "not yet implemented"
     end
-    
+
   end
 
 end

@@ -29,7 +29,7 @@ VersionProblemDebug = true
 def setup_problem_for_dep_gecode(relationships)
 
 #  pp :relationships=>relationships
-  
+
   dep_graph = DepSelector::DependencyGraph.new
   setup_constraint(dep_graph, relationships)
 
@@ -84,7 +84,7 @@ def setup_soln_constraints_for_dep_gecode(soln_constraints, problem, pkg_name_to
 end
 
 def print_human_readable_solution(problem, pkg_name_to_id, dep_graph)
-  dep_graph.each_package do |package|  
+  dep_graph.each_package do |package|
     package_id = pkg_name_to_id[package.name]
     package_version = Dep_gecode.GetPackageVersion(problem,package_id)
     version_text = package.densely_packed_versions.sorted_elements[package_version]
@@ -104,9 +104,9 @@ def check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
     package_version = Dep_gecode.GetPackageVersion(problem,package_id)
     version_text = package.densely_packed_versions.sorted_elements[package_version]
     expected_version = expected_solution.nil? ? "NA" : expected_solution[package.name]
-    if (expected_version == "disabled") 
-      Dep_gecode.GetPackageDisabledState(problem,package_id).should be_true
-    else 
+    if (expected_version == "disabled")
+      Dep_gecode.GetPackageDisabledState(problem,package_id).should be true
+    else
       version_text.to_s.should == expected_version.to_s
     end
   end
@@ -121,14 +121,14 @@ def print_bindings(problem, vars)
 end
 
 describe Dep_gecode do
- 
+
   it "Can be created and destroyed" do
-    problem = Dep_gecode.VersionProblemCreate(1, true, VersionProblemDebug, "test_slug_1") 
+    problem = Dep_gecode.VersionProblemCreate(1, true, VersionProblemDebug, "test_slug_1")
     Dep_gecode.VersionProblemDestroy(problem)
   end
 
   it "Can be created, and have packages added to it" do
-    problem = Dep_gecode.VersionProblemCreate(2, true, VersionProblemDebug, "test_slug_2") 
+    problem = Dep_gecode.VersionProblemCreate(2, true, VersionProblemDebug, "test_slug_2")
     Dep_gecode.VersionProblemSize(problem).should == 2
     Dep_gecode.VersionProblemPackageCount(problem).should == 0
     packageId = Dep_gecode.AddPackage(problem, 0, 2, 8)
@@ -171,7 +171,7 @@ describe Dep_gecode do
     new_problem = Dep_gecode.Solve(@problem)
 
 #    print_human_readable_solution(new_problem, @pkg_name_to_id, @dep_graph)
-    check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
+    check_solution(new_problem, @pkg_name_to_id, @dep_graph,
                    {'A'=>'2.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'})
 
     Dep_gecode.VersionProblemDestroy(new_problem);
@@ -190,7 +190,7 @@ describe Dep_gecode do
 
     new_problem.should_not == nil
 
-    check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
+    check_solution(new_problem, @pkg_name_to_id, @dep_graph,
                    {'A'=>'1.0.0', 'B'=>'disabled', 'C'=>'1.0.0'}
                    )
 
@@ -200,7 +200,7 @@ describe Dep_gecode do
   # Friendlier, more abstracted tests
   # it VersionConstraints::SimpleProblem_2_insoluble[:desc] do
   #   problem_system = VersionConstraints::SimpleProblem_2_insoluble
-   
+
   #   setup_soln_constraints_for_dep_gecode(problem_system[:runlist_constraint], @problem, @pkg_name_to_id, @dep_graph)
 
   #   # solve and interrogate problem
@@ -272,7 +272,7 @@ describe Dep_gecode do
     Dep_gecode.VersionProblemDestroy(problem)
     Dep_gecode.VersionProblemDestroy(soln)
   end
- 
+
   describe "maximization of latestness of solution constraints" do
     before do
       # setup dep graph
@@ -298,7 +298,7 @@ describe Dep_gecode do
 
       soln = Dep_gecode.Solve(@problem)
       soln.should_not == nil
-      
+
       # since we haven't indicated that a, b, and c should be
       # preferred to be latest and a was added first, it should find a
       # satisfiable solution at a=1, b=0, c=0
@@ -313,7 +313,7 @@ describe Dep_gecode do
 
       soln = Dep_gecode.Solve(@problem)
       soln.should_not == nil
-      
+
       # since we haven't indicated that a, b, and c should be
       # preferred to be latest and a was added first, it should find a
       # satisfiable solution at a=1, b=0, c=0
@@ -344,5 +344,3 @@ describe Dep_gecode do
   end
 
 end
-
-

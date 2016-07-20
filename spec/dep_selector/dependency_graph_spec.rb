@@ -60,12 +60,12 @@ describe DepSelector::DependencyGraph do
       copied_package_a.should_not equal(original_pkg_a)
 
       copy.package("A").dependency_graph.should equal(copy)
-      copy.package("A").should have(1).versions
+      copy.package("A").versions.size == 1
       copied_pkg_a_v1_0_0 = copy.package("A").versions.first
       copied_pkg_a_v1_0_0.package.should equal(copied_package_a)
 
       copied_package_b_v2_0_0 = copied_package_b.versions.first
-      copied_package_b_v2_0_0.should have(1).dependencies
+      copied_package_b_v2_0_0.dependencies.size == 1
 
       copied_dependency = copied_package_b_v2_0_0.dependencies.first
       copied_dependency.package.should equal(copied_package_a)

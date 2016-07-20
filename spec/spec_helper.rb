@@ -23,7 +23,14 @@ require 'dep_selector'
 require 'pp'
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
-  config.treat_symbols_as_metadata_keys_with_true_values = true
+
+  config.expect_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
+
+  config.mock_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
 
   config.filter_run :focus => true
   config.filter_run_excluding :external => true

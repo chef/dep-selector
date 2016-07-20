@@ -19,10 +19,10 @@ describe "Integration with berkshelf solve" do
   let(:solve_graph) do
     graph = Solve::Graph.new
 
-    graph.artifacts("top-level", "1.0.0")
+    graph.artifact("top-level", "1.0.0")
       .depends("dep-package", ">= 0.0.0")
 
-    graph.artifacts("dep-package", "1.0.0-beta")
+    graph.artifact("dep-package", "1.0.0-beta")
     graph
   end
 
@@ -30,14 +30,14 @@ describe "Integration with berkshelf solve" do
 
   let(:graph) { DepSelector::DependencyGraph.new }
 
-  let(:solve_artifact_top_level) { solve_graph.artifacts("top-level", "1.0.0") }
-  let(:solve_artifact_dep_package) { solve_graph.artifacts("dep-package", "1.0.0") }
+  let(:solve_artifact_top_level) { solve_graph.artifact("top-level", "1.0.0") }
+  let(:solve_artifact_dep_package) { solve_graph.artifact("dep-package", "1.0.0") }
 
   it "uses solve's artifact objects to describe the problem" do
     artifact = solve_artifact_top_level
 
     package_version = graph.package(artifact.name).add_version(artifact.version)
-    package_version.version.should == Solve::Version.new("1.0.0")
+    expect(package_version.version).to eq(Semverse::Version.new("1.0.0"))
   end
 
   it "uses solve's constraints to find matching packages" do
@@ -46,7 +46,7 @@ describe "Integration with berkshelf solve" do
     package_version = graph.package(artifact.name).add_version(artifact.version)
     package = graph.package(artifact.name)
 
-    package[Solve::Constraint.new(">= 0.0.0")].should == [ package_version ]
+    package[Semverse::Constraint.new(">= 0.0.0")].should == [ package_version ]
   end
 
   it "uses solve's dependencies to describe the problem" do
@@ -59,11 +59,11 @@ describe "Integration with berkshelf solve" do
 
     DepSelector::Dependency.new(graph.package(dependency.name), dependency.constraint)
     gecode_all_versions = [ graph.package(dependency.name) ]
-    gecode_demands = [ DepSelector::SolutionConstraint.new(graph.package(artifact.name), Solve::Constraint.new(">= 0.0.0"))  ]
+    gecode_demands = [ DepSelector::SolutionConstraint.new(graph.package(artifact.name), Semverse::Constraint.new(">= 0.0.0"))  ]
 
     selector = DepSelector::Selector.new(graph, (1.0))
     solution = selector.find_solution(gecode_demands, gecode_all_versions)
-    solution.should == { "top-level" => Solve::Version.new("1.0.0") }
+    solution.should == { "top-level" => Semverse::Version.new("1.0.0") }
   end
 
 end
