@@ -18,8 +18,7 @@ Gem::Specification.new do |s|
   s.files = Dir.glob("lib/**/*.{rb}") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb,def}")
   s.extensions = Dir["ext/**/extconf.rb"]
 
-  s.required_ruby_version = ">= 1.9.2"
-
+  s.required_ruby_version = ">= 2.1.0"
   s.add_runtime_dependency "ffi", "~> 1.9"
   s.add_runtime_dependency "dep-selector-libgecode", "~> 1.0"
 

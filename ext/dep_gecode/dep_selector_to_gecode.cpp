@@ -102,7 +102,7 @@ int VersionProblem::instance_counter = 0;
 
 VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug, const char * logId)
     : size(packageCount), version_constraint_count(0), dump_stats(dumpStats),
-      debugLogging(debug), 
+      debugLogging(debug),
       finalized(false), cur_package(0), package_versions(*this, packageCount),
       disabled_package_variables(*this, packageCount, 0, 1), total_disabled(*this, 0, packageCount*MAX_TRUST_LEVEL),
       total_required_disabled(*this, 0, packageCount), total_induced_disabled(*this, 0, packageCount),
@@ -135,9 +135,9 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug, con
 
 VersionProblem::VersionProblem(bool share, VersionProblem & s)
     : Space(share, s),
-      size(s.size), version_constraint_count(s.version_constraint_count), 
-      dump_stats(s.dump_stats), 
-      debugLogging(s.debugLogging), 
+      size(s.size), version_constraint_count(s.version_constraint_count),
+      dump_stats(s.dump_stats),
+      debugLogging(s.debugLogging),
       finalized(s.finalized), cur_package(s.cur_package),
       disabled_package_variables(s.disabled_package_variables), total_disabled(s.total_disabled),
       total_required_disabled(s.total_required_disabled), total_induced_disabled(s.total_induced_disabled),
@@ -204,10 +204,10 @@ VersionProblem::AddPackage(int minVersion, int maxVersion, int currentVersion)
     }
 
     if (debugLogging) {
-        sprintf(outputBuffer, "%s DepSelector inst# %d - Adding package id %d/%d: min = %d, max = %d, current version %d",
+        sprintf(outputBuffer, "%sDepSelector inst# %d - Adding package id %d/%d: min = %d, max = %d, current version %d\n",
                 debugPrefix, instance_id, cur_package, size, minVersion, maxVersion, currentVersion);
         DEBUG_STREAM << outputBuffer;
-//        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
+//        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id
 //                     << " - Adding package id " << cur_package << '/' << size << ": min = " << minVersion << ", max = " << maxVersion << ", current version " << currentVersion << std::endl;
         DEBUG_STREAM.flush();
     }
@@ -232,10 +232,10 @@ VersionProblem::AddVersionConstraint(int packageId, int version,
 
     version_constraint_count++;
     if (debugLogging) {
-        sprintf(outputBuffer, "%sDepSelector inst# %d - Adding VC for %d @ %d depPkg %d [%d, %d]",
+        sprintf(outputBuffer, "%sDepSelector inst# %d - Adding VC for %d @ %d depPkg %d [%d, %d]\n",
                 debugPrefix, instance_id, packageId, version, dependentPackageId, minDependentVersion, maxDependentVersion);
         DEBUG_STREAM << outputBuffer;
-//        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
+//        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id
 //                     << " - Adding VC for " << packageId << " @ " << version << " depPkg " << dependentPackageId
 //                     << " [ " << minDependentVersion << ", " << maxDependentVersion << " ]" << std::endl;
         DEBUG_STREAM.flush();
@@ -270,7 +270,7 @@ VersionProblem::MarkPackageSuspicious(int packageId)
         sprintf(outputBuffer, "%sDepSelector inst# %d - Marking Package Suspicious %d",
                 debugPrefix, instance_id, packageId);
         DEBUG_STREAM << outputBuffer;
-//        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
+//        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id
 //                     << " - Marking Package Suspicious " << packageId << std::endl;
         DEBUG_STREAM.flush();
     }
@@ -283,7 +283,7 @@ VersionProblem::MarkPackageRequired(int packageId)
 
     if (debugLogging) {
         sprintf(outputBuffer, "%sDepSelector inst# %d - Marking Package Required %d", debugPrefix, instance_id, packageId);
-        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
+        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id
                      << " - Marking Package Required " << packageId << std::endl;
         DEBUG_STREAM.flush();
     }
@@ -297,7 +297,7 @@ VersionProblem::MarkPackagePreferredToBeAtLatest(int packageId, int weight)
     if (debugLogging) {
         sprintf(outputBuffer, "%sDepSelector inst# %d - Marking Package Preferred Latest %d weight %d",
                 debugPrefix, instance_id, packageId, weight);
-        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id 
+        DEBUG_STREAM << debugPrefix << "DepSelector inst# " << instance_id
                      << " - Marking Package Preferred Latest " << packageId << " weight " << weight << std::endl;
         DEBUG_STREAM.flush();
     }
