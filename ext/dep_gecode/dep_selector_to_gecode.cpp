@@ -617,7 +617,11 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
     DEBUG_STREAM << "Creating solver" << std::endl << std::flush;
 #endif
     VersionProblem *best_solution = NULL;
-    Restart<VersionProblem> solver(problem);
+    int ms_remaining = 10000; // make sure this accumulates over multiple steps.
+    Search::TimeStop timeStop(ms_remaining);
+    Search::Options options;
+    options.stop = &timeStop;
+    Restart<VersionProblem> solver(problem, options);
 
 #ifdef MEMORY_DEBUG
     DEBUG_STREAM << "Starting Solve" << std::endl << std::flush;
