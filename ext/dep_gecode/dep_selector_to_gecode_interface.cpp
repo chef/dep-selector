@@ -30,9 +30,10 @@
 
 // FFI friendly
 VersionProblem * VersionProblemCreate(int packageCount, bool dump_stats,
-                                      bool debug, const char * logId) 
+                                      bool debug, const char * logId,
+                                      unsigned long int _timeout)
 {
-  return new VersionProblem(packageCount, dump_stats, debug, logId);
+  return new VersionProblem(packageCount, dump_stats, debug, logId, _timeout);
 }
 
 void VersionProblemDestroy(VersionProblem * p)
@@ -40,12 +41,12 @@ void VersionProblemDestroy(VersionProblem * p)
   delete p;
 }
 
-int VersionProblemSize(VersionProblem *p) 
+int VersionProblemSize(VersionProblem *p)
 {
   return p->Size();
 }
 
-int VersionProblemPackageCount(VersionProblem *p) 
+int VersionProblemPackageCount(VersionProblem *p)
 {
   return p->PackageCount();
 }
@@ -58,7 +59,7 @@ void VersionProblemDump(VersionProblem *p)
   std::cout.flush();
 }
 
-void VersionProblemPrintPackageVar(VersionProblem *p, int packageId) 
+void VersionProblemPrintPackageVar(VersionProblem *p, int packageId)
 {
   p->PrintPackageVar(std::cout, packageId);
   std::cout.flush();
@@ -68,16 +69,16 @@ void VersionProblemPrintPackageVar(VersionProblem *p, int packageId)
 int AddPackage(VersionProblem *problem, int min, int max, int currentVersion) {
   return problem->AddPackage(min,max,currentVersion);
 }
-// Add constraint for package pkg @ version, 
+// Add constraint for package pkg @ version,
 // that dependentPackage is at version [minDependentVersion,maxDependentVersion]
 // Returns false if system becomes insoluble.
 void AddVersionConstraint(VersionProblem *problem, int packageId, int version,
-			  int dependentPackageId, int minDependentVersion, int maxDependentVersion) 
+                          int dependentPackageId, int minDependentVersion, int maxDependentVersion)
 {
   return problem->AddVersionConstraint(packageId, version, dependentPackageId, minDependentVersion, maxDependentVersion);
 }
 
-void MarkPackageSuspicious(VersionProblem *problem, int packageId) 
+void MarkPackageSuspicious(VersionProblem *problem, int packageId)
 {
   return problem->MarkPackageSuspicious(packageId);
 }
@@ -117,6 +118,15 @@ int GetDisabledVariableCount(VersionProblem *problem)
   return problem->GetDisabledVariableCount();
 }
 
+void SetTimeout(VersionProblem *problem, unsigned long int timeout)
+{
+    problem->SetTimeout(timeout);
+}
+
+int GetSolutionState(VersionProblem * problem)
+{
+    return problem->GetSolutionState();
+}
 
 VersionProblem * Solve(VersionProblem * problem)  {
   return VersionProblem::Solve(problem);

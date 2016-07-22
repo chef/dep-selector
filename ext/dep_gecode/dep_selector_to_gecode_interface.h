@@ -25,6 +25,12 @@
 extern "C" {
 #endif // __cplusplus
 
+#define SOLUTION_STATE_UNSTARTED 1
+#define SOLUTION_STATE_FINALIZED 2
+#define SOLUTION_STATE_SOLVED    3
+#define SOLUTION_STATE_TIMED_OUT 4
+#define SOLUTION_STATE_OPTIMAL   5
+
 #ifdef __cplusplus
   class VersionProblem;
 #else
@@ -32,7 +38,8 @@ extern "C" {
 #endif // __cplusplus
 
   VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats,
-                                        bool debug, const char * logId);
+                                        bool debug, const char * logId,
+                                        unsigned long int timeout);
   void VersionProblemDestroy(VersionProblem * vp);
 
 
@@ -41,11 +48,11 @@ extern "C" {
 
   // Return ID #
   int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
-  // Add constraint for package pkg @ version, 
+  // Add constraint for package pkg @ version,
   // that dependentPackage is at version [minDependentVersion,maxDependentVersion]
   // Returns false if system becomes insoluble.
   void AddVersionConstraint(VersionProblem *problem, int packageId, int version,
-			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
+                            int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 
   void MarkPackageSuspicious(VersionProblem *problem, int packageId);
   void MarkPackageRequired(VersionProblem *problem, int packageId);
@@ -58,6 +65,9 @@ extern "C" {
   int GetPackageMin(VersionProblem *problem, int packageId);
 
   int GetDisabledVariableCount(VersionProblem *problem);
+
+  void SetTimeout(VersionProblem *problem, unsigned long int timeout);        
+  int GetSolutionState(VersionProblem *problem);
 
   void VersionProblemDump(VersionProblem * problem);
   void VersionProblemPrintPackageVar(VersionProblem * problem, int packageId);

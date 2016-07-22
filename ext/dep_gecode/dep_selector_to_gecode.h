@@ -21,7 +21,7 @@
 #define dep_selector_to_gecode_h
 
 #include "dep_selector_to_gecode_interface.h"
-#include <iostream>	       
+#include <iostream>
 #include <vector>
 #include <set>
 
@@ -39,10 +39,10 @@ using namespace Gecode;
 
 // Extend:
 // Add optimization functions
-// Allow non-contiguous ranges in package dependencies. 
+// Allow non-contiguous ranges in package dependencies.
 
-// TODO: Add locking 
-struct VersionProblemPool 
+// TODO: Add locking
+struct VersionProblemPool
 {
     std::set<VersionProblem *> elems;
     VersionProblemPool();
@@ -59,15 +59,16 @@ class VersionProblem : public Space
 {
 public:
   static const int UNRESOLVED_VARIABLE;
-  static const int MIN_TRUST_LEVEL;  
+  static const int MIN_TRUST_LEVEL;
   static const int MAX_TRUST_LEVEL;
   static const int MAX_PREFERRED_WEIGHT;
 
   static int instance_counter;
 
-    VersionProblem(int packageCount, bool dumpStats = true, 
-                   bool debug = false, 
-                   const char * logId = 0);
+  VersionProblem(int packageCount, bool dumpStats = true,
+                 bool debug = false,
+                 const char * logId = 0,
+                 unsigned long int _timeout = 10000);
   // Clone constructor; check gecode rules for this...
   VersionProblem(bool share, VersionProblem & s);
   virtual ~VersionProblem();
@@ -80,20 +81,20 @@ public:
   virtual int AddPackage(int minVersion, int maxVersion, int currentVersion);
 
   virtual void AddVersionConstraint(int packageId, int version,
-			    int dependentPackageId, int minDependentVersion, int maxDependentVersion);
+                            int dependentPackageId, int minDependentVersion, int maxDependentVersion);
 
-  // We may wish to indicate that some packages have suspicious constraints, and when chosing packages to disable we 
-  // would disable them first. 
+  // We may wish to indicate that some packages have suspicious constraints, and when chosing packages to disable we
+  // would disable them first.
   void MarkPackageSuspicious(int packageId);
 
-  void MarkPackageRequired(int packageId); 
+  void MarkPackageRequired(int packageId);
 
   // Packages marked by this method are preferentially chosen at
   // latest according to weights
   void MarkPackagePreferredToBeAtLatest(int packageId, int weight);
 
   void Finalize();
-  
+
   virtual void constrain(const Space & _best_known_solution);
 
   int GetPackageVersion(int packageId);
@@ -101,7 +102,10 @@ public:
   int GetMax(int packageId);
   int GetMin(int packageId);
   int GetDisabledVariableCount();
-  
+
+  void SetTimeout(unsigned long int _timeout);
+  int GetSolutionState();
+
   // Support for gecode
   virtual Space* copy(bool share);
 
@@ -122,6 +126,9 @@ public:
   bool debugLogging;
   char debugPrefix[DEBUG_PREFIX_LENGTH];
   char outputBuffer[1024];
+  unsigned long int timeout;
+  int solutionState;
+
   bool finalized;
 
   BoolVarArgs version_flags;
@@ -147,7 +154,7 @@ public:
   void AddPackagesPreferredToBeAtLatestObjectiveFunction(const VersionProblem & best_known_solution);
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
   void BuildCostVector(IntVarArgs & costVector) const;
- 
+
   friend class VersionProblemPool;
 };
 

@@ -38,9 +38,9 @@ module Dep_gecode
 
   ffi_lib path
 
-  # VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats, 
-  #                                       bool debug, const char * log_id);
-  attach_function :VersionProblemCreate, [:int, :bool, :bool, :string], :pointer
+  # VersionProblem * VersionProblemCreate(int packageCount, bool dumpStats,
+  #                                       bool debug, const char * log_id, unsigned long int _timeout);
+  attach_function :VersionProblemCreate, [:int, :bool, :bool, :string, :ulong], :pointer
 
   # void VersionProblemDestroy(VersionProblem * vp);
   attach_function :VersionProblemDestroy, [:pointer], :void
@@ -48,7 +48,7 @@ module Dep_gecode
   # int AddPackage(VersionProblem *problem, int min, int max, int currentVersion);
   attach_function :AddPackage, [:pointer, :int, :int, :int], :int
 
-  # int VersionProblemSize(VersionProblem *p); 
+  # int VersionProblemSize(VersionProblem *p);
   attach_function :VersionProblemSize, [:pointer], :int
 
   # void MarkPackagePreferredToBeAtLatest(VersionProblem *problem, int packageId, int weight);
@@ -84,6 +84,12 @@ module Dep_gecode
 
   # int GetPackageMin(VersionProblem *problem, int packageId);
   attach_function :GetPackageMin, [:pointer, :int], :int
+
+  # int GetSolutionState(VersionProblem * problem);
+  attach_function :GetSolutionState, [:pointer], :int
+
+  # void SetTimeout(VersionProblem * problem, unsigned long int);
+  attach_function :SetTimeout, [:pointer, :ulong], :void
+
+
 end
-
-
