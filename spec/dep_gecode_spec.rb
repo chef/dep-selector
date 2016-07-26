@@ -105,7 +105,7 @@ def check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
     version_text = package.densely_packed_versions.sorted_elements[package_version]
     expected_version = expected_solution.nil? ? "NA" : expected_solution[package.name]
     if (expected_version == "disabled") 
-      Dep_gecode.GetPackageDisabledState(problem,package_id).should be_true
+      expect(Dep_gecode.GetPackageDisabledState(problem,package_id)).to be_truthy
     else 
       version_text.to_s.should == expected_version.to_s
     end
