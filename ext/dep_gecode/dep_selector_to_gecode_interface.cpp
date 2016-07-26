@@ -128,6 +128,6 @@ int GetSolutionState(VersionProblem * problem)
     return problem->GetSolutionState();
 }
 
-VersionProblem * Solve(VersionProblem * problem)  {
-  return VersionProblem::Solve(problem);
+int Solve(VersionProblem * problem, VersionProblem ** solution)  {
+    return VersionProblem::Solve(problem, solution);
 }

@@ -114,15 +114,13 @@ public:
   void PrintPackageVar(std::ostream & out, int packageId) ;
   const char * DebugPrefix() const { return debugPrefix; }
 
-  static VersionProblem *InnerSolve(VersionProblem * problem, int & itercount);
-
-//  static VersionProblem *InnerSolveGist(VersionProblem * problem, int & itercount);
+  static int InnerSolve(VersionProblem * problem, int & itercount, VersionProblem** solution);
 
   static void DebugLogStep(VersionProblem *problem, int itercount, const Search::Statistics & stats);
   static void LogStats(std::ostream & o, const char * debugPrefix, const Search::Statistics & stats);
   static void DebugLogFinal(VersionProblem *problem, int itercount, double elapsed_time, const Search::Statistics & stats, int solutionState);
 
-  static VersionProblem *Solve(VersionProblem *problem);
+  static int Solve(VersionProblem *problem, VersionProblem**solution);
 
  protected:
   int instance_id;

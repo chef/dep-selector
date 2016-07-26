@@ -620,46 +620,50 @@ bool VersionProblem::CheckPackageId(int id)
     return (id < size);
 }
 
-VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &itercount)
+int VersionProblem::InnerSolve(VersionProblem * problem, int &itercount, VersionProblem** best_solution)
 {
-    Gecode::Support::Timer timer;
-    timer.start();
-
 #ifdef MEMORY_DEBUG
     DEBUG_STREAM << "Creating solver" << std::endl << std::flush;
 #endif
-    VersionProblem *best_solution = NULL;
+    Gecode::Support::Timer timer;
+    timer.start();
+    *best_solution = NULL;
+    int result_code = SOLUTION_STATE_FAILED;
+
     // This needs to accumulate over multiple steps.
     Search::TimeStop timeStop(problem->timeout);
     Search::Options options;
     options.stop = &timeStop;
+
+    // Restart strategy starts branching from scratch. BNB adds the
+    // constraint but keeps on going from where it was currently.
     Restart<VersionProblem> solver(problem, options);
 
 #ifdef MEMORY_DEBUG
     DEBUG_STREAM << "Starting Solve" << std::endl << std::flush;
 #endif
 
+    // Iterate over solutions; each call to solver.next creates a new
+    // copy of the problem, and constrains it to be better than the
+    // last solution. Null is returned if no solution is found.
     while (VersionProblem *solution = solver.next()) {
-#ifdef MEMORY_DEBUG
-            DEBUG_STREAM << "Solver Next " << solution << std::endl << std::flush;
-#endif
-            if (best_solution != NULL)
-                {
-                    delete best_solution;
-                }
-            best_solution = solution;
-            best_solution->solutionState = SOLUTION_STATE_SOLVED;
 
-            ++itercount;
-            const Search::Statistics & stats = solver.statistics();
-            DebugLogStep(solution, itercount, stats);
-        }
+#ifdef MEMORY_DEBUG
+        DEBUG_STREAM << "Solver Next " << solution << std::endl << std::flush;
+#endif
+        delete *best_solution;
+        *best_solution = solution;
+
+        ++itercount;
+        const Search::Statistics & stats = solver.statistics();
+        DebugLogStep(solution, itercount, stats);
+    }
 
     // If we fail to find a solution in time we treat it as no
     // solution. We could return a special token to differentiate a
     // timeout, but that could cause problems for the FFI interface.
     if (solver.stopped()) {
-        best_solution->solutionState = SOLUTION_STATE_TIMED_OUT;
+        result_code = SOLUTION_STATE_TIMED_OUT;
         if (problem->debugLogging) {
             DEBUG_STREAM << problem->debugPrefix << "Solver FAILED: timed out with timeout set to "
                          << problem->timeout << " ms" << std::endl;
@@ -667,20 +671,20 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
             LogStats(DEBUG_STREAM, problem->debugPrefix, stats);
         }
 
-    } else  {
-        best_solution->solutionState = SOLUTION_STATE_OPTIMAL;
+    } else if (*best_solution) {
+        result_code = SOLUTION_STATE_OPTIMAL;
+    } else {
+        result_code = SOLUTION_STATE_FAILED;
     }
 
     double elapsed_time = timer.stop();
 
     if (problem->dump_stats) {
         const Search::Statistics & final_stats = solver.statistics();
-        int solutionState = best_solution ? best_solution->solutionState : SOLUTION_STATE_FAILED;
-        DebugLogFinal(problem, itercount, elapsed_time, final_stats, solutionState);
+        DebugLogFinal(problem, itercount, elapsed_time, final_stats, result_code);
     }
 
-    // We return null if there is no solution found. Timeout also returns null
-    return best_solution;
+    return result_code;
 }
 
 void VersionProblem::LogStats(std::ostream & o, const char * debugPrefix, const Search::Statistics & stats) {
@@ -709,7 +713,7 @@ void VersionProblem::DebugLogFinal(VersionProblem *problem, int itercount, doubl
 }
 
 
-VersionProblem * VersionProblem::Solve(VersionProblem * problem)
+int VersionProblem::Solve(VersionProblem * problem, VersionProblem ** solution)
 {
 
     problem->Finalize();
@@ -724,19 +728,19 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
     }
     int itercount = 0;
 
-    VersionProblem *best_solution = InnerSolve(problem, itercount);
+    int result_code = InnerSolve(problem, itercount, solution);
 
     if (problem->debugLogging) {
-        DEBUG_STREAM << problem->DebugPrefix() << "Solver Best Solution " << best_solution << std::endl << std::flush;
+        DEBUG_STREAM << problem->DebugPrefix() << "Solver Best Solution " << *solution << std::endl << std::flush;
     }
 
-    pool->Delete(best_solution);
+    pool->Delete(*solution);
     problem->pool = 0;
 
     pool->DeleteAll();
     delete pool;
 
-    return best_solution;
+    return result_code;
 }
 
 //

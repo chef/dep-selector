@@ -75,7 +75,7 @@ extern "C" {
   void VersionProblemDump(VersionProblem * problem);
   void VersionProblemPrintPackageVar(VersionProblem * problem, int packageId);
 
-  VersionProblem * Solve(VersionProblem * problem);
+  int Solve(VersionProblem * problem, VersionProblem** solution);
 
 #ifdef __cplusplus
 }
