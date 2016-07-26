@@ -56,7 +56,8 @@ module DepSelector
         dump_statistics = DepSelector.dump_statistics || debug
         @log_id = logId
         @debug_logs_on = debug
-        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, dump_statistics, debug, logId, 500)
+        @timeout = timeout
+        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, dump_statistics, debug, logId, @timeout)
       else
         @gecode_problem = problem_or_package_count
       end
@@ -168,12 +169,12 @@ module DepSelector
       raise "Gecode internal failure (set_timeout)" if gecode_problem.nil?
       Dep_gecode.SetTimeout(gecode_problem, timeout)
     end
-    
+
     def get_solution_state()
       raise "Gecode internal failure (get_solution_state)" if gecode_problem.nil?
       Dep_gecode.GetSolutionState(gecode_problem);
     end
-   
+
     def solve()
       raise "Gecode internal failure (solve)" if gecode_problem.nil?
       solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem), log_id, debug_logs_on, @timeout)

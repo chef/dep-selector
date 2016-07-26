@@ -639,8 +639,7 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
     DEBUG_STREAM << "Starting Solve" << std::endl << std::flush;
 #endif
 
-    while (VersionProblem *solution = solver.next())
-        {
+    while (VersionProblem *solution = solver.next()) {
 #ifdef MEMORY_DEBUG
             DEBUG_STREAM << "Solver Next " << solution << std::endl << std::flush;
 #endif
