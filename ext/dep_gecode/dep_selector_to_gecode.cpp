@@ -701,7 +701,7 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
                          << problem->timeout << " ms" << std::endl;
             const Search::Statistics & stats = solver.statistics();
             DEBUG_STREAM << problem->debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-            DEBUG_STREAM << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+            DEBUG_STREAM << " Depth:" << stats.depth << std::endl;
         }
 
     } else  {
