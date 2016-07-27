@@ -100,9 +100,10 @@ void VersionProblemPool::DeleteAll()
 
 int VersionProblem::instance_counter = 0;
 
-VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug, const char * logId)
+VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug, const char * logId,
+    unsigned long int _timeout)
     : size(packageCount), version_constraint_count(0), dump_stats(dumpStats),
-      debugLogging(debug),
+      debugLogging(debug), timeout(_timeout), solutionState(SOLUTION_STATE_UNSTARTED),
       finalized(false), cur_package(0), package_versions(*this, packageCount),
       disabled_package_variables(*this, packageCount, 0, 1), total_disabled(*this, 0, packageCount*MAX_TRUST_LEVEL),
       total_required_disabled(*this, 0, packageCount), total_induced_disabled(*this, 0, packageCount),
@@ -128,7 +129,7 @@ VersionProblem::VersionProblem(int packageCount, bool dumpStats, bool debug, con
     if (debugLogging) {
         DEBUG_STREAM << std::endl;
         DEBUG_STREAM << debugPrefix << "Creating VersionProblem inst# " << instance_id << " with " << packageCount << " packages, "
-                     << dumpStats << " stats, " << debug << " debug" << std::endl;
+                     << dumpStats << " stats, " << debug << " debug " << timeout << " timeout" << std::endl;
         DEBUG_STREAM.flush();
     }
 }
@@ -137,7 +138,7 @@ VersionProblem::VersionProblem(bool share, VersionProblem & s)
     : Space(share, s),
       size(s.size), version_constraint_count(s.version_constraint_count),
       dump_stats(s.dump_stats),
-      debugLogging(s.debugLogging),
+      debugLogging(s.debugLogging), timeout(s.timeout), solutionState(s.solutionState),
       finalized(s.finalized), cur_package(s.cur_package),
       disabled_package_variables(s.disabled_package_variables), total_disabled(s.total_disabled),
       total_required_disabled(s.total_required_disabled), total_induced_disabled(s.total_induced_disabled),
@@ -310,6 +311,7 @@ void VersionProblem::Finalize()
         DEBUG_STREAM.flush();
     }
     finalized = true;
+    solutionState = SOLUTION_STATE_FINALIZED;
 
     // Setup constraint for cost
     // We wish to minimize the total number of disabled packages, by priority ranks
@@ -546,6 +548,16 @@ int VersionProblem::GetDisabledVariableCount()
     }
 }
 
+void VersionProblem::SetTimeout(unsigned long int _timeout)
+{
+    timeout = _timeout;
+}
+
+int VersionProblem::GetSolutionState()
+{
+    return solutionState;
+}
+
 
 // Utility
 void VersionProblem::Print(std::ostream & out)
@@ -617,14 +629,17 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
     DEBUG_STREAM << "Creating solver" << std::endl << std::flush;
 #endif
     VersionProblem *best_solution = NULL;
-    Restart<VersionProblem> solver(problem);
+    // This needs to accumulate over multiple steps.
+    Search::TimeStop timeStop(problem->timeout);
+    Search::Options options;
+    options.stop = &timeStop;
+    Restart<VersionProblem> solver(problem, options);
 
 #ifdef MEMORY_DEBUG
     DEBUG_STREAM << "Starting Solve" << std::endl << std::flush;
 #endif
 
-    while (VersionProblem *solution = solver.next())
-        {
+    while (VersionProblem *solution = solver.next()) {
 #ifdef MEMORY_DEBUG
             DEBUG_STREAM << "Solver Next " << solution << std::endl << std::flush;
 #endif
@@ -633,6 +648,8 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
                     delete best_solution;
                 }
             best_solution = solution;
+            best_solution->solutionState = SOLUTION_STATE_SOLVED;
+
             ++itercount;
             if (problem->debugLogging) {
                 DEBUG_STREAM << problem->debugPrefix << "Trial Solution #" << itercount << "===============================" << std::endl;
@@ -643,12 +660,30 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
             }
         }
 
+    // If we fail to find a solution in time we treat it as no
+    // solution. We could return a special token to differentiate a
+    // timeout, but that could cause problems for the FFI interface.
+    if (solver.stopped()) {
+        best_solution->solutionState = SOLUTION_STATE_TIMED_OUT;
+        if (problem->debugLogging) {
+            DEBUG_STREAM << problem->debugPrefix << "Solver FAILED: timed out with timeout set to "
+                         << problem->timeout << " ms" << std::endl;
+            const Search::Statistics & stats = solver.statistics();
+            DEBUG_STREAM << problem->debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+            DEBUG_STREAM << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+        }
+
+    } else  {
+        best_solution->solutionState = SOLUTION_STATE_OPTIMAL;
+    }
+
     double elapsed_time = timer.stop();
 
     if (problem->dump_stats) {
         if (problem->debugLogging) std::cerr << problem->debugPrefix;
         std::cerr << "dep_selector solve: ";
-        std::cerr << (best_solution ? "SOLVED" : "FAILED") << " ";
+        std::cerr << ((best_solution &&  best_solution->solutionState == SOLUTION_STATE_OPTIMAL) ? "SOLVED" : "FAILED")
+                  << " ";
         std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
         std::cerr << "Time: " << elapsed_time << "ms ";
         const Search::Statistics & final_stats = solver.statistics();
@@ -658,6 +693,7 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
         std::cerr << std::endl << std::flush;
     }
 
+    // We return null if there is no solution found. Timeout also returns null
     return best_solution;
 }
 

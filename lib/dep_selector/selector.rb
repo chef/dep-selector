@@ -67,11 +67,9 @@ module DepSelector
       packages_to_include_in_solve = trim_unreachable_packages(dep_graph, solution_constraints)
 
       begin
-        Timeout::timeout(@time_bound, Exceptions::TimeBoundExceeded) do
-          # first, try to solve the whole set of constraints
-          solve(dep_graph.clone, solution_constraints, valid_packages, packages_to_include_in_solve)
-        end
-      rescue Exceptions::NoSolutionFound
+        # first, try to solve the whole set of constraints
+        solve(dep_graph.clone, solution_constraints, valid_packages, packages_to_include_in_solve)
+      rescue Exceptions::NoSolutionFound, Exceptions::TimeBoundExceededNoSolution
         # since we're here, solving the whole system failed, so add
         # the solution_constraints one-by-one and try to solve in
         # order to find the constraint that breaks the system in order
@@ -148,6 +146,7 @@ module DepSelector
       process_soln_constraints(workspace, solution_constraints, valid_packages)
 
       # solve and trim the solution down to only the
+      workspace.gecode_wrapper.set_timeout(@time_bound * 1000)      
       soln = workspace.gecode_wrapper.solve
       trim_solution(solution_constraints, soln, workspace)
     end

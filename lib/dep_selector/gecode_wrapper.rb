@@ -42,14 +42,22 @@ module DepSelector
     DontCareConstraint = -1
     NoMatchConstraint = -2
 
+    # from dep_selector_to_gecode_interface.h
+    SolutionStateUnstarted = 1
+    SolutionStateFinalized =  2
+    SolutionStateSolved = 3
+    SolutionStateTimedOut = 4
+    SolutionStateOptimal = 5
+
     # This insures that we properly deallocate the c++ class at the heart of dep_gecode.
     # modeled after http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
-    def initialize(problem_or_package_count, logId, debug=false)
+    def initialize(problem_or_package_count, logId, debug=false, timeout = 10000)
       if (problem_or_package_count.is_a?(Numeric))
         dump_statistics = DepSelector.dump_statistics || debug
         @log_id = logId
         @debug_logs_on = debug
-        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, dump_statistics, debug, logId)
+        @timeout = timeout
+        @gecode_problem = Dep_gecode.VersionProblemCreate(problem_or_package_count, dump_statistics, debug, logId, @timeout)
       else
         @gecode_problem = problem_or_package_count
       end
@@ -157,11 +165,22 @@ module DepSelector
       Dep_gecode.MarkPackagePreferredToBeAtLatest(gecode_problem, package_id, weight);
     end
 
+    def set_timeout(timeout)
+      raise "Gecode internal failure (set_timeout)" if gecode_problem.nil?
+      Dep_gecode.SetTimeout(gecode_problem, timeout)
+    end
+
+    def get_solution_state()
+      raise "Gecode internal failure (get_solution_state)" if gecode_problem.nil?
+      Dep_gecode.GetSolutionState(gecode_problem);
+    end
+
     def solve()
       raise "Gecode internal failure (solve)" if gecode_problem.nil?
-      solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem), log_id, debug_logs_on)
+      solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem), log_id, debug_logs_on, @timeout)
       raise "Gecode internal failure (no solution found)" if (solution.nil?)
 
+      raise Exceptions::TimeBoundExceeded.new() if solution.get_solution_state == SolutionStateTimedOut
       raise Exceptions::NoSolutionFound.new(solution) if solution.package_disabled_count > 0
       solution
     end
