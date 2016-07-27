@@ -28,6 +28,11 @@
 #include <gecode/driver.hh>
 #include <gecode/int.hh>
 #include <gecode/minimodel.hh>
+#include <gecode/support.hh>
+
+#if GECODE_VERSION_NUMBER < 400000
+#define GECODE_VERSION_3
+#endif
 
 using namespace Gecode;
 
@@ -166,7 +171,11 @@ class Solver {
   Solver(VersionProblem *s);
   VersionProblem GetNextSolution();
  private:
+#ifdef GECODE_VERSION_3
   Restart<VersionProblem> solver;
+#else
+  RBS<DFS, VersionProblem> solver;
+#endif
 };
 
 #endif // dep_selector_to_gecode_h
