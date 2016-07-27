@@ -492,7 +492,8 @@ void VersionProblem::constrain(const Space & _best_known_solution)
     IntVarArgs best(5);
     BuildCostVector(current);
     best_known_solution.BuildCostVector(best);
-    ConstrainVectorLessThanBest(current, best);
+//    rel(*this, best, IRT_LE, current);
+ ConstrainVectorLessThanBest(current, best);
 }
 #endif // VECTOR_CONSTRAIN
 
@@ -504,7 +505,34 @@ void VersionProblem::BuildCostVector(IntVarArgs & costVector) const {
     costVector[4] = total_required_disabled;
 }
 
+// We want to sort vectors
+// This constrains current to be less than best by a process analogous to subtraction
+// we compute current - best, pairwise with borrows from less significant elements. We require it to be less than zero by requiring the most
+// significant element to generate a borrow.
+//
+// DEPRECATED; remove once replacement is validated
+void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best) {
+    BoolVarArray borrow(*this, current.size()+1, 0, 1);
 
+    // No borrows can happen at the least significant element.
+    rel(*this, borrow[0], IRT_EQ, 0);
+
+    for (int i = 0; i < current.size(); i++) {
+        // If best+borrow is greater than current (equivalently current-(best+borrow) is < 0) then a more significant element
+        // must have decreased, so we propagate a borrow to the next most significant element.
+        int best_val = best[i].val();
+        IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
+        // (delta < 0) <=> borrow[i+1]
+        rel(*this, delta, IRT_LE, 0, borrow[i+1]);
+        if (debugLogging) {
+            DEBUG_STREAM << debugPrefix << "      ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
+            DEBUG_STREAM << debugPrefix << "      ConstrainVector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
+        }
+    }
+
+    // must borrow off past the most significant element.
+    rel(*this, borrow[current.size()], IRT_EQ, 1);
+}
 
 IntVar * VersionProblem::GetPackageVersionVar(int packageId)
 {
@@ -590,34 +618,6 @@ void VersionProblem::PrintPackageVar(std::ostream & out, int packageId)
 bool VersionProblem::CheckPackageId(int id)
 {
     return (id < size);
-}
-
-// We want to sort vectors
-// This constrains current to be less than best by a process analogous to subtraction
-// we compute current - best, pairwise with borrows from less significant elements. We require it to be less than zero by requiring the most
-// significant element to generate a borrow.
-//
-void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best) {
-    BoolVarArray borrow(*this, current.size()+1, 0, 1);
-
-    // No borrows can happen at the least significant element.
-    rel(*this, borrow[0], IRT_EQ, 0);
-
-    for (int i = 0; i < current.size(); i++) {
-        // If best+borrow is greater than current (equivalently current-(best+borrow) is < 0) then a more significant element
-        // must have decreased, so we propagate a borrow to the next most significant element.
-        int best_val = best[i].val();
-        IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
-        // (delta < 0) <=> borrow[i+1]
-        rel(*this, delta, IRT_LE, 0, borrow[i+1]);
-        if (debugLogging) {
-            DEBUG_STREAM << debugPrefix << "      ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
-            DEBUG_STREAM << debugPrefix << "      ConstrainVector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
-        }
-    }
-
-    // must borrow off past the most significant element.
-    rel(*this, borrow[current.size()], IRT_EQ, 1);
 }
 
 VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &itercount)
