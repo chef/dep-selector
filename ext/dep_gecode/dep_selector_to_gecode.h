@@ -115,6 +115,12 @@ public:
   const char * DebugPrefix() const { return debugPrefix; }
 
   static VersionProblem *InnerSolve(VersionProblem * problem, int & itercount);
+
+//  static VersionProblem *InnerSolveGist(VersionProblem * problem, int & itercount);
+
+  static void DebugLogStep(VersionProblem *problem, int itercount, const Search::Statistics & stats);
+  static void LogStats(std::ostream & o, char * debugPrefix, const Search::Statistics & stats);
+
   static VersionProblem *Solve(VersionProblem *problem);
 
  protected:

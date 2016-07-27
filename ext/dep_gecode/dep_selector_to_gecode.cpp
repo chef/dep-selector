@@ -651,13 +651,8 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
             best_solution->solutionState = SOLUTION_STATE_SOLVED;
 
             ++itercount;
-            if (problem->debugLogging) {
-                DEBUG_STREAM << problem->debugPrefix << "Trial Solution #" << itercount << "===============================" << std::endl;
-                const Search::Statistics & stats = solver.statistics();
-                DEBUG_STREAM << problem->debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-                DEBUG_STREAM << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
-                solution->Print(DEBUG_STREAM);
-            }
+            const Search::Statistics & stats = solver.statistics();
+            DebugLogStep(solution, itercount, stats);
         }
 
     // If we fail to find a solution in time we treat it as no
@@ -669,8 +664,7 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
             DEBUG_STREAM << problem->debugPrefix << "Solver FAILED: timed out with timeout set to "
                          << problem->timeout << " ms" << std::endl;
             const Search::Statistics & stats = solver.statistics();
-            DEBUG_STREAM << problem->debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-            DEBUG_STREAM << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+            LogStats(DEBUG_STREAM, problem->debugPrefix, stats);
         }
 
     } else  {
@@ -696,6 +690,20 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
     // We return null if there is no solution found. Timeout also returns null
     return best_solution;
 }
+
+void VersionProblem::LogStats(std::ostream & o, char * debugPrefix, const Search::Statistics & stats) {
+    o << debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+    o << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+}
+
+void VersionProblem::DebugLogStep(VersionProblem *problem, int itercount, const Search::Statistics & stats) {
+     if (problem->debugLogging) {
+         DEBUG_STREAM << problem->debugPrefix << "Trial Solution #" << itercount << "===============================" << std::endl;
+         LogStats(DEBUG_STREAM, problem->debugPrefix, stats);
+         problem->Print(DEBUG_STREAM);
+     }
+}
+
 
 VersionProblem * VersionProblem::Solve(VersionProblem * problem)
 {
