@@ -25,11 +25,14 @@
 extern "C" {
 #endif // __cplusplus
 
+#define SOLUTION_STATE_FAILED    0
 #define SOLUTION_STATE_UNSTARTED 1
 #define SOLUTION_STATE_FINALIZED 2
 #define SOLUTION_STATE_SOLVED    3
 #define SOLUTION_STATE_TIMED_OUT 4
 #define SOLUTION_STATE_OPTIMAL   5
+
+
 
 #ifdef __cplusplus
   class VersionProblem;
@@ -66,7 +69,7 @@ extern "C" {
 
   int GetDisabledVariableCount(VersionProblem *problem);
 
-  void SetTimeout(VersionProblem *problem, unsigned long int timeout);        
+  void SetTimeout(VersionProblem *problem, unsigned long int timeout);
   int GetSolutionState(VersionProblem *problem);
 
   void VersionProblemDump(VersionProblem * problem);

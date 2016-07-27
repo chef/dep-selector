@@ -674,24 +674,16 @@ VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &iterc
     double elapsed_time = timer.stop();
 
     if (problem->dump_stats) {
-        if (problem->debugLogging) std::cerr << problem->debugPrefix;
-        std::cerr << "dep_selector solve: ";
-        std::cerr << ((best_solution &&  best_solution->solutionState == SOLUTION_STATE_OPTIMAL) ? "SOLVED" : "FAILED")
-                  << " ";
-        std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
-        std::cerr << "Time: " << elapsed_time << "ms ";
         const Search::Statistics & final_stats = solver.statistics();
-        std::cerr << "Stats: " << itercount << " steps, ";
-        std::cerr << final_stats.memory << " bytes, ";
-        std::cerr << final_stats.propagate << " props, " << final_stats.node << " nodes, " << final_stats.depth << " depth ";
-        std::cerr << std::endl << std::flush;
+        int solutionState = best_solution ? best_solution->solutionState : SOLUTION_STATE_FAILED;
+        DebugLogFinal(problem, itercount, elapsed_time, final_stats, solutionState);
     }
 
     // We return null if there is no solution found. Timeout also returns null
     return best_solution;
 }
 
-void VersionProblem::LogStats(std::ostream & o, char * debugPrefix, const Search::Statistics & stats) {
+void VersionProblem::LogStats(std::ostream & o, const char * debugPrefix, const Search::Statistics & stats) {
     o << debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
     o << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
 }
@@ -702,6 +694,18 @@ void VersionProblem::DebugLogStep(VersionProblem *problem, int itercount, const 
          LogStats(DEBUG_STREAM, problem->debugPrefix, stats);
          problem->Print(DEBUG_STREAM);
      }
+}
+
+void VersionProblem::DebugLogFinal(VersionProblem *problem, int itercount, double elapsed_time, const Search::Statistics & stats, int solutionState) {
+     if (problem->debugLogging) std::cerr << problem->debugPrefix;
+     std::cerr << "dep_selector solve: ";
+     std::cerr << ((solutionState == SOLUTION_STATE_OPTIMAL) ? "SOLVED" : "FAILED") << " ";
+     std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
+     std::cerr << "Time: " << elapsed_time << "ms ";
+
+     std::cerr << "Stats: " << itercount << " steps, ";
+     LogStats(std::cerr, (problem->debugLogging ? problem->debugPrefix : ""), stats);
+     std::cerr << std::flush;
 }
 
 

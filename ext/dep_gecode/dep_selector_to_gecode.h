@@ -119,7 +119,8 @@ public:
 //  static VersionProblem *InnerSolveGist(VersionProblem * problem, int & itercount);
 
   static void DebugLogStep(VersionProblem *problem, int itercount, const Search::Statistics & stats);
-  static void LogStats(std::ostream & o, char * debugPrefix, const Search::Statistics & stats);
+  static void LogStats(std::ostream & o, const char * debugPrefix, const Search::Statistics & stats);
+  static void DebugLogFinal(VersionProblem *problem, int itercount, double elapsed_time, const Search::Statistics & stats, int solutionState);
 
   static VersionProblem *Solve(VersionProblem *problem);
 
