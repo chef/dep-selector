@@ -22,6 +22,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'spec_helper'))
 require 'version_constraints'
 
 VersionProblemDebug = true
+DefaultTimeout = 5000
 
 # so that we can use test data that's already written in other tests,
 # we're accepting the same format but adapting it for our C++ wrapper
@@ -34,7 +35,7 @@ def setup_problem_for_dep_gecode(relationships)
   setup_constraint(dep_graph, relationships)
 
   dep_gecode_packages = {}
-  problem = Dep_gecode.VersionProblemCreate(dep_graph.packages.size+1, true, VersionProblemDebug, "test_slug") # extra for runlist meta package
+  problem = Dep_gecode.VersionProblemCreate(dep_graph.packages.size+1, true, VersionProblemDebug, "test_slug", DefaultTimeout) # extra for runlist meta package
 
   # all packages must be created before dependencies using them can be created
   dep_graph.each_package do |package|
@@ -123,12 +124,12 @@ end
 describe Dep_gecode do
  
   it "Can be created and destroyed" do
-    problem = Dep_gecode.VersionProblemCreate(1, true, VersionProblemDebug, "test_slug_1") 
+    problem = Dep_gecode.VersionProblemCreate(1, true, VersionProblemDebug, "test_slug_1", DefaultTimeout) 
     Dep_gecode.VersionProblemDestroy(problem)
   end
 
   it "Can be created, and have packages added to it" do
-    problem = Dep_gecode.VersionProblemCreate(2, true, VersionProblemDebug, "test_slug_2") 
+    problem = Dep_gecode.VersionProblemCreate(2, true, VersionProblemDebug, "test_slug_2", DefaultTimeout) 
     Dep_gecode.VersionProblemSize(problem).should == 2
     Dep_gecode.VersionProblemPackageCount(problem).should == 0
     packageId = Dep_gecode.AddPackage(problem, 0, 2, 8)
@@ -226,7 +227,7 @@ describe Dep_gecode do
     # Note: this test is a lower-level version of the test in
     # selector_spec titled "should indicate that the problematic
     # package is the dependency that is constrained to no versions"
-    problem = Dep_gecode.VersionProblemCreate(11, true, VersionProblemDebug, "test_slug_3")
+    problem = Dep_gecode.VersionProblemCreate(11, true, VersionProblemDebug, "test_slug_3", DefaultTimeout)
 
     # setup dep graph
     Dep_gecode.AddPackage(problem, -1, 0, 0);
@@ -279,7 +280,7 @@ describe Dep_gecode do
 
       # since @problem was already created, first free it
       Dep_gecode.VersionProblemDestroy(@problem)
-      @problem = Dep_gecode.VersionProblemCreate(4, true, VersionProblemDebug, "test_slug_4")
+      @problem = Dep_gecode.VersionProblemCreate(4, true, VersionProblemDebug, "test_slug_4", DefaultTimeout)
       @pkg_a = Dep_gecode.AddPackage(@problem, -1, 1, 0);
       @pkg_b = Dep_gecode.AddPackage(@problem, -1, 1, 0);
       @pkg_c = Dep_gecode.AddPackage(@problem, -1, 1, 0);
