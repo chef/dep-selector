@@ -64,12 +64,16 @@ module DepSelector
       # this is a performance optimization so that packages that are
       # completely unreachable by the solution constraints don't get
       # added to the CSP
+      #
+      # TODO: remove this, it's now done by create_subgraph_for_constraints
+      # Also. Determine if this will change which packages get weighted as latest
       packages_to_include_in_solve = trim_unreachable_packages(dep_graph, solution_constraints)
 
+      ws = dep_graph.create_subgraph_for_constraints(solution_constraints)
       begin
         Timeout::timeout(@time_bound, Exceptions::TimeBoundExceeded) do
           # first, try to solve the whole set of constraints
-          solve(dep_graph.clone, solution_constraints, valid_packages, packages_to_include_in_solve)
+          solve(ws, solution_constraints, valid_packages, packages_to_include_in_solve)
         end
       rescue Exceptions::NoSolutionFound
         # since we're here, solving the whole system failed, so add
@@ -170,16 +174,16 @@ module DepSelector
         pkg = workspace.package(pkg_name)
         constraint = soln_constraint.constraint
 
-        # record invalid solution constraints and raise an exception
-        # afterwards
-        unless pkg.valid? || (valid_packages && valid_packages.include?(pkg))
-          soln_constraints_on_non_existent_packages << soln_constraint
-          next
-        end
-        if pkg[constraint].empty?
-          soln_constraints_that_match_no_versions << soln_constraint
-          next
-        end
+        # # record invalid solution constraints and raise an exception
+        # # afterwards
+        # unless pkg.valid? || (valid_packages && valid_packages.include?(pkg))
+        #   soln_constraints_on_non_existent_packages << soln_constraint
+        #   next
+        # end
+        # if pkg[constraint].empty?
+        #   soln_constraints_that_match_no_versions << soln_constraint
+        #   next
+        # end
 
         pkg_id = pkg.gecode_package_id
 

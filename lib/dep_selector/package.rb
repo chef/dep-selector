@@ -35,6 +35,10 @@ module DepSelector
       pv
     end
 
+    def has_version?(version)
+      versions.include?(version)
+    end
+
     # Note: only invoke this method after all PackageVersions have been added
     def densely_packed_versions
       if @densely_packed_versions.nil?
