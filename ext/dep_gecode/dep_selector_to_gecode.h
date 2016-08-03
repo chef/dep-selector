@@ -28,6 +28,11 @@
 #include <gecode/driver.hh>
 #include <gecode/int.hh>
 #include <gecode/minimodel.hh>
+#include <gecode/support.hh>
+
+#if GECODE_VERSION_NUMBER < 400000
+#define GECODE_VERSION_3
+#endif
 
 using namespace Gecode;
 

@@ -394,6 +394,24 @@ void VersionProblem::Finalize()
     }
 }
 
+// GECODE VERSION NUMBER is 100000 * x + 100 * y + z for version x.y.z
+#ifndef GECODE_VERSION_3
+#undef INT_VAL_MAX
+#undef INT_VAL_MIN
+#undef INT_VAR_DEGREE_MAX
+#undef INT_VAR_DEGREE_MIN
+#undef INT_VAR_SIZE_MAX
+#undef INT_VAR_SIZE_MIN
+
+#define INT_VAL_MAX INT_VAL_MAX()
+#define INT_VAL_MIN INT_VAL_MIN()
+#define INT_VAR_DEGREE_MAX INT_VAR_DEGREE_MAX()
+#define INT_VAR_DEGREE_MIN INT_VAR_DEGREE_MINX()
+#define INT_VAR_SIZE_MAX INT_VAR_SIZE_MAX()
+#define INT_VAR_SIZE_MIN INT_VAR_SIZE_MIN()
+
+#endif
+
 // Define various branchers:
 //
 // The ordering here is important; we make variable choices in
@@ -702,9 +720,15 @@ int VersionProblem::InnerSolve(VersionProblem * problem, int &itercount, Version
     Search::Options options;
     options.stop = &timeStop;
 
+#ifdef GECODE_VERSION_3
     // Restart strategy starts branching from scratch. BNB adds the
     // constraint but keeps on going from where it was currently.
     Restart<VersionProblem> solver(problem, options);
+#else
+    options.cutoff = Search::Cutoff::geometric();
+    RBS<DFS, VersionProblem> solver(problem, options);
+#endif
+
 
 #ifdef MEMORY_DEBUG
     DEBUG_STREAM << "Starting Solve" << std::endl << std::flush;
@@ -770,7 +794,11 @@ void VersionProblem::GistSolveStep() {
 
 void VersionProblem::LogStats(std::ostream & o, const char * debugPrefix, const Search::Statistics & stats) {
     o << debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-    o << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+    o << " Depth:" << stats.depth;
+#ifdef GECODE_VERSION_3
+    o << " memory:" << stats.memory;
+#endif // GECODE_VERSION_3
+    o << std::endl;
 }
 
 void VersionProblem::DebugLogStep(VersionProblem *problem, int itercount, const Search::Statistics & stats) {
