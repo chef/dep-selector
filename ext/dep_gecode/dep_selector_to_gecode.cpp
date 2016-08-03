@@ -383,11 +383,33 @@ void VersionProblem::Finalize()
     }
 
 #ifdef USE_DUMB_BRANCHING
+    AddBrancherPoor(DEBUG_STREAM);
+#else // USE_DUMB_BRANCHING
+    AddBrancherV2(DEBUG_STREAM);
+#endif // USE_DUMB_BRANCHING
+
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "Finalization Done" << std::endl;
+        DEBUG_STREAM.flush();
+    }
+}
+
+// Define various branchers:
+//
+// The ordering here is important; we make variable choices in
+// order that the branchings are listed, and a bad variable choice
+// can be orders of magnitude slower to solve. In general we want to
+// choose variables that generate lots of propagations; each variable
+// choice can involve a backtrack, so the bias is towards maximizing the
+// bindings induced by a choice.
+
+// This branching starts as far as possible from the solution, in order to exercise the optimization functions.
+void VersionProblem::AddBrancherPoor(std::ostream & o) {
     if (debugLogging) {
         DEBUG_STREAM << debugPrefix << "    Adding branching (POOR)" << std::endl;
         DEBUG_STREAM.flush();
     }
-    // This branching starts as far as possible from the solution, in order to exercise the optimization functions.
+
     branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MIN);
     branch(*this, total_required_disabled, INT_VAL_MAX);
@@ -397,12 +419,19 @@ void VersionProblem::Finalize()
     branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MIN);
     branch(*this, total_preferred_at_latest, INT_VAL_MIN);
     branch(*this, total_not_preferred_at_latest, INT_VAL_MIN);
-#else // USE_DUMB_BRANCHING
+}
+
+// This is the 'classic' brancher that's been used since 2012. Has
+// some pathological solves
+void VersionProblem::AddBrancherOriginal(std::ostream & o) {
     if (debugLogging) {
-        DEBUG_STREAM << debugPrefix << "    Adding branching (BEST)" << std::endl;
+        DEBUG_STREAM << debugPrefix << "    Adding branching (ORIGINAL)" << std::endl;
         DEBUG_STREAM.flush();
     }
     // This branching is meant to start with most probable solution
+    // The ordering here is important; we make variable choices in
+    // order that the branchings are listed, and a bad variable choice
+    // can be orders of magnitude slower to solve.
     branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
     branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, total_required_disabled, INT_VAL_MIN);
@@ -412,12 +441,50 @@ void VersionProblem::Finalize()
     branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, total_preferred_at_latest, INT_VAL_MAX);
     branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
-#endif // USE_DUMB_BRANCHING
+}
 
-    if (debugLogging) {
-        DEBUG_STREAM << debugPrefix << "Finalization Done" << std::endl;
+// This is the minimal tweak to the 'classic' brancher that avoids the solves.
+void VersionProblem::AddBrancherV2(std::ostream & o) {
+     if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    Adding branching (V2)" << std::endl;
         DEBUG_STREAM.flush();
     }
+    // This branching is meant to start with most probable solution
+    // The ordering here is important; we make variable choices in
+    // order that the branchings are listed, and a bad variable choice
+    // can be orders of magnitude slower to solve.
+    branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
+    // Using INT_VAR_SIZE_MIN (what old versions do; can cause 12E3 x slowdown)
+    branch(*this, package_versions, INT_VAR_DEGREE_MAX, INT_VAL_MAX);
+    branch(*this, total_required_disabled, INT_VAL_MIN);
+    branch(*this, total_induced_disabled, INT_VAL_MIN);
+    branch(*this, total_suspicious_disabled, INT_VAL_MIN);
+    branch(*this, total_disabled, INT_VAL_MIN);
+    branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MAX);
+    branch(*this, total_preferred_at_latest, INT_VAL_MAX);
+    branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
+}
+
+// This behaves better on some problems, and worse on others; still
+// figuring out why. Behaves very well on gecode 4.x
+void VersionProblem::AddBrancherAtLatest(std::ostream & o) {
+     if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    Adding branching (AtLatest)" << std::endl;
+        DEBUG_STREAM.flush();
+    }
+    // We total preferred at latest at maximum first, to trigger as much
+    // propagation as possible, followed by all other packages at
+    // latest in order of degree (# of constraints related to this variable)
+    //
+    branch(*this, package_versions, INT_VAR_DEGREE_MAX, INT_VAL_MAX);
+    branch(*this, at_latest, INT_VAR_DEGREE_MAX, INT_VAL_MAX);
+    branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
+    branch(*this, total_preferred_at_latest, INT_VAL_MAX);
+    branch(*this, total_disabled, INT_VAL_MIN);
+    branch(*this, total_required_disabled, INT_VAL_MIN);
+    branch(*this, total_induced_disabled, INT_VAL_MIN);
+    branch(*this, total_suspicious_disabled, INT_VAL_MIN);
+    branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -493,7 +560,7 @@ void VersionProblem::constrain(const Space & _best_known_solution)
     BuildCostVector(current);
     best_known_solution.BuildCostVector(best);
 //    rel(*this, best, IRT_LE, current);
- ConstrainVectorLessThanBest(current, best);
+    ConstrainVectorLessThanBest(current, best);
 }
 #endif // VECTOR_CONSTRAIN
 

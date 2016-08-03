@@ -162,6 +162,11 @@ public:
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
   void BuildCostVector(IntVarArgs & costVector) const;
 
+  void AddBrancherPoor(std::ostream & o);
+  void AddBrancherOriginal(std::ostream & o);
+  void AddBrancherV2(std::ostream & o);
+  void AddBrancherAtLatest(std::ostream & o);
+
   friend class VersionProblemPool;
 };
 
