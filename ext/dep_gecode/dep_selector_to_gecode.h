@@ -112,6 +112,8 @@ public:
   // Debug and utility functions
   void Print(std::ostream &out);
   void PrintPackageVar(std::ostream & out, int packageId) ;
+  void GistSolveStep();
+
   const char * DebugPrefix() const { return debugPrefix; }
 
   static int InnerSolve(VersionProblem * problem, int & itercount, VersionProblem** solution);

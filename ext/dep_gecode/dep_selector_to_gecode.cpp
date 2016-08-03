@@ -659,6 +659,10 @@ int VersionProblem::InnerSolve(VersionProblem * problem, int &itercount, Version
         DebugLogStep(solution, itercount, stats);
     }
 
+    // Solve with GIST:
+    VersionProblem * last = *best_solution ? *best_solution : problem;
+    last->GistSolveStep();
+
     // If we fail to find a solution in time we treat it as no
     // solution. We could return a special token to differentiate a
     // timeout, but that could cause problems for the FFI interface.
@@ -685,6 +689,16 @@ int VersionProblem::InnerSolve(VersionProblem * problem, int &itercount, Version
     }
 
     return result_code;
+}
+
+void VersionProblem::GistSolveStep() {
+#ifdef GIST_ENABLED
+    VersionProblem * trial = dynamic_cast<VersionProblem*>(this->copy(false));
+    trial->constrain(*this);
+    Gist::Options options;
+    Gist::dfs(trial, options);
+    delete trial;
+#endif
 }
 
 void VersionProblem::LogStats(std::ostream & o, const char * debugPrefix, const Search::Statistics & stats) {
