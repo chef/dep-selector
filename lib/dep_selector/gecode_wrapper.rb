@@ -177,10 +177,16 @@ module DepSelector
 
     def solve()
       raise "Gecode internal failure (solve)" if gecode_problem.nil?
-      solution = GecodeWrapper.new(Dep_gecode.Solve(gecode_problem), log_id, debug_logs_on, @timeout)
+
+      solutionPtr = FFI::MemoryPointer.new :pointer
+      resultCode = Dep_gecode.Solve(gecode_problem, solutionPtr)
+      solutionRaw = solutionPtr.get_pointer(0)
+
+      solution = GecodeWrapper.new(solutionRaw, log_id, debug_logs_on, @timeout)
+
       raise "Gecode internal failure (no solution found)" if (solution.nil?)
 
-      raise Exceptions::TimeBoundExceeded.new() if solution.get_solution_state == SolutionStateTimedOut
+      raise Exceptions::TimeBoundExceeded.new() if resultCode == SolutionStateTimedOut
       raise Exceptions::NoSolutionFound.new(solution) if solution.package_disabled_count > 0
       solution
     end

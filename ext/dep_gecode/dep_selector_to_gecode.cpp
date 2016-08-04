@@ -383,11 +383,51 @@ void VersionProblem::Finalize()
     }
 
 #ifdef USE_DUMB_BRANCHING
+    AddBrancherPoor(DEBUG_STREAM);
+#else // USE_DUMB_BRANCHING
+    AddBrancherV2(DEBUG_STREAM);
+#endif // USE_DUMB_BRANCHING
+
+    if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "Finalization Done" << std::endl;
+        DEBUG_STREAM.flush();
+    }
+}
+
+// GECODE VERSION NUMBER is 100000 * x + 100 * y + z for version x.y.z
+#ifndef GECODE_VERSION_3
+#undef INT_VAL_MAX
+#undef INT_VAL_MIN
+#undef INT_VAR_DEGREE_MAX
+#undef INT_VAR_DEGREE_MIN
+#undef INT_VAR_SIZE_MAX
+#undef INT_VAR_SIZE_MIN
+
+#define INT_VAL_MAX INT_VAL_MAX()
+#define INT_VAL_MIN INT_VAL_MIN()
+#define INT_VAR_DEGREE_MAX INT_VAR_DEGREE_MAX()
+#define INT_VAR_DEGREE_MIN INT_VAR_DEGREE_MINX()
+#define INT_VAR_SIZE_MAX INT_VAR_SIZE_MAX()
+#define INT_VAR_SIZE_MIN INT_VAR_SIZE_MIN()
+
+#endif
+
+// Define various branchers:
+//
+// The ordering here is important; we make variable choices in
+// order that the branchings are listed, and a bad variable choice
+// can be orders of magnitude slower to solve. In general we want to
+// choose variables that generate lots of propagations; each variable
+// choice can involve a backtrack, so the bias is towards maximizing the
+// bindings induced by a choice.
+
+// This branching starts as far as possible from the solution, in order to exercise the optimization functions.
+void VersionProblem::AddBrancherPoor(std::ostream & o) {
     if (debugLogging) {
         DEBUG_STREAM << debugPrefix << "    Adding branching (POOR)" << std::endl;
         DEBUG_STREAM.flush();
     }
-    // This branching starts as far as possible from the solution, in order to exercise the optimization functions.
+
     branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MIN);
     branch(*this, total_required_disabled, INT_VAL_MAX);
@@ -397,12 +437,19 @@ void VersionProblem::Finalize()
     branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MIN);
     branch(*this, total_preferred_at_latest, INT_VAL_MIN);
     branch(*this, total_not_preferred_at_latest, INT_VAL_MIN);
-#else // USE_DUMB_BRANCHING
+}
+
+// This is the 'classic' brancher that's been used since 2012. Has
+// some pathological solves
+void VersionProblem::AddBrancherOriginal(std::ostream & o) {
     if (debugLogging) {
-        DEBUG_STREAM << debugPrefix << "    Adding branching (BEST)" << std::endl;
+        DEBUG_STREAM << debugPrefix << "    Adding branching (ORIGINAL)" << std::endl;
         DEBUG_STREAM.flush();
     }
     // This branching is meant to start with most probable solution
+    // The ordering here is important; we make variable choices in
+    // order that the branchings are listed, and a bad variable choice
+    // can be orders of magnitude slower to solve.
     branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
     branch(*this, package_versions, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, total_required_disabled, INT_VAL_MIN);
@@ -412,12 +459,50 @@ void VersionProblem::Finalize()
     branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MAX);
     branch(*this, total_preferred_at_latest, INT_VAL_MAX);
     branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
-#endif // USE_DUMB_BRANCHING
+}
 
-    if (debugLogging) {
-        DEBUG_STREAM << debugPrefix << "Finalization Done" << std::endl;
+// This is the minimal tweak to the 'classic' brancher that avoids the solves.
+void VersionProblem::AddBrancherV2(std::ostream & o) {
+     if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    Adding branching (V2)" << std::endl;
         DEBUG_STREAM.flush();
     }
+    // This branching is meant to start with most probable solution
+    // The ordering here is important; we make variable choices in
+    // order that the branchings are listed, and a bad variable choice
+    // can be orders of magnitude slower to solve.
+    branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
+    // Using INT_VAR_SIZE_MIN (what old versions do; can cause 12E3 x slowdown)
+    branch(*this, package_versions, INT_VAR_DEGREE_MAX, INT_VAL_MAX);
+    branch(*this, total_required_disabled, INT_VAL_MIN);
+    branch(*this, total_induced_disabled, INT_VAL_MIN);
+    branch(*this, total_suspicious_disabled, INT_VAL_MIN);
+    branch(*this, total_disabled, INT_VAL_MIN);
+    branch(*this, at_latest, INT_VAR_SIZE_MIN, INT_VAL_MAX);
+    branch(*this, total_preferred_at_latest, INT_VAL_MAX);
+    branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
+}
+
+// This behaves better on some problems, and worse on others; still
+// figuring out why. Behaves very well on gecode 4.x
+void VersionProblem::AddBrancherAtLatest(std::ostream & o) {
+     if (debugLogging) {
+        DEBUG_STREAM << debugPrefix << "    Adding branching (AtLatest)" << std::endl;
+        DEBUG_STREAM.flush();
+    }
+    // We total preferred at latest at maximum first, to trigger as much
+    // propagation as possible, followed by all other packages at
+    // latest in order of degree (# of constraints related to this variable)
+    //
+    branch(*this, package_versions, INT_VAR_DEGREE_MAX, INT_VAL_MAX);
+    branch(*this, at_latest, INT_VAR_DEGREE_MAX, INT_VAL_MAX);
+    branch(*this, disabled_package_variables, INT_VAR_SIZE_MIN, INT_VAL_MIN);
+    branch(*this, total_preferred_at_latest, INT_VAL_MAX);
+    branch(*this, total_disabled, INT_VAL_MIN);
+    branch(*this, total_required_disabled, INT_VAL_MIN);
+    branch(*this, total_induced_disabled, INT_VAL_MIN);
+    branch(*this, total_suspicious_disabled, INT_VAL_MIN);
+    branch(*this, total_not_preferred_at_latest, INT_VAL_MAX);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -492,6 +577,7 @@ void VersionProblem::constrain(const Space & _best_known_solution)
     IntVarArgs best(5);
     BuildCostVector(current);
     best_known_solution.BuildCostVector(best);
+//    rel(*this, best, IRT_LE, current);
     ConstrainVectorLessThanBest(current, best);
 }
 #endif // VECTOR_CONSTRAIN
@@ -504,7 +590,34 @@ void VersionProblem::BuildCostVector(IntVarArgs & costVector) const {
     costVector[4] = total_required_disabled;
 }
 
+// We want to sort vectors
+// This constrains current to be less than best by a process analogous to subtraction
+// we compute current - best, pairwise with borrows from less significant elements. We require it to be less than zero by requiring the most
+// significant element to generate a borrow.
+//
+// DEPRECATED; remove once replacement is validated
+void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best) {
+    BoolVarArray borrow(*this, current.size()+1, 0, 1);
 
+    // No borrows can happen at the least significant element.
+    rel(*this, borrow[0], IRT_EQ, 0);
+
+    for (int i = 0; i < current.size(); i++) {
+        // If best+borrow is greater than current (equivalently current-(best+borrow) is < 0) then a more significant element
+        // must have decreased, so we propagate a borrow to the next most significant element.
+        int best_val = best[i].val();
+        IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
+        // (delta < 0) <=> borrow[i+1]
+        rel(*this, delta, IRT_LE, 0, borrow[i+1]);
+        if (debugLogging) {
+            DEBUG_STREAM << debugPrefix << "      ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
+            DEBUG_STREAM << debugPrefix << "      ConstrainVector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
+        }
+    }
+
+    // must borrow off past the most significant element.
+    rel(*this, borrow[current.size()], IRT_EQ, 1);
+}
 
 IntVar * VersionProblem::GetPackageVersionVar(int packageId)
 {
@@ -592,112 +705,124 @@ bool VersionProblem::CheckPackageId(int id)
     return (id < size);
 }
 
-// We want to sort vectors
-// This constrains current to be less than best by a process analogous to subtraction
-// we compute current - best, pairwise with borrows from less significant elements. We require it to be less than zero by requiring the most
-// significant element to generate a borrow.
-//
-void VersionProblem::ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best) {
-    BoolVarArray borrow(*this, current.size()+1, 0, 1);
-
-    // No borrows can happen at the least significant element.
-    rel(*this, borrow[0], IRT_EQ, 0);
-
-    for (int i = 0; i < current.size(); i++) {
-        // If best+borrow is greater than current (equivalently current-(best+borrow) is < 0) then a more significant element
-        // must have decreased, so we propagate a borrow to the next most significant element.
-        int best_val = best[i].val();
-        IntVar delta = expr(*this, current[i] - best_val - borrow[i]);
-        // (delta < 0) <=> borrow[i+1]
-        rel(*this, delta, IRT_LE, 0, borrow[i+1]);
-        if (debugLogging) {
-            DEBUG_STREAM << debugPrefix << "      ConstrainVector: borrow[" << i+1 << "] " << borrow[i+1] << ",\tdelta " << delta << std::endl;
-            DEBUG_STREAM << debugPrefix << "      ConstrainVector: current[" << i << "] " << current[i] << ",\tbest_val " << best_val << std::endl;
-        }
-    }
-
-    // must borrow off past the most significant element.
-    rel(*this, borrow[current.size()], IRT_EQ, 1);
-}
-
-VersionProblem * VersionProblem::InnerSolve(VersionProblem * problem, int &itercount)
+int VersionProblem::InnerSolve(VersionProblem * problem, int &itercount, VersionProblem** best_solution)
 {
-    Gecode::Support::Timer timer;
-    timer.start();
-
 #ifdef MEMORY_DEBUG
     DEBUG_STREAM << "Creating solver" << std::endl << std::flush;
 #endif
-    VersionProblem *best_solution = NULL;
+    Gecode::Support::Timer timer;
+    timer.start();
+    *best_solution = NULL;
+    int result_code = SOLUTION_STATE_FAILED;
+
     // This needs to accumulate over multiple steps.
     Search::TimeStop timeStop(problem->timeout);
     Search::Options options;
     options.stop = &timeStop;
+
+#ifdef GECODE_VERSION_3
+    // Restart strategy starts branching from scratch. BNB adds the
+    // constraint but keeps on going from where it was currently.
     Restart<VersionProblem> solver(problem, options);
+#else
+    options.cutoff = Search::Cutoff::geometric();
+    RBS<DFS, VersionProblem> solver(problem, options);
+#endif
+
 
 #ifdef MEMORY_DEBUG
     DEBUG_STREAM << "Starting Solve" << std::endl << std::flush;
 #endif
 
+    // Iterate over solutions; each call to solver.next creates a new
+    // copy of the problem, and constrains it to be better than the
+    // last solution. Null is returned if no solution is found.
     while (VersionProblem *solution = solver.next()) {
-#ifdef MEMORY_DEBUG
-            DEBUG_STREAM << "Solver Next " << solution << std::endl << std::flush;
-#endif
-            if (best_solution != NULL)
-                {
-                    delete best_solution;
-                }
-            best_solution = solution;
-            best_solution->solutionState = SOLUTION_STATE_SOLVED;
 
-            ++itercount;
-            if (problem->debugLogging) {
-                DEBUG_STREAM << problem->debugPrefix << "Trial Solution #" << itercount << "===============================" << std::endl;
-                const Search::Statistics & stats = solver.statistics();
-                DEBUG_STREAM << problem->debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-                DEBUG_STREAM << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
-                solution->Print(DEBUG_STREAM);
-            }
-        }
+#ifdef MEMORY_DEBUG
+        DEBUG_STREAM << "Solver Next " << solution << std::endl << std::flush;
+#endif
+        delete *best_solution;
+        *best_solution = solution;
+
+        ++itercount;
+        const Search::Statistics & stats = solver.statistics();
+        DebugLogStep(solution, itercount, stats);
+    }
+
+    // Solve with GIST:
+    VersionProblem * last = *best_solution ? *best_solution : problem;
+    last->GistSolveStep();
 
     // If we fail to find a solution in time we treat it as no
     // solution. We could return a special token to differentiate a
     // timeout, but that could cause problems for the FFI interface.
     if (solver.stopped()) {
-        best_solution->solutionState = SOLUTION_STATE_TIMED_OUT;
+        result_code = SOLUTION_STATE_TIMED_OUT;
         if (problem->debugLogging) {
             DEBUG_STREAM << problem->debugPrefix << "Solver FAILED: timed out with timeout set to "
                          << problem->timeout << " ms" << std::endl;
             const Search::Statistics & stats = solver.statistics();
-            DEBUG_STREAM << problem->debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
-            DEBUG_STREAM << " Depth:" << stats.depth << " memory:" << stats.memory << std::endl;
+            LogStats(DEBUG_STREAM, problem->debugPrefix, stats);
         }
 
-    } else  {
-        best_solution->solutionState = SOLUTION_STATE_OPTIMAL;
+    } else if (*best_solution) {
+        result_code = SOLUTION_STATE_OPTIMAL;
+    } else {
+        result_code = SOLUTION_STATE_FAILED;
     }
 
     double elapsed_time = timer.stop();
 
     if (problem->dump_stats) {
-        if (problem->debugLogging) std::cerr << problem->debugPrefix;
-        std::cerr << "dep_selector solve: ";
-        std::cerr << ((best_solution &&  best_solution->solutionState == SOLUTION_STATE_OPTIMAL) ? "SOLVED" : "FAILED")
-                  << " ";
-        std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
-        std::cerr << "Time: " << elapsed_time << "ms ";
         const Search::Statistics & final_stats = solver.statistics();
-        std::cerr << "Stats: " << itercount << " steps, ";
-        std::cerr << final_stats.memory << " bytes, ";
-        std::cerr << final_stats.propagate << " props, " << final_stats.node << " nodes, " << final_stats.depth << " depth ";
-        std::cerr << std::endl << std::flush;
+        DebugLogFinal(problem, itercount, elapsed_time, final_stats, result_code);
     }
 
-    // We return null if there is no solution found. Timeout also returns null
-    return best_solution;
+    return result_code;
 }
 
-VersionProblem * VersionProblem::Solve(VersionProblem * problem)
+void VersionProblem::GistSolveStep() {
+#ifdef GIST_ENABLED
+    VersionProblem * trial = dynamic_cast<VersionProblem*>(this->copy(false));
+    trial->constrain(*this);
+    Gist::Options options;
+    Gist::dfs(trial, options);
+    delete trial;
+#endif
+}
+
+void VersionProblem::LogStats(std::ostream & o, const char * debugPrefix, const Search::Statistics & stats) {
+    o << debugPrefix << "Solver stats: Prop:" << stats.propagate << " Fail:" << stats.fail << " Node:" << stats.node;
+    o << " Depth:" << stats.depth;
+#ifdef GECODE_VERSION_3
+    o << " memory:" << stats.memory;
+#endif // GECODE_VERSION_3
+    o << std::endl;
+}
+
+void VersionProblem::DebugLogStep(VersionProblem *problem, int itercount, const Search::Statistics & stats) {
+     if (problem->debugLogging) {
+         DEBUG_STREAM << problem->debugPrefix << "Trial Solution #" << itercount << "===============================" << std::endl;
+         LogStats(DEBUG_STREAM, problem->debugPrefix, stats);
+         problem->Print(DEBUG_STREAM);
+     }
+}
+
+void VersionProblem::DebugLogFinal(VersionProblem *problem, int itercount, double elapsed_time, const Search::Statistics & stats, int solutionState) {
+     if (problem->debugLogging) std::cerr << problem->debugPrefix;
+     std::cerr << "dep_selector solve: ";
+     std::cerr << ((solutionState == SOLUTION_STATE_OPTIMAL) ? "SOLVED" : "FAILED") << " ";
+     std::cerr << problem->size << " packages, " << problem->version_constraint_count << " constraints, ";
+     std::cerr << "Time: " << elapsed_time << "ms ";
+
+     std::cerr << "Stats: " << itercount << " steps, ";
+     LogStats(std::cerr, (problem->debugLogging ? problem->debugPrefix : ""), stats);
+     std::cerr << std::flush;
+}
+
+
+int VersionProblem::Solve(VersionProblem * problem, VersionProblem ** solution)
 {
 
     problem->Finalize();
@@ -712,19 +837,19 @@ VersionProblem * VersionProblem::Solve(VersionProblem * problem)
     }
     int itercount = 0;
 
-    VersionProblem *best_solution = InnerSolve(problem, itercount);
+    int result_code = InnerSolve(problem, itercount, solution);
 
     if (problem->debugLogging) {
-        DEBUG_STREAM << problem->DebugPrefix() << "Solver Best Solution " << best_solution << std::endl << std::flush;
+        DEBUG_STREAM << problem->DebugPrefix() << "Solver Best Solution " << *solution << std::endl << std::flush;
     }
 
-    pool->Delete(best_solution);
+    pool->Delete(*solution);
     problem->pool = 0;
 
     pool->DeleteAll();
     delete pool;
 
-    return best_solution;
+    return result_code;
 }
 
 //

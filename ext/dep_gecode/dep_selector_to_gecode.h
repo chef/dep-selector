@@ -28,6 +28,11 @@
 #include <gecode/driver.hh>
 #include <gecode/int.hh>
 #include <gecode/minimodel.hh>
+#include <gecode/support.hh>
+
+#if GECODE_VERSION_NUMBER < 400000
+#define GECODE_VERSION_3
+#endif
 
 using namespace Gecode;
 
@@ -112,10 +117,17 @@ public:
   // Debug and utility functions
   void Print(std::ostream &out);
   void PrintPackageVar(std::ostream & out, int packageId) ;
+  void GistSolveStep();
+
   const char * DebugPrefix() const { return debugPrefix; }
 
-  static VersionProblem *InnerSolve(VersionProblem * problem, int & itercount);
-  static VersionProblem *Solve(VersionProblem *problem);
+  static int InnerSolve(VersionProblem * problem, int & itercount, VersionProblem** solution);
+
+  static void DebugLogStep(VersionProblem *problem, int itercount, const Search::Statistics & stats);
+  static void LogStats(std::ostream & o, const char * debugPrefix, const Search::Statistics & stats);
+  static void DebugLogFinal(VersionProblem *problem, int itercount, double elapsed_time, const Search::Statistics & stats, int solutionState);
+
+  static int Solve(VersionProblem *problem, VersionProblem**solution);
 
  protected:
   int instance_id;
@@ -155,18 +167,15 @@ public:
   void ConstrainVectorLessThanBest(IntVarArgs & current, IntVarArgs & best);
   void BuildCostVector(IntVarArgs & costVector) const;
 
+  void AddBrancherPoor(std::ostream & o);
+  void AddBrancherOriginal(std::ostream & o);
+  void AddBrancherV2(std::ostream & o);
+  void AddBrancherAtLatest(std::ostream & o);
+
   friend class VersionProblemPool;
 };
 
 template<class T> void PrintVarAligned(const char * message, T & var);
 template<class S, class T> void PrintVarAligned(const char * message, S & var1, T & var2);
-
-class Solver {
- public:
-  Solver(VersionProblem *s);
-  VersionProblem GetNextSolution();
- private:
-  Restart<VersionProblem> solver;
-};
 
 #endif // dep_selector_to_gecode_h

@@ -62,7 +62,7 @@ module Dep_gecode
   attach_function :AddVersionConstraint, [:pointer, :int, :int, :int, :int, :int], :void
 
   # VersionProblem * Solve(VersionProblem * problem);
-  attach_function :Solve, [:pointer], :pointer
+  attach_function :Solve, [:pointer, :pointer], :int
 
   # int GetDisabledVariableCount(VersionProblem *problem);
   attach_function :GetDisabledVariableCount, [:pointer], :int
@@ -84,9 +84,6 @@ module Dep_gecode
 
   # int GetPackageMin(VersionProblem *problem, int packageId);
   attach_function :GetPackageMin, [:pointer, :int], :int
-
-  # int GetSolutionState(VersionProblem * problem);
-  attach_function :GetSolutionState, [:pointer], :int
 
   # void SetTimeout(VersionProblem * problem, unsigned long int);
   attach_function :SetTimeout, [:pointer, :ulong], :void
