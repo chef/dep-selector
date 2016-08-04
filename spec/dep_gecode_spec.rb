@@ -19,6 +19,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'spec_helper'))
 
+require 'securerandom'
 require 'version_constraints'
 
 VersionProblemDebug = true
@@ -30,7 +31,7 @@ DefaultTimeout = 5000
 def setup_problem_for_dep_gecode(relationships)
 
 #  pp :relationships=>relationships
-  
+
   dep_graph = DepSelector::DependencyGraph.new
   setup_constraint(dep_graph, relationships)
 
@@ -85,7 +86,7 @@ def setup_soln_constraints_for_dep_gecode(soln_constraints, problem, pkg_name_to
 end
 
 def print_human_readable_solution(problem, pkg_name_to_id, dep_graph)
-  dep_graph.each_package do |package|  
+  dep_graph.each_package do |package|
     package_id = pkg_name_to_id[package.name]
     package_version = Dep_gecode.GetPackageVersion(problem,package_id)
     version_text = package.densely_packed_versions.sorted_elements[package_version]
@@ -105,9 +106,9 @@ def check_solution(problem, pkg_name_to_id, dep_graph, expected_solution)
     package_version = Dep_gecode.GetPackageVersion(problem,package_id)
     version_text = package.densely_packed_versions.sorted_elements[package_version]
     expected_version = expected_solution.nil? ? "NA" : expected_solution[package.name]
-    if (expected_version == "disabled") 
+    if (expected_version == "disabled")
       Dep_gecode.GetPackageDisabledState(problem,package_id).should be_true
-    else 
+    else
       version_text.to_s.should == expected_version.to_s
     end
   end
@@ -122,14 +123,14 @@ def print_bindings(problem, vars)
 end
 
 describe Dep_gecode do
- 
+
   it "Can be created and destroyed" do
-    problem = Dep_gecode.VersionProblemCreate(1, true, VersionProblemDebug, "test_slug_1", DefaultTimeout) 
+    problem = Dep_gecode.VersionProblemCreate(1, true, VersionProblemDebug, "test_slug_1", DefaultTimeout)
     Dep_gecode.VersionProblemDestroy(problem)
   end
 
   it "Can be created, and have packages added to it" do
-    problem = Dep_gecode.VersionProblemCreate(2, true, VersionProblemDebug, "test_slug_2", DefaultTimeout) 
+    problem = Dep_gecode.VersionProblemCreate(2, true, VersionProblemDebug, "test_slug_2", DefaultTimeout)
     Dep_gecode.VersionProblemSize(problem).should == 2
     Dep_gecode.VersionProblemPackageCount(problem).should == 0
     packageId = Dep_gecode.AddPackage(problem, 0, 2, 8)
@@ -169,13 +170,16 @@ describe Dep_gecode do
     setup_soln_constraints_for_dep_gecode(solution_constraints, @problem, @pkg_name_to_id, @dep_graph)
 
     # solve and interrogate problem
-    new_problem = Dep_gecode.Solve(@problem)
+    solution_ptr = FFI::MemoryPointer.new :pointer
+    new_problem = Dep_gecode.Solve(@problem, solution_ptr)
+    solution_raw = solution_ptr.get_pointer(0)
+    # solution = DepSelector::GecodeWrapper.new(solution_raw, SecureRandom.uuid)
 
-#    print_human_readable_solution(new_problem, @pkg_name_to_id, @dep_graph)
-    check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
+    # print_human_readable_solution(new_problem, @pkg_name_to_id, @dep_graph)
+    check_solution(solution_raw, @pkg_name_to_id, @dep_graph,
                    {'A'=>'2.0.0', 'B'=>'1.0.0', 'C'=>'1.0.0'})
 
-    Dep_gecode.VersionProblemDestroy(new_problem);
+    Dep_gecode.VersionProblemDestroy(solution_raw);
   end
 
    it "fails to solve a simple, unsatisfiable set of constraints" do
@@ -187,21 +191,23 @@ describe Dep_gecode do
     setup_soln_constraints_for_dep_gecode(solution_constraints, @problem, @pkg_name_to_id, @dep_graph)
 
     # solve and interrogate problem
-    new_problem = Dep_gecode.Solve(@problem)
+    solution_ptr = FFI::MemoryPointer.new :pointer
+    new_problem = Dep_gecode.Solve(@problem, solution_ptr)
+    solution_raw = solution_ptr.get_pointer(0)
 
     new_problem.should_not == nil
 
-    check_solution(new_problem, @pkg_name_to_id, @dep_graph, 
+    check_solution(solution_raw, @pkg_name_to_id, @dep_graph,
                    {'A'=>'1.0.0', 'B'=>'disabled', 'C'=>'1.0.0'}
                    )
 
-    Dep_gecode.VersionProblemDestroy(new_problem);
+    Dep_gecode.VersionProblemDestroy(solution_raw);
   end
 
   # Friendlier, more abstracted tests
   # it VersionConstraints::SimpleProblem_2_insoluble[:desc] do
   #   problem_system = VersionConstraints::SimpleProblem_2_insoluble
-   
+
   #   setup_soln_constraints_for_dep_gecode(problem_system[:runlist_constraint], @problem, @pkg_name_to_id, @dep_graph)
 
   #   # solve and interrogate problem
@@ -217,10 +223,12 @@ describe Dep_gecode do
     setup_soln_constraints_for_dep_gecode(@problem_system[:runlist_constraint], @problem, @pkg_name_to_id, @dep_graph)
 
     # solve and interrogate problem
-    new_problem = Dep_gecode.Solve(@problem)
-    check_solution(new_problem, @pkg_name_to_id, @dep_graph, @problem_system[:solution])
+    solution_ptr = FFI::MemoryPointer.new :pointer
+    new_problem = Dep_gecode.Solve(@problem, solution_ptr)
+    solution_raw = solution_ptr.get_pointer(0)
+    check_solution(solution_raw, @pkg_name_to_id, @dep_graph, @problem_system[:solution])
 
-    Dep_gecode.VersionProblemDestroy(new_problem)
+    Dep_gecode.VersionProblemDestroy(solution_raw)
   end
 
    it "should prefer to disable suspicious packages" do
@@ -257,7 +265,9 @@ describe Dep_gecode do
     # add solution constraints
     Dep_gecode.AddVersionConstraint(problem, 10, 0, 7, 0, 0);
 
-    soln = Dep_gecode.Solve(problem)
+    solution_ptr = FFI::MemoryPointer.new :pointer
+    new_problem = Dep_gecode.Solve(problem, solution_ptr)
+    solution_raw = solution_ptr.get_pointer(0)
 
     # check that disabled packages are correct
     expected_disabled_packages = [false, false, false, true, false, false, false, false, false, false, false].inject({}) do |acc, is_disabled|
@@ -265,15 +275,15 @@ describe Dep_gecode do
       acc
     end
     observed_disabled_packages = 0.upto(10).inject({}) do |acc, package_id|
-      acc["id #{package_id}"] = Dep_gecode.GetPackageDisabledState(soln, package_id)
+      acc["id #{package_id}"] = Dep_gecode.GetPackageDisabledState(solution_raw, package_id)
       acc
     end
     observed_disabled_packages.should == expected_disabled_packages
 
     Dep_gecode.VersionProblemDestroy(problem)
-    Dep_gecode.VersionProblemDestroy(soln)
+    Dep_gecode.VersionProblemDestroy(solution_raw)
   end
- 
+
   describe "maximization of latestness of solution constraints" do
     before do
       # setup dep graph
@@ -297,32 +307,36 @@ describe Dep_gecode do
     it "should maximize latestness of solution constraints not marked with MarkPackagePreferredToBeAtLatest" do
       Dep_gecode.MarkPackagePreferredToBeAtLatest(@problem, @pkg_a, 10);
 
-      soln = Dep_gecode.Solve(@problem)
-      soln.should_not == nil
-      
+      solution_ptr = FFI::MemoryPointer.new :pointer
+      new_problem = Dep_gecode.Solve(@problem, solution_ptr)
+      new_problem.should_not == nil
+      solution_raw = solution_ptr.get_pointer(0)
+
       # since we haven't indicated that a, b, and c should be
       # preferred to be latest and a was added first, it should find a
       # satisfiable solution at a=1, b=0, c=0
-      Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 1
-      Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 0
-      Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 0
+      Dep_gecode.GetPackageVersion(solution_raw, @pkg_a).should == 1
+      Dep_gecode.GetPackageVersion(solution_raw, @pkg_b).should == 0
+      Dep_gecode.GetPackageVersion(solution_raw, @pkg_c).should == 0
 
-      Dep_gecode.VersionProblemDestroy(soln)
+      Dep_gecode.VersionProblemDestroy(solution_raw)
     end
 
     it "Should select lastest if we don't mark any at all" do
 
-      soln = Dep_gecode.Solve(@problem)
-      soln.should_not == nil
-      
+      solution_ptr = FFI::MemoryPointer.new :pointer
+      new_problem = Dep_gecode.Solve(@problem, solution_ptr)
+      new_problem.should_not == nil
+      solution_raw = solution_ptr.get_pointer(0)
+
       # since we haven't indicated that a, b, and c should be
       # preferred to be latest and a was added first, it should find a
       # satisfiable solution at a=1, b=0, c=0
-      Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 0
-      Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 1
-      Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 1
+      Dep_gecode.GetPackageVersion(solution_raw, @pkg_a).should == 0
+      Dep_gecode.GetPackageVersion(solution_raw, @pkg_b).should == 1
+      Dep_gecode.GetPackageVersion(solution_raw, @pkg_c).should == 1
 
-      Dep_gecode.VersionProblemDestroy(soln)
+      Dep_gecode.VersionProblemDestroy(solution_raw)
     end
 
     # Note: this is the actual test of latestness maximization
@@ -333,17 +347,17 @@ describe Dep_gecode do
 
       # now, mark a, b, and c as preferred to be at latest and observe
       # that a=0, b=1, and c=1 is chosen
-      soln = Dep_gecode.Solve(@problem)
-      soln.should_not == nil
+      solution_ptr = FFI::MemoryPointer.new :pointer
+      new_problem = Dep_gecode.Solve(@problem, solution_ptr)
+      new_problem.should_not == nil
+      solution_raw = solution_ptr.get_pointer(0)
 
-      Dep_gecode.GetPackageVersion(soln, @pkg_a).should == 0
-      Dep_gecode.GetPackageVersion(soln, @pkg_b).should == 1
-      Dep_gecode.GetPackageVersion(soln, @pkg_c).should == 1
+      Dep_gecode.GetPackageVersion(solution_raw, @pkg_a).should == 0
+      Dep_gecode.GetPackageVersion(solution_raw, @pkg_b).should == 1
+      Dep_gecode.GetPackageVersion(solution_raw, @pkg_c).should == 1
 
-      Dep_gecode.VersionProblemDestroy(soln)
+      Dep_gecode.VersionProblemDestroy(solution_raw)
     end
   end
 
 end
-
-
