@@ -843,7 +843,9 @@ int VersionProblem::Solve(VersionProblem * problem, VersionProblem ** solution)
         DEBUG_STREAM << problem->DebugPrefix() << "Solver Best Solution " << *solution << std::endl << std::flush;
     }
 
-    pool->Delete(*solution);
+    if (*solution) {
+        pool->Delete(*solution);
+    }
     problem->pool = 0;
 
     pool->DeleteAll();
