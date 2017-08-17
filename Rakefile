@@ -60,5 +60,3 @@ rescue LoadError
     abort "RSpec is not available. (sudo) gem install rspec to run unit tests"
   end
 end
-
-
