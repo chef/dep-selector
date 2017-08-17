@@ -39,7 +39,7 @@ end
 task :compile do
   cd("ext/dep_gecode")
   ruby("extconf.rb")
-  sh("make clean")
+  #sh("make clean")
   sh("make")
 end
 
@@ -60,5 +60,3 @@ rescue LoadError
     abort "RSpec is not available. (sudo) gem install rspec to run unit tests"
   end
 end
-
-

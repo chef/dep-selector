@@ -1,7 +1,7 @@
 #
 # Author:: Christopher Walters (<cw@opscode.com>)
 # Author:: Mark Anderson (<mark@opscode.com>)
-# Copyright:: Copyright (c) 2010-2011 Opscode, Inc.
+# Copyright:: Copyright (c) 2010-2017, Chef Software Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
 # Ruby that supports C extensions. Our library isn't an extension, but we piggyback on ruby's C extension build system
 if !defined?(RUBY_ENGINE) || RUBY_ENGINE == 'ruby' || RUBY_ENGINE == 'rbx'
   #
-  # GECODE needs to be built with 
+  # GECODE needs to be built with
   # ./configure --with-architectures=i386,x86_64
   # to work properly here.
   require 'mkmf'
@@ -235,7 +235,7 @@ all:\t$(DLLIB)
 install:
 
 clean:
-\t$(Q)$(RM) $(CLEANLIBS) $(CLEANOBJS) $(CLEANFILES) .*.time
+\t$(RM) -f $(CLEANLIBS) $(CLEANOBJS) $(CLEANFILES) .*.time
 
 
 .SUFFIXES: .c .m .cc .mm .cxx .cpp .C .o
