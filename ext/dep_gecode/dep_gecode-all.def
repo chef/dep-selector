@@ -14,3 +14,4 @@ GetPackageDisabledState
 VersionProblemPackageCount
 GetPackageMax
 GetPackageMin
+SetTimeout
