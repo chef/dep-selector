@@ -39,7 +39,7 @@ end
 task :compile do
   cd("ext/dep_gecode")
   ruby("extconf.rb")
-  #sh("make clean")
+  sh("make clean")
   sh("make")
 end
 

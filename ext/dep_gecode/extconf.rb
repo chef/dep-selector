@@ -235,7 +235,7 @@ all:\t$(DLLIB)
 install:
 
 clean:
-\t$(RM) -f $(CLEANLIBS) $(CLEANOBJS) $(CLEANFILES) .*.time
+\t$(Q) $(RM) $(CLEANLIBS) $(CLEANOBJS) $(CLEANFILES) .*.time
 
 
 .SUFFIXES: .c .m .cc .mm .cxx .cpp .C .o
