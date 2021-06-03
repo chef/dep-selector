@@ -1,0 +1,43 @@
+# testing
+name: CI Matrix Testing
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron:  '21 3 * * *'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+        ruby: [2.6, 2.7, 3.0 ]
+    steps:
+    #- run: |
+    #     if [ "$RUNNER_OS" == "Linux" ]; then
+    #       sudo apt-get install graphviz libarchive-dev
+    #     elif [ "$RUNNER_OS" == "Windows" ]; then
+    #       choco install graphviz
+    #     elif [ "$RUNNER_OS" == "macOS" ]; then
+    #       brew install graphviz libarchive
+    #     else
+    #       echo "$RUNNER_OS not supported"
+    #       exit 1
+    #     fi
+    #  shell: bash
+    - uses: actions/checkout@v2
+    - uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+        ruby-version: ${{ matrix.ruby }}
+    - run: bundle exec rake compile
+      if: always()
+    - run: bundle exec rake spec
+      if: always()

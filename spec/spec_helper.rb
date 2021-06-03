@@ -1,7 +1,7 @@
 #
 # Author:: Christopher Walters (<cw@opscode.com>)
 # Author:: Mark Anderson (<mark@opscode.com>)
-# Copyright:: Copyright (c) 2010-2011 Opscode, Inc.
+# Copyright:: Copyright (c) Chef Software Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,15 @@ require 'dep_selector'
 require 'pp'
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
-  config.treat_symbols_as_metadata_keys_with_true_values = true
 
   config.filter_run :focus => true
   config.filter_run_excluding :external => true
 
   # Tests that randomly fail, but may have value.
   config.filter_run_excluding :volatile => true
+
+  # This gem is on life support so don't care
+  config.expect_with(:rspec) { |c| c.syntax = :should }
 end
 
 
