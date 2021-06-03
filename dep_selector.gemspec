@@ -5,7 +5,6 @@ Gem::Specification.new do |s|
   s.name = "dep_selector"
   s.version = DepSelector::VERSION
   s.platform = Gem::Platform::RUBY
-  s.has_rdoc = false
   s.summary = "Given packages, versions, and a dependency graph, find a valid assignment of package versions"
   s.description = s.summary
   s.license = 'Apache v2'
@@ -18,11 +17,11 @@ Gem::Specification.new do |s|
   s.files = Dir.glob("lib/**/*.{rb}") + Dir.glob("ext/**/*.{i,c,cxx,h,cpp,rb,def}")
   s.extensions = Dir["ext/**/extconf.rb"]
 
-  s.required_ruby_version = ">= 2.1.0"
-  s.add_runtime_dependency "ffi", "~> 1.9"
-  s.add_runtime_dependency "dep-selector-libgecode", "~> 1.0"
+  s.required_ruby_version = ">= 2.6.0"
+  s.add_runtime_dependency "ffi"
+  s.add_runtime_dependency "dep-selector-libgecode"
 
   s.add_development_dependency "rake"
-  s.add_development_dependency "rspec", "~> 2.14"
+  s.add_development_dependency "rspec"
   s.add_development_dependency "solve", "~> 0.8"
 end
